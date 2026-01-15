@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using DWSIM.Interfaces;
 using DWSIM.SharedClasses;
 
@@ -28,7 +29,7 @@ public interface IFlowsheetService
 public class FlowsheetService : IFlowsheetService
 {
     private readonly IDWSIMService _dwsimService;
-    private readonly Dictionary<Guid, IFlowsheet> _flowsheets = new();
+    private readonly ConcurrentDictionary<Guid, IFlowsheet> _flowsheets = new();
 
     public FlowsheetService(IDWSIMService dwsimService)
     {
@@ -44,7 +45,7 @@ public class FlowsheetService : IFlowsheetService
         var flowsheet = interf.LoadFlowsheet(filePath);
         
         var id = Guid.NewGuid();
-        _flowsheets[id] = flowsheet;
+        _flowsheets.TryAdd(id, flowsheet);
         
         return id;
     }
@@ -64,7 +65,7 @@ public class FlowsheetService : IFlowsheetService
 
     public void UnloadFlowsheet(Guid id)
     {
-        _flowsheets.Remove(id);
+        _flowsheets.TryRemove(id, out _);
     }
 
     public StreamProperties GetStreamProperties(Guid flowsheetId, string streamTag)

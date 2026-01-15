@@ -24,7 +24,7 @@ public class HealthController : ControllerBase
             {
                 Status = "Healthy",
                 DWSIMVersion = version,
-                Message = "DWSIM Automation Engine initialized successfully."
+                Message = "Engine initialized successfully."
             });
         }
         catch (Exception ex)
@@ -32,7 +32,7 @@ public class HealthController : ControllerBase
             return StatusCode(500, new
             {
                 Status = "Error",
-                Message = "Failed to initialize DWSIM Automation Engine.",
+                Message = "Internal Sever Error",
                 Error = ex.Message
             });
         }
