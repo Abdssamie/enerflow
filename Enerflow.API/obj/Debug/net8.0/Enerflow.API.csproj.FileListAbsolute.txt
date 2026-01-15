@@ -1,9 +1,0 @@
-/home/abdssamie/ChemforgeProjects/enerflow/Enerflow.API/obj/Debug/net8.0/Enerflow.API.csproj.AssemblyReference.cache
-/home/abdssamie/ChemforgeProjects/enerflow/Enerflow.API/obj/Debug/net8.0/rpswa.dswa.cache.json
-/home/abdssamie/ChemforgeProjects/enerflow/Enerflow.API/obj/Debug/net8.0/Enerflow.API.GeneratedMSBuildEditorConfig.editorconfig
-/home/abdssamie/ChemforgeProjects/enerflow/Enerflow.API/obj/Debug/net8.0/Enerflow.API.AssemblyInfoInputs.cache
-/home/abdssamie/ChemforgeProjects/enerflow/Enerflow.API/obj/Debug/net8.0/Enerflow.API.AssemblyInfo.cs
-/home/abdssamie/ChemforgeProjects/enerflow/Enerflow.API/obj/Debug/net8.0/Enerflow.API.csproj.CoreCompileInputs.cache
-/home/abdssamie/ChemforgeProjects/enerflow/Enerflow.API/obj/Debug/net8.0/Enerflow.API.MvcApplicationPartsAssemblyInfo.cache
-/home/abdssamie/ChemforgeProjects/enerflow/Enerflow.API/obj/Debug/net8.0/Enerflow.API.sourcelink.json
-/home/abdssamie/ChemforgeProjects/enerflow/Enerflow.API/obj/Debug/net8.0/Enerflow.API.MvcApplicationPartsAssemblyInfo.cs
