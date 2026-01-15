@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <DWSIMPath>../libs/dwsim_9.0.5/dwsim</DWSIMPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="DWSIM.Automation">
+      <HintPath>$(DWSIMPath)/DWSIM.Automation.dll</HintPath>
+    </Reference>
+    <Reference Include="DWSIM.Interfaces">
+      <HintPath>$(DWSIMPath)/DWSIM.Interfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="DWSIM.SharedClasses">
+      <HintPath>$(DWSIMPath)/DWSIM.SharedClasses.dll</HintPath>
+    </Reference>
+    <Reference Include="DWSIM.Thermodynamics">
+      <HintPath>$(DWSIMPath)/DWSIM.Thermodynamics.dll</HintPath>
+    </Reference>
+    <Reference Include="DWSIM.UnitOperations">
+      <HintPath>$(DWSIMPath)/DWSIM.UnitOperations.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="$(DWSIMPath)/**/*.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="$(DWSIMPath)/**/*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="$(DWSIMPath)/**/*.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="$(DWSIMPath)/data/**/*.*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
