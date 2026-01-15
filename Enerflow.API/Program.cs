@@ -9,6 +9,7 @@ builder.Services.AddOpenApi();
 
 // Register DWSIM Service as a Singleton
 builder.Services.AddSingleton<IDWSIMService, DWSIMService>();
+builder.Services.AddSingleton<IFlowsheetService, FlowsheetService>();
 
 var app = builder.Build();
 
