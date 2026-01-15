@@ -2,6 +2,8 @@
 
 libs/
 libs/dwsim_9.0.5
+libs/dwsim_src
+output/
 bin/
 obj/
 *.user

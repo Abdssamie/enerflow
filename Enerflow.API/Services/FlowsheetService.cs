@@ -1,17 +1,8 @@
 using DWSIM.Interfaces;
 using DWSIM.SharedClasses;
+using Enerflow.Domain.ValueObjects;
 
 namespace Enerflow.API.Services;
-
-public record StreamProperties(
-    string Tag,
-    double Temperature, // K
-    double Pressure,    // Pa
-    double MassFlow,    // kg/s
-    double MolarFlow,   // mol/s
-    double VapourFraction,
-    double Enthalpy     // kJ/kg
-);
 
 public interface IFlowsheetService
 {
@@ -20,8 +11,8 @@ public interface IFlowsheetService
     IEnumerable<Guid> GetLoadedFlowsheetIds();
     void UnloadFlowsheet(Guid id);
     
-    StreamProperties GetStreamProperties(Guid flowsheetId, string streamTag);
-    void UpdateStreamProperties(Guid flowsheetId, string streamTag, double? temperature, double? pressure, double? massFlow);
+    StreamState GetStreamState(Guid flowsheetId, string streamTag);
+    void UpdateStreamState(Guid flowsheetId, string streamTag, StreamState state);
     void Solve(Guid flowsheetId);
 }
 
@@ -67,37 +58,44 @@ public class FlowsheetService : IFlowsheetService
         _flowsheets.Remove(id);
     }
 
-    public StreamProperties GetStreamProperties(Guid flowsheetId, string streamTag)
+    public StreamState GetStreamState(Guid flowsheetId, string streamTag)
     {
         var flowsheet = GetFlowsheet(flowsheetId);
         var obj = flowsheet.GetObject(streamTag);
         
         if (obj is IMaterialStream stream)
         {
-            return new StreamProperties(
-                ((ISimulationObject)stream).GraphicObject.Tag,
+            // Note: Assuming DWSIM returns values in SI (K, Pa, kg/s, kJ/kg)
+            return StreamState.Create(
                 stream.GetTemperature(),
                 stream.GetPressure(),
                 stream.GetMassFlow(),
                 stream.GetMolarFlow(),
-                (double)((dynamic)stream).GetVaporPhaseMoleFraction(),
-                stream.GetMassEnthalpy()
+                stream.GetMassEnthalpy(), 
+                stream.GetOverallComposition()
             );
         }
         
         throw new InvalidOperationException($"Object with tag {streamTag} is not a material stream.");
     }
 
-    public void UpdateStreamProperties(Guid flowsheetId, string streamTag, double? temperature, double? pressure, double? massFlow)
+    public void UpdateStreamState(Guid flowsheetId, string streamTag, StreamState state)
     {
         var flowsheet = GetFlowsheet(flowsheetId);
         var obj = flowsheet.GetObject(streamTag);
         
         if (obj is IMaterialStream stream)
         {
-            if (temperature.HasValue) stream.SetTemperature(temperature.Value);
-            if (pressure.HasValue) stream.SetPressure(pressure.Value);
-            if (massFlow.HasValue) stream.SetMassFlow(massFlow.Value);
+            // Set T, P, Flow directly (SI units assumed by DWSIM setters)
+            stream.SetTemperature(state.Temperature);
+            stream.SetPressure(state.Pressure);
+            stream.SetMassFlow(state.MassFlow);
+            
+            // Set Composition if provided
+            if (state.MoleFractions != null && state.MoleFractions.Length > 0)
+            {
+                stream.SetOverallComposition(state.MoleFractions);
+            }
             return;
         }
         

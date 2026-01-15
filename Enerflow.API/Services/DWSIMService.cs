@@ -1,4 +1,5 @@
 using DWSIM.Automation;
+using DWSIM.GlobalSettings;
 
 namespace Enerflow.API.Services;
 
@@ -16,6 +17,9 @@ public class DWSIMService : IDWSIMService
     {
         // Initializing the DWSIM Automation manager
         _automationManager = new Automation2();
+        
+        // CRITICAL: Enable AutomationMode to prevent DWSIM from trying to access UI components (Headless mode)
+        DWSIM.GlobalSettings.Settings.AutomationMode = true;
     }
 
     public Automation2 GetAutomationManager()
@@ -25,6 +29,6 @@ public class DWSIMService : IDWSIMService
 
     public string GetDWSIMVersion()
     {
-        return "9.0.5";
+        return Settings.CurrentVersion;
     }
 }
