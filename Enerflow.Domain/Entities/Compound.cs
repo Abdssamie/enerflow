@@ -4,7 +4,7 @@ namespace Enerflow.Domain.Entities;
 
 public class Compound
 {
-    public required Guid Id { get; set; }
+    public Guid Id { get; set; } = Common.IdGenerator.NextGuid();
     public required Guid SimulationId { get; set; }
     public required string Name { get; set; }
     

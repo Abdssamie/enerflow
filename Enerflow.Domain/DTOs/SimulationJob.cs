@@ -8,7 +8,7 @@ namespace Enerflow.Domain.DTOs;
 
 public record SimulationJob
 {
-    public required Guid JobId { get; init; }
+    public Guid JobId { get; init; } = Common.IdGenerator.NextGuid();
     public required Guid SimulationId { get; init; }
 
     // The complete definition required to build/solve the flowsheet

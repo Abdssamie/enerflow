@@ -7,6 +7,9 @@ using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure NewId to use Process ID for uniqueness across multiple instances on same host
+MassTransit.NewId.SetProcessIdProvider(new MassTransit.NewIdProviders.CurrentProcessIdProvider());
+
 // Add services to the container.
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi

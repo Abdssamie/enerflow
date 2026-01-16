@@ -23,6 +23,7 @@ public class EnerflowDbContext : DbContext
         modelBuilder.Entity<Simulation>(entity =>
         {
             entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasValueGenerator<SequentialGuidValueGenerator>();
             entity.Property(e => e.Name).IsRequired();
             entity.Property(e => e.ThermoPackage).IsRequired();
             entity.Property(e => e.SystemOfUnits).IsRequired();
@@ -46,6 +47,7 @@ public class EnerflowDbContext : DbContext
         modelBuilder.Entity<Compound>(entity =>
         {
             entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasValueGenerator<SequentialGuidValueGenerator>();
             entity.Property(e => e.Name).IsRequired();
             // Map ConstantProperties to JSONB
             entity.Property(e => e.ConstantProperties).HasColumnType("jsonb");
@@ -55,6 +57,7 @@ public class EnerflowDbContext : DbContext
         modelBuilder.Entity<MaterialStream>(entity =>
         {
             entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasValueGenerator<SequentialGuidValueGenerator>();
             entity.Property(e => e.Name).IsRequired();
 
             // Map MolarCompositions to JSONB
@@ -65,6 +68,7 @@ public class EnerflowDbContext : DbContext
         modelBuilder.Entity<EnergyStream>(entity =>
         {
             entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasValueGenerator<SequentialGuidValueGenerator>();
             entity.Property(e => e.Name).IsRequired();
         });
 
@@ -72,6 +76,7 @@ public class EnerflowDbContext : DbContext
         modelBuilder.Entity<UnitOperation>(entity =>
         {
             entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasValueGenerator<SequentialGuidValueGenerator>();
             entity.Property(e => e.Name).IsRequired();
             entity.Property(e => e.Type).IsRequired(); // Kept as string for now to match Entity definition
 

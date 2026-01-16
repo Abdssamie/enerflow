@@ -16,7 +16,15 @@ This document serves as the primary instruction set for AI coding agents operati
 - **Run Specific Test:** `dotnet test --filter "FullyQualifiedName=Namespace.ClassName.MethodName"`
 - **Run Functional Tests:** `dotnet test Enerflow.Tests.Functional/Enerflow.Tests.Functional.csproj` (Requires Docker for Testcontainers)
 
-## 2. Architecture & Design
+## 2. Enerflow Vibe Coding (Opencode)
+Adhere to these principles to maintain flow and quality within our specific architecture:
+1.  **Domain-First Intent:** Describe code in terms of `MaterialStream`, `UnitOperation`, and `Topology`. Avoid generic "data processing" language.
+2.  **Lifecycle Chunking:** Implement features by following the Simulation Lifecycle: **Map -> Build -> Solve -> Collect**.
+3.  **Hybrid Data Model:** Enforce strict typing for Relations/Topology (Guids), but embrace `JsonDocument` for flexible physical properties.
+4.  **Stateless Execution:** The Worker is stateless. Ensure every `SimulationJob` contains *everything* needed to run.
+5.  **Fail Safe:** DWSIM is fragile. Always wrap solver logic in robust error handling to protect the Worker process.
+
+## 3. Architecture & Design
 
 ### The "Enterprise Worker" Pattern
 Enerflow uses a split architecture to ensure stability and isolation:
@@ -42,6 +50,7 @@ Enerflow uses a split architecture to ensure stability and isolation:
 ### C# / .NET 10.0 Guidelines
 - **Namespaces:** Use File-scoped namespaces (`namespace Enerflow.Domain;`).
 - **Constructors:** Use Primary Constructors where appropriate, or standard constructors for DI injection.
+- **Sequential IDs:** Use `Enerflow.Domain.Common.IdGenerator.NextGuid()` for generating new identifiers. **NEVER** use `Guid.NewGuid()`. Sequential IDs (NewId) are required for database performance and clustered index stability.
 - **Properties:** Use `required` modifier for DTOs and Entities to ensure validity.
 - **Typing:** Use `var` for complex object creation (`new Dictionary<...>`), explicit types for primitives (`int`, `string`) and return types.
 - **Async:** Always use `async/await`. Avoid `.Result` or `.Wait()`. Use `CancellationToken` where available.

@@ -17,6 +17,9 @@ using Microsoft.Extensions.Logging;
 
 var builder = Host.CreateApplicationBuilder(args);
 
+// Configure NewId to use Process ID for uniqueness across multiple instances on same host
+MassTransit.NewId.SetProcessIdProvider(new MassTransit.NewIdProviders.CurrentProcessIdProvider());
+
 // Configure PostgreSQL connection
 var dbConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("DefaultConnection is not set in configuration");
