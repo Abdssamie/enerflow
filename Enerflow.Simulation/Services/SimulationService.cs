@@ -7,6 +7,11 @@ using DWSIM.Thermodynamics.Streams;
 using Enerflow.Domain.Enums;
 using DWSIMPropertyPackage = DWSIM.Thermodynamics.PropertyPackages;
 using Microsoft.Extensions.Logging;
+using Enerflow.Simulation.Flowsheet.Compounds;
+using Enerflow.Simulation.Flowsheet.PropertyPackages;
+using Enerflow.Simulation.Flowsheet.Streams;
+using Enerflow.Simulation.Flowsheet.UnitOperations;
+using Enerflow.Simulation.Flowsheet.FlashAlgorithms;
 
 namespace Enerflow.Simulation.Services;
 
@@ -17,7 +22,12 @@ namespace Enerflow.Simulation.Services;
 public class SimulationService : ISimulationService
 {
     private readonly ILogger<SimulationService> _logger;
-    private readonly UnitOperationFactory _unitOpFactory;
+    private readonly ICompoundManager _compoundManager;
+    private readonly IPropertyPackageManager _propertyPackageManager;
+    private readonly IMaterialStreamFactory _materialStreamFactory;
+    private readonly IEnergyStreamFactory _energyStreamFactory;
+    private readonly IUnitOperationFactory _unitOpFactory;
+    private readonly IFlashAlgorithmManager _flashAlgorithmManager;
 
     private readonly Automation _automation;
     private IFlowsheet? _flowsheet;
@@ -29,10 +39,22 @@ public class SimulationService : ISimulationService
     private readonly Dictionary<Guid, string> _streamIdToName = new();
     private readonly Dictionary<Guid, string> _unitOpIdToName = new();
 
-    public SimulationService(ILogger<SimulationService> logger, UnitOperationFactory unitOpFactory)
+    public SimulationService(
+        ILogger<SimulationService> logger,
+        ICompoundManager compoundManager,
+        IPropertyPackageManager propertyPackageManager,
+        IMaterialStreamFactory materialStreamFactory,
+        IEnergyStreamFactory energyStreamFactory,
+        IUnitOperationFactory unitOpFactory,
+        IFlashAlgorithmManager flashAlgorithmManager)
     {
         _logger = logger;
+        _compoundManager = compoundManager;
+        _propertyPackageManager = propertyPackageManager;
+        _materialStreamFactory = materialStreamFactory;
+        _energyStreamFactory = energyStreamFactory;
         _unitOpFactory = unitOpFactory;
+        _flashAlgorithmManager = flashAlgorithmManager;
 
         // CRITICAL: Set automation mode before any DWSIM operations
         Settings.AutomationMode = true;
@@ -63,8 +85,8 @@ public class SimulationService : ISimulationService
                 AddCompound(compound);
             }
 
-            // Set property package (thermodynamic model)
-            SetPropertyPackage(definition.PropertyPackage);
+            // Set property package (thermodynamic model) and flash algorithm
+            SetPropertyPackage(definition.PropertyPackage, definition.FlashAlgorithm);
 
             // Create material streams
             foreach (var stream in definition.MaterialStreams)
@@ -298,25 +320,21 @@ public class SimulationService : ISimulationService
         }
     }
 
-    private void SetPropertyPackage(PropertyPackage thermoPackage)
+    private void SetPropertyPackage(PropertyPackage thermoPackage, FlashAlgorithm flashAlgorithm)
     {
         if (_flowsheet == null) return;
 
         try
         {
-            IPropertyPackage pp = thermoPackage switch
-            {
-                PropertyPackage.PengRobinson => new DWSIMPropertyPackage.PengRobinsonPropertyPackage(),
-                PropertyPackage.SoaveRedlichKwong => new DWSIMPropertyPackage.SRKPropertyPackage(),
-                PropertyPackage.NRTL => new DWSIMPropertyPackage.NRTLPropertyPackage(),
-                PropertyPackage.UNIQUAC => new DWSIMPropertyPackage.UNIQUACPropertyPackage(),
-                PropertyPackage.RaoultsLaw => new DWSIMPropertyPackage.RaoultPropertyPackage(),
-                PropertyPackage.SteamTables => new DWSIMPropertyPackage.SteamTablesPropertyPackage(),
-                _ => new DWSIMPropertyPackage.PengRobinsonPropertyPackage()
-            };
+            var pp = _propertyPackageManager.CreatePropertyPackage(thermoPackage);
 
-            _flowsheet.AddPropertyPackage(pp);
-            _logger.LogDebug("Set property package to: {Package}", thermoPackage);
+            // Set flash algorithm
+            var algorithm = _flashAlgorithmManager.CreateFlashAlgorithm(flashAlgorithm);
+            _propertyPackageManager.SetFlashAlgorithm(pp, algorithm);
+
+            _propertyPackageManager.AddToFlowsheet(_flowsheet, pp);
+            _logger.LogDebug("Set property package to: {Package} with flash algorithm: {Algorithm}",
+                thermoPackage, flashAlgorithm);
         }
         catch (Exception ex)
         {
@@ -330,13 +348,10 @@ public class SimulationService : ISimulationService
 
         try
         {
-            // DWSIM compounds are identified by name
-            _flowsheet.AddCompound(compound.Name);
-            _logger.LogDebug("Added compound: {Name}", compound.Name);
+            _compoundManager.AddCompound(_flowsheet, compound);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to add compound: {Name}", compound.Name);
             _errorMessages.Add($"Failed to add compound '{compound.Name}': {ex.Message}");
         }
     }
@@ -347,26 +362,9 @@ public class SimulationService : ISimulationService
 
         try
         {
-            var stream = new MaterialStream(streamDto.Name, "");
-
-            // Set stream conditions
-            stream.Phases[0].Properties.temperature = streamDto.Temperature;
-            stream.Phases[0].Properties.pressure = streamDto.Pressure;
-            stream.Phases[0].Properties.massflow = streamDto.MassFlow;
-
-            // Set compositions
-            foreach (var (compoundName, moleFraction) in streamDto.MolarCompositions)
-            {
-                if (stream.Phases[0].Compounds.ContainsKey(compoundName))
-                {
-                    stream.Phases[0].Compounds[compoundName].MoleFraction = moleFraction;
-                }
-            }
-
+            var stream = _materialStreamFactory.CreateMaterialStream(streamDto);
             _flowsheet.AddSimulationObject(stream);
             _streamIdToName[streamDto.Id] = streamDto.Name;
-
-            _logger.LogDebug("Created material stream: {Name}", streamDto.Name);
         }
         catch (Exception ex)
         {
@@ -381,13 +379,9 @@ public class SimulationService : ISimulationService
 
         try
         {
-            var stream = new DWSIM.UnitOperations.Streams.EnergyStream(streamDto.Name, "");
-            stream.EnergyFlow = streamDto.EnergyFlow;
-
+            var stream = _energyStreamFactory.CreateEnergyStream(streamDto);
             _flowsheet.AddSimulationObject(stream);
             _streamIdToName[streamDto.Id] = streamDto.Name;
-
-            _logger.LogDebug("Created energy stream: {Name}", streamDto.Name);
         }
         catch (Exception ex)
         {

@@ -19,6 +19,7 @@ public record SimulationDefinitionDto
 {
     public required string Name { get; init; }
     public required PropertyPackage PropertyPackage { get; init; }
+    public required FlashAlgorithm FlashAlgorithm { get; init; }
     public required SystemOfUnits SystemOfUnits { get; init; }
 
     public List<CompoundDto> Compounds { get; init; } = new();

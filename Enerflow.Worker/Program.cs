@@ -3,6 +3,11 @@ using Enerflow.Infrastructure.Persistence;
 using Enerflow.Worker.Consumers;
 using Enerflow.Worker.Extensions;
 using Enerflow.Simulation.Services;
+using Enerflow.Simulation.Flowsheet.Compounds;
+using Enerflow.Simulation.Flowsheet.PropertyPackages;
+using Enerflow.Simulation.Flowsheet.Streams;
+using Enerflow.Simulation.Flowsheet.FlashAlgorithms;
+using Enerflow.Simulation.Flowsheet.UnitOperations;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -25,8 +30,15 @@ builder.Services.AddDbContext<EnerflowDbContext>(options =>
 // Configure PostgreSQL as the MassTransit message transport
 builder.Services.ConfigurePostgresTransport(dbConnectionString);
 
+// Register flowsheet managers
+builder.Services.AddSingleton<ICompoundManager, CompoundManager>();
+builder.Services.AddSingleton<IPropertyPackageManager, PropertyPackageManager>();
+builder.Services.AddSingleton<IMaterialStreamFactory, MaterialStreamFactory>();
+builder.Services.AddSingleton<IEnergyStreamFactory, EnergyStreamFactory>();
+builder.Services.AddSingleton<IUnitOperationFactory, UnitOperationFactory>();
+builder.Services.AddSingleton<IFlashAlgorithmManager, FlashAlgorithmManager>();
+
 // Register Simulation Services
-builder.Services.AddScoped<UnitOperationFactory>();
 builder.Services.AddScoped<ISimulationService, SimulationService>();
 
 builder.Services.AddMassTransit(x =>

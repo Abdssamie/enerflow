@@ -18,4 +18,9 @@ public interface IPropertyPackageManager
     /// Adds a property package to the flowsheet.
     /// </summary>
     void AddToFlowsheet(IFlowsheet flowsheet, IPropertyPackage package);
+
+    /// <summary>
+    /// Sets the flash algorithm for the property package.
+    /// </summary>
+    void SetFlashAlgorithm(IPropertyPackage package, IFlashAlgorithm flashAlgorithm);
 }

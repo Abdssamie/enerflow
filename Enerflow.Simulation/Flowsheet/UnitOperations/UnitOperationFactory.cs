@@ -7,12 +7,12 @@ using Microsoft.Extensions.Logging;
 using DWSIM.UnitOperations.SpecialOps;
 using DWSIM.UnitOperations.Reactors;
 
-namespace Enerflow.Simulation.Services;
+namespace Enerflow.Simulation.Flowsheet.UnitOperations;
 
 /// <summary>
 /// Factory for creating DWSIM unit operation objects from the UnitOperation enum.
 /// </summary>
-public class UnitOperationFactory
+public class UnitOperationFactory : IUnitOperationFactory
 {
     private readonly ILogger<UnitOperationFactory> _logger;
 
