@@ -12,7 +12,7 @@ metadata:
 
 - **Enforce Worker Isolation**: Ensure DWSIM binaries are ONLY referenced in `Enerflow.Worker`. The API and Domain must remain pure.
 - **DWSIM Safety Checks**: Verify that `DWSIM.GlobalSettings.Settings.AutomationMode = true` is set before any simulation logic.
-- **Unit Consistency**: Enforce that all `StreamState` values (T, P, Flow) are handled in **SI Units** (Kelvin, Pascal, kg/s) within the Domain and Mapper layers.
+- **Unit Consistency**: Enforce that all `StreamState` values (T, P, Flow) are handled in **SI Units** (Kelvin, Pascal, kg/s) within the Domain and Mapper layers. Unless you are implmenting a feature which extends units handling
 - **Error Handling**: Ensure the Worker wraps `Solve()` calls in try-catch blocks and writes a `FailureResult` JSON instead of crashing silently.
 - **DTO Usage**: Verify that data is passed between API and Worker via `Enerflow.Domain` DTOs, not DWSIM objects.
 - **Block Non-Production Shortcuts**: If a DWSIM constraint or architectural blocker is hit, **DO NOT implement a "hacky" fix**. Stop and request User guidance. User feedback is required for all architectural hurdles.

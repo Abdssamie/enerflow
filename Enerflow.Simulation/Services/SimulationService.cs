@@ -8,7 +8,7 @@ using Enerflow.Domain.Enums;
 using DWSIMPropertyPackage = DWSIM.Thermodynamics.PropertyPackages;
 using Microsoft.Extensions.Logging;
 
-namespace Enerflow.Worker.Services;
+namespace Enerflow.Simulation.Services;
 
 /// <summary>
 /// Implementation of ISimulationService that uses DWSIM automation API.
@@ -304,7 +304,7 @@ public class SimulationService : ISimulationService
 
         try
         {
-            IPropertyPackage? pp = thermoPackage switch
+            IPropertyPackage pp = thermoPackage switch
             {
                 PropertyPackage.PengRobinson => new DWSIMPropertyPackage.PengRobinsonPropertyPackage(),
                 PropertyPackage.SoaveRedlichKwong => new DWSIMPropertyPackage.SRKPropertyPackage(),

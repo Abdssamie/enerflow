@@ -2,7 +2,7 @@ using Enerflow.Domain.Interfaces;
 using Enerflow.Infrastructure.Persistence;
 using Enerflow.Worker.Consumers;
 using Enerflow.Worker.Extensions;
-using Enerflow.Worker.Services;
+using Enerflow.Simulation.Services;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;

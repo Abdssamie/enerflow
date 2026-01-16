@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using DWSIM.UnitOperations.SpecialOps;
 using DWSIM.UnitOperations.Reactors;
 
-namespace Enerflow.Worker.Services;
+namespace Enerflow.Simulation.Services;
 
 /// <summary>
 /// Factory for creating DWSIM unit operation objects from the UnitOperation enum.

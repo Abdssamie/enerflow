@@ -4,71 +4,12 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <DWSIMPath>../libs/dwsim_9.0.5/dwsim</DWSIMPath>
   </PropertyGroup>
-
 
   <ItemGroup>
     <ProjectReference Include="..\Enerflow.Domain\Enerflow.Domain.csproj" />
     <ProjectReference Include="..\Enerflow.Infrastructure\Enerflow.Infrastructure.csproj" />
-  </ItemGroup>
-
-   <ItemGroup>
-    <Reference Include="DWSIM.GlobalSettings">
-      <HintPath>$(DWSIMPath)/DWSIM.GlobalSettings.dll</HintPath>
-    </Reference>
-    <Reference Include="DWSIM.Automation">
-      <HintPath>$(DWSIMPath)/DWSIM.Automation.dll</HintPath>
-    </Reference>
-    <Reference Include="DWSIM.Interfaces">
-      <HintPath>$(DWSIMPath)/DWSIM.Interfaces.dll</HintPath>
-    </Reference>
-    <Reference Include="DWSIM.SharedClasses">
-      <HintPath>$(DWSIMPath)/DWSIM.SharedClasses.dll</HintPath>
-    </Reference>
-    <Reference Include="DWSIM.Thermodynamics">
-      <HintPath>$(DWSIMPath)/DWSIM.Thermodynamics.dll</HintPath>
-    </Reference>
-    <Reference Include="DWSIM.UnitOperations">
-      <HintPath>$(DWSIMPath)/DWSIM.UnitOperations.dll</HintPath>
-    </Reference>
-      <Reference Include="CapeOpen">
-<HintPath>$(DWSIMPath)/CapeOpen.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Drawing.Common">
-	<HintPath>$(DWSIMPath)/System.Drawing.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Text.Encoding.CodePages">
-     <HintPath>$(DWSIMPath)/System.Text.Encoding.CodePages.dll</HintPath>
-    </Reference>
-    <Reference Include="SkiaSharp">
-      <HintPath>$(DWSIMPath)/SkiaSharp.dll</HintPath>
-    </Reference>
-       <Reference Include="DWSIM.Thermodynamics">
-          <HintPath>$(DWSIMPath)/DWSIM.Thermodynamics.dll</HintPath> 
-       </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="$(DWSIMPath)/**/*.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="$(DWSIMPath)/**/*.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="$(DWSIMPath)/**/*.ini">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="$(DWSIMPath)/data/**/*.*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="$(DWSIMPath)/libSkiaSharp.so">
-      <Link>libSkiaSharp.so</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <ProjectReference Include="..\Enerflow.Simulation\Enerflow.Simulation.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -80,4 +21,4 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
   </ItemGroup>
 
-  </Project>
+</Project>
