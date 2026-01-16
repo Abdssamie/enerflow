@@ -7,7 +7,7 @@ namespace Enerflow.Domain.DTOs;
 public record AddUnitRequest
 {
     public required string Name { get; init; }
-    public required UnitOperation UnitOperation { get; init; }
+    public required UnitOperationType UnitOperation { get; init; }
     public double PositionX { get; init; } = 0;
     public double PositionY { get; init; } = 0;
 }

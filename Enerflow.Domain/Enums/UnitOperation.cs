@@ -1,6 +1,6 @@
 namespace Enerflow.Domain.Enums;
 
-public enum UnitOperation
+public enum UnitOperationType
 {
     // MVP
     Mixer,
@@ -15,7 +15,7 @@ public enum UnitOperation
     Heater,
     Cooler,
     HeatExchanger,
-    
+
     // Phase 2
     ReactorConversion,
     ReactorEquilibrium,

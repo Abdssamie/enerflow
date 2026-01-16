@@ -10,7 +10,7 @@ public record SimulationJob
 {
     public required Guid JobId { get; init; }
     public required Guid SimulationId { get; init; }
-    
+
     // The complete definition required to build/solve the flowsheet
     public required SimulationDefinitionDto Definition { get; init; }
 }
@@ -20,7 +20,7 @@ public record SimulationDefinitionDto
     public required string Name { get; init; }
     public required string ThermoPackage { get; init; } // e.g., "PengRobinson"
     public required string SystemOfUnits { get; init; } // e.g., "SI"
-    
+
     public List<CompoundDto> Compounds { get; init; } = new();
     public List<MaterialStreamDto> MaterialStreams { get; init; } = new();
     public List<EnergyStreamDto> EnergyStreams { get; init; } = new();
@@ -50,7 +50,7 @@ public record UnitOperationDto
 {
     public required Guid Id { get; init; }
     public required string Name { get; init; }
-    public required string Type { get; init; } // e.g., "Mixer"
+    public required UnitOperationType Type { get; init; }
     public List<Guid> InputStreamIds { get; init; } = new();
     public List<Guid> OutputStreamIds { get; init; } = new();
     public JsonDocument? ConfigParams { get; init; }

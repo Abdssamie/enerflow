@@ -26,7 +26,15 @@ public class EnerflowDbContext : DbContext
             entity.Property(e => e.Name).IsRequired();
             entity.Property(e => e.ThermoPackage).IsRequired();
             entity.Property(e => e.SystemOfUnits).IsRequired();
-            
+
+            // Status stored as string for readability
+            entity.Property(e => e.Status)
+                .HasConversion<string>()
+                .IsRequired();
+
+            // Results stored as JSONB
+            entity.Property(e => e.ResultJson).HasColumnType("jsonb");
+
             // Cascade delete behavior
             entity.HasMany<Compound>().WithOne().HasForeignKey(c => c.SimulationId).OnDelete(DeleteBehavior.Cascade);
             entity.HasMany<MaterialStream>().WithOne().HasForeignKey(s => s.SimulationId).OnDelete(DeleteBehavior.Cascade);
@@ -48,7 +56,7 @@ public class EnerflowDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired();
-            
+
             // Map MolarCompositions to JSONB
             entity.Property(e => e.MolarCompositions).HasColumnType("jsonb");
         });
