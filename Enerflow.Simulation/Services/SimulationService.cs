@@ -4,10 +4,16 @@ using DWSIM.Automation;
 using DWSIM.GlobalSettings;
 using DWSIM.Interfaces;
 using DWSIM.Thermodynamics.Streams;
+using Enerflow.Domain.Enums;
 using DWSIMPropertyPackage = DWSIM.Thermodynamics.PropertyPackages;
 using Microsoft.Extensions.Logging;
+using Enerflow.Simulation.Flowsheet.Compounds;
+using Enerflow.Simulation.Flowsheet.PropertyPackages;
+using Enerflow.Simulation.Flowsheet.Streams;
+using Enerflow.Simulation.Flowsheet.UnitOperations;
+using Enerflow.Simulation.Flowsheet.FlashAlgorithms;
 
-namespace Enerflow.Worker.Services;
+namespace Enerflow.Simulation.Services;
 
 /// <summary>
 /// Implementation of ISimulationService that uses DWSIM automation API.
@@ -16,22 +22,39 @@ namespace Enerflow.Worker.Services;
 public class SimulationService : ISimulationService
 {
     private readonly ILogger<SimulationService> _logger;
-    private readonly UnitOperationFactory _unitOpFactory;
+    private readonly ICompoundManager _compoundManager;
+    private readonly IPropertyPackageManager _propertyPackageManager;
+    private readonly IMaterialStreamFactory _materialStreamFactory;
+    private readonly IEnergyStreamFactory _energyStreamFactory;
+    private readonly IUnitOperationFactory _unitOpFactory;
+    private readonly IFlashAlgorithmManager _flashAlgorithmManager;
 
     private readonly Automation _automation;
     private IFlowsheet? _flowsheet;
 
-    private readonly List<string> _errorMessages = new();
-    private readonly List<string> _logMessages = new();
+    private readonly List<string> _errorMessages = [];
+    private readonly List<string> _logMessages = [];
 
     // Maps DTO IDs to DWSIM object names for connection resolution
     private readonly Dictionary<Guid, string> _streamIdToName = new();
     private readonly Dictionary<Guid, string> _unitOpIdToName = new();
 
-    public SimulationService(ILogger<SimulationService> logger, UnitOperationFactory unitOpFactory)
+    public SimulationService(
+        ILogger<SimulationService> logger,
+        ICompoundManager compoundManager,
+        IPropertyPackageManager propertyPackageManager,
+        IMaterialStreamFactory materialStreamFactory,
+        IEnergyStreamFactory energyStreamFactory,
+        IUnitOperationFactory unitOpFactory,
+        IFlashAlgorithmManager flashAlgorithmManager)
     {
         _logger = logger;
+        _compoundManager = compoundManager;
+        _propertyPackageManager = propertyPackageManager;
+        _materialStreamFactory = materialStreamFactory;
+        _energyStreamFactory = energyStreamFactory;
         _unitOpFactory = unitOpFactory;
+        _flashAlgorithmManager = flashAlgorithmManager;
 
         // CRITICAL: Set automation mode before any DWSIM operations
         Settings.AutomationMode = true;
@@ -62,8 +85,8 @@ public class SimulationService : ISimulationService
                 AddCompound(compound);
             }
 
-            // Set property package (thermodynamic model)
-            SetPropertyPackage(definition.ThermoPackage);
+            // Set property package (thermodynamic model) and flash algorithm
+            SetPropertyPackage(definition.PropertyPackage, definition.FlashAlgorithm);
 
             // Create material streams
             foreach (var stream in definition.MaterialStreams)
@@ -90,10 +113,15 @@ public class SimulationService : ISimulationService
             }
 
             _logMessages.Add($"Flowsheet '{definition.Name}' built successfully");
-            _logger.LogInformation("Flowsheet built: {Compounds} compounds, {Streams} streams, {UnitOps} unit operations",
-                definition.Compounds.Count,
-                definition.MaterialStreams.Count + definition.EnergyStreams.Count,
-                definition.UnitOperations.Count);
+
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug(
+                    "Flowsheet built: {Compounds} compounds, {Streams} streams, {UnitOps} unit operations",
+                    definition.Compounds.Count,
+                    definition.MaterialStreams.Count + definition.EnergyStreams.Count,
+                    definition.UnitOperations.Count);
+            }
 
             return true;
         }
@@ -120,7 +148,19 @@ public class SimulationService : ISimulationService
             // Use the correct DWSIM API method for solving
             _flowsheet.RequestCalculation();
 
-            // Check for calculation errors
+            // "Always check flowsheet.Solved and flowsheet.ErrorMessage"
+            if (_flowsheet.Solved == false)
+            {
+                var flowsheetError = !string.IsNullOrEmpty(_flowsheet.ErrorMessage)
+                    ? _flowsheet.ErrorMessage
+                    : "Flowsheet failed to solve (no error message provided)";
+
+                _errorMessages.Add($"Flowsheet-level error: {flowsheetError}");
+                _logger.LogError("Flowsheet failed to solve: {Error}", flowsheetError);
+                return false;
+            }
+
+            // Check for calculation errors in individual objects
             var hasErrors = false;
             foreach (var obj in _flowsheet.SimulationObjects.Values)
             {
@@ -151,76 +191,120 @@ public class SimulationService : ISimulationService
         }
     }
 
-    public Dictionary<string, Dictionary<string, object>> CollectResults()
+    public SimulationResultsDto CollectResults()
     {
-        var results = new Dictionary<string, Dictionary<string, object>>();
+        var materialStreams = new Dictionary<string, MaterialStreamResultDto>();
+        var unitOperations = new Dictionary<string, UnitOperationResultDto>();
+        var warnings = new List<string>();
 
         if (_flowsheet == null)
         {
             _logger.LogWarning("Cannot collect results: flowsheet not initialized");
-            return results;
+            return new SimulationResultsDto
+            {
+                MaterialStreams = materialStreams,
+                UnitOperations = unitOperations,
+                Warnings = warnings
+            };
         }
 
         try
         {
             foreach (var obj in _flowsheet.SimulationObjects.Values)
             {
-                var objResults = new Dictionary<string, object>();
-
                 if (obj is MaterialStream ms)
                 {
-                    var phase0 = ms.Phases[0];
-                    objResults["temperature"] = phase0.Properties.temperature ?? 0;
-                    objResults["pressure"] = phase0.Properties.pressure ?? 0;
-                    objResults["massFlow"] = phase0.Properties.massflow ?? 0;
-                    objResults["molarFlow"] = phase0.Properties.molarflow ?? 0;
-                    objResults["volumetricFlow"] = phase0.Properties.volumetric_flow ?? 0;
-                    objResults["enthalpy"] = phase0.Properties.enthalpy ?? 0;
-
-                    // Collect phase compositions
-                    var compositions = new Dictionary<string, double>();
-                    foreach (var compound in phase0.Compounds)
+                    try
                     {
-                        compositions[compound.Key] = compound.Value.MoleFraction ?? 0;
+                        var phase0 = ms.Phases[0];
+
+                        // Collect phase compositions
+                        var compositions = new Dictionary<string, double>();
+                        foreach (var compound in phase0.Compounds)
+                        {
+                            compositions[compound.Key] = compound.Value.MoleFraction ?? 0;
+                        }
+
+                        var streamResult = new MaterialStreamResultDto
+                        {
+                            Name = ms.Name,
+                            Temperature = phase0.Properties.temperature ?? 0,
+                            Pressure = phase0.Properties.pressure ?? 0,
+                            MassFlow = phase0.Properties.massflow ?? 0,
+                            MolarFlow = phase0.Properties.molarflow ?? 0,
+                            VolumetricFlow = phase0.Properties.volumetric_flow ?? 0,
+                            Enthalpy = phase0.Properties.enthalpy ?? 0,
+                            MolarCompositions = compositions
+                        };
+
+                        materialStreams[ms.Name] = streamResult;
                     }
-                    objResults["molarCompositions"] = compositions;
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to collect results for stream: {Name}", ms.Name);
+                        warnings.Add($"Failed to collect results for stream '{ms.Name}': {ex.Message}");
+                    }
                 }
                 else
                 {
                     // For unit operations, collect basic info
-                    objResults["calculated"] = obj.Calculated;
-                }
+                    try
+                    {
+                        var unitOpResult = new UnitOperationResultDto
+                        {
+                            Name = obj.Name,
+                            Calculated = obj.Calculated,
+                            ErrorMessage = string.IsNullOrEmpty(obj.ErrorMessage) ? null : obj.ErrorMessage,
+                            AdditionalProperties = null // Can be extended for specific unit ops
+                        };
 
-                results[obj.Name] = objResults;
+                        unitOperations[obj.Name] = unitOpResult;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to collect results for unit operation: {Name}", obj.Name);
+                        warnings.Add($"Failed to collect results for unit operation '{obj.Name}': {ex.Message}");
+                    }
+                }
             }
 
-            _logger.LogInformation("Collected results for {Count} simulation objects", results.Count);
+            _logger.LogInformation(
+                "Collected results: {StreamCount} streams, {UnitOpCount} unit operations",
+                materialStreams.Count,
+                unitOperations.Count);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error collecting results");
             _errorMessages.Add($"Error collecting results: {ex.Message}");
+            warnings.Add($"Critical error during result collection: {ex.Message}");
         }
 
-        return results;
+        return new SimulationResultsDto
+        {
+            MaterialStreams = materialStreams,
+            UnitOperations = unitOperations,
+            Warnings = warnings
+        };
     }
 
     public IReadOnlyList<string> GetErrorMessages() => _errorMessages.AsReadOnly();
 
     public IReadOnlyList<string> GetLogMessages() => _logMessages.AsReadOnly();
 
-    private void SetSystemOfUnits(string systemOfUnits)
+    private void SetSystemOfUnits(SystemOfUnits systemOfUnits)
     {
         if (_flowsheet == null) return;
 
         try
         {
-            // DWSIM uses specific unit system names
-            var units = systemOfUnits.ToUpperInvariant() switch
+            // DWSIM uses specific unit system names - map enum to DWSIM's naming
+            var units = systemOfUnits switch
             {
-                "SI" => _flowsheet.AvailableSystemsOfUnits.FirstOrDefault(u => u.Name.Contains("SI")),
-                "CGS" => _flowsheet.AvailableSystemsOfUnits.FirstOrDefault(u => u.Name.Contains("CGS")),
-                "ENGLISH" or "IMPERIAL" => _flowsheet.AvailableSystemsOfUnits.FirstOrDefault(u => u.Name.Contains("English")),
+                SystemOfUnits.SI => _flowsheet.AvailableSystemsOfUnits.FirstOrDefault(u => u.Name.Contains("SI")),
+                SystemOfUnits.CGS => _flowsheet.AvailableSystemsOfUnits.FirstOrDefault(u => u.Name.Contains("CGS")),
+                SystemOfUnits.English => _flowsheet.AvailableSystemsOfUnits.FirstOrDefault(u =>
+                    u.Name.Contains("English")),
                 _ => _flowsheet.AvailableSystemsOfUnits.FirstOrDefault()
             };
 
@@ -236,28 +320,21 @@ public class SimulationService : ISimulationService
         }
     }
 
-    private void SetPropertyPackage(string thermoPackage)
+    private void SetPropertyPackage(PropertyPackage thermoPackage, FlashAlgorithm flashAlgorithm)
     {
         if (_flowsheet == null) return;
 
         try
         {
-            IPropertyPackage? pp = thermoPackage switch
-            {
-                "PengRobinson" or "PR" => new DWSIMPropertyPackage.PengRobinsonPropertyPackage(),
-                "SoaveRedlichKwong" or "SRK" => new DWSIMPropertyPackage.SRKPropertyPackage(),
-                "NRTL" => new DWSIMPropertyPackage.NRTLPropertyPackage(),
-                "UNIQUAC" => new DWSIMPropertyPackage.UNIQUACPropertyPackage(),
-                "RaoultsLaw" or "Raoult" => new DWSIMPropertyPackage.RaoultPropertyPackage(),
-                "SteamTables" or "Steam" => new DWSIMPropertyPackage.SteamTablesPropertyPackage(),
-                _ => new DWSIMPropertyPackage.PengRobinsonPropertyPackage()
-            };
+            var pp = _propertyPackageManager.CreatePropertyPackage(thermoPackage);
 
-            if (pp != null)
-            {
-                _flowsheet.AddPropertyPackage(pp);
-                _logger.LogDebug("Set property package to: {Package}", thermoPackage);
-            }
+            // Set flash algorithm
+            var algorithm = _flashAlgorithmManager.CreateFlashAlgorithm(flashAlgorithm);
+            _propertyPackageManager.SetFlashAlgorithm(pp, algorithm);
+
+            _propertyPackageManager.AddToFlowsheet(_flowsheet, pp);
+            _logger.LogDebug("Set property package to: {Package} with flash algorithm: {Algorithm}",
+                thermoPackage, flashAlgorithm);
         }
         catch (Exception ex)
         {
@@ -271,13 +348,10 @@ public class SimulationService : ISimulationService
 
         try
         {
-            // DWSIM compounds are identified by name
-            _flowsheet.AddCompound(compound.Name);
-            _logger.LogDebug("Added compound: {Name}", compound.Name);
+            _compoundManager.AddCompound(_flowsheet, compound);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to add compound: {Name}", compound.Name);
             _errorMessages.Add($"Failed to add compound '{compound.Name}': {ex.Message}");
         }
     }
@@ -288,26 +362,9 @@ public class SimulationService : ISimulationService
 
         try
         {
-            var stream = new MaterialStream(streamDto.Name, "");
-
-            // Set stream conditions
-            stream.Phases[0].Properties.temperature = streamDto.Temperature;
-            stream.Phases[0].Properties.pressure = streamDto.Pressure;
-            stream.Phases[0].Properties.massflow = streamDto.MassFlow;
-
-            // Set compositions
-            foreach (var (compoundName, moleFraction) in streamDto.MolarCompositions)
-            {
-                if (stream.Phases[0].Compounds.ContainsKey(compoundName))
-                {
-                    stream.Phases[0].Compounds[compoundName].MoleFraction = moleFraction;
-                }
-            }
-
+            var stream = _materialStreamFactory.CreateMaterialStream(streamDto);
             _flowsheet.AddSimulationObject(stream);
             _streamIdToName[streamDto.Id] = streamDto.Name;
-
-            _logger.LogDebug("Created material stream: {Name}", streamDto.Name);
         }
         catch (Exception ex)
         {
@@ -322,13 +379,9 @@ public class SimulationService : ISimulationService
 
         try
         {
-            var stream = new DWSIM.UnitOperations.Streams.EnergyStream(streamDto.Name, "");
-            stream.EnergyFlow = streamDto.EnergyFlow;
-
+            var stream = _energyStreamFactory.CreateEnergyStream(streamDto);
             _flowsheet.AddSimulationObject(stream);
             _streamIdToName[streamDto.Id] = streamDto.Name;
-
-            _logger.LogDebug("Created energy stream: {Name}", streamDto.Name);
         }
         catch (Exception ex)
         {
@@ -369,14 +422,14 @@ public class SimulationService : ISimulationService
 
         if (!_unitOpIdToName.TryGetValue(unitOpDto.Id, out var unitOpName))
         {
-            _logger.LogWarning("Unit operation not found for connection: {Id}", unitOpDto.Id);
+            if (_logger.IsEnabled(LogLevel.Warning)) _logger.LogWarning("Unit operation not found for connection: {Id}", unitOpDto.Id);
             return;
         }
 
         // Get the unit operation from the simulation objects
         if (!_flowsheet.SimulationObjects.TryGetValue(unitOpName, out var unitOpObj))
         {
-            _logger.LogWarning("Unit operation '{Name}' not found in flowsheet", unitOpName);
+            if (_logger.IsEnabled(LogLevel.Warning)) _logger.LogWarning("Unit operation '{Name}' not found in flowsheet", unitOpName);
             return;
         }
 
@@ -386,28 +439,20 @@ public class SimulationService : ISimulationService
             for (int i = 0; i < unitOpDto.InputStreamIds.Count; i++)
             {
                 var streamId = unitOpDto.InputStreamIds[i];
-                if (_streamIdToName.TryGetValue(streamId, out var streamName))
-                {
-                    if (_flowsheet.SimulationObjects.TryGetValue(streamName, out var streamObj))
-                    {
-                        _flowsheet.ConnectObjects(streamObj.GraphicObject, unitOpObj.GraphicObject, i, 0);
-                        _logger.LogDebug("Connected input stream {Stream} to {UnitOp}", streamName, unitOpName);
-                    }
-                }
+                if (!_streamIdToName.TryGetValue(streamId, out var streamName)) continue;
+                if (!_flowsheet.SimulationObjects.TryGetValue(streamName, out var streamObj)) continue;
+                _flowsheet.ConnectObjects(streamObj.GraphicObject, unitOpObj.GraphicObject, i, 0);
+                if (_logger.IsEnabled(LogLevel.Debug)) _logger.LogDebug("Connected input stream {Stream} to {UnitOp}", streamName, unitOpName);
             }
 
             // Connect output streams
             for (int i = 0; i < unitOpDto.OutputStreamIds.Count; i++)
             {
                 var streamId = unitOpDto.OutputStreamIds[i];
-                if (_streamIdToName.TryGetValue(streamId, out var streamName))
-                {
-                    if (_flowsheet.SimulationObjects.TryGetValue(streamName, out var streamObj))
-                    {
-                        _flowsheet.ConnectObjects(unitOpObj.GraphicObject, streamObj.GraphicObject, 0, i);
-                        _logger.LogDebug("Connected output stream {Stream} from {UnitOp}", streamName, unitOpName);
-                    }
-                }
+                if (!_streamIdToName.TryGetValue(streamId, out var streamName)) continue;
+                if (!_flowsheet.SimulationObjects.TryGetValue(streamName, out var streamObj)) continue;
+                _flowsheet.ConnectObjects(unitOpObj.GraphicObject, streamObj.GraphicObject, 0, i);
+                if (_logger.IsEnabled(LogLevel.Debug)) _logger.LogDebug("Connected output stream {Stream} from {UnitOp}", streamName, unitOpName);
             }
         }
         catch (Exception ex)

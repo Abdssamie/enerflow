@@ -18,8 +18,9 @@ public record SimulationJob
 public record SimulationDefinitionDto
 {
     public required string Name { get; init; }
-    public required string ThermoPackage { get; init; } // e.g., "PengRobinson"
-    public required string SystemOfUnits { get; init; } // e.g., "SI"
+    public required PropertyPackage PropertyPackage { get; init; }
+    public required FlashAlgorithm FlashAlgorithm { get; init; }
+    public required SystemOfUnits SystemOfUnits { get; init; }
 
     public List<CompoundDto> Compounds { get; init; } = new();
     public List<MaterialStreamDto> MaterialStreams { get; init; } = new();

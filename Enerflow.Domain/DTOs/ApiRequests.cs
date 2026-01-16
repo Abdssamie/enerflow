@@ -19,9 +19,3 @@ public record ConnectStreamRequest
     public required PortType PortType { get; init; }
     public string? PortName { get; init; } // Optional: Specific port name on the unit (e.g. "Inlet 1")
 }
-
-public enum PortType
-{
-    Inlet,
-    Outlet
-}

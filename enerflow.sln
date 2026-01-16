@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Enerflow.Worker", "Enerflow
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Enerflow.Infrastructure", "Enerflow.Infrastructure\Enerflow.Infrastructure.csproj", "{4154E74C-00D4-4D2E-BD7C-6F312FDFBB04}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Enerflow.Simulation", "Enerflow.Simulation\Enerflow.Simulation.csproj", "{FA82C5B4-846C-475F-B067-B2E2F3439155}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,18 @@ Global
 		{4154E74C-00D4-4D2E-BD7C-6F312FDFBB04}.Release|x64.Build.0 = Release|Any CPU
 		{4154E74C-00D4-4D2E-BD7C-6F312FDFBB04}.Release|x86.ActiveCfg = Release|Any CPU
 		{4154E74C-00D4-4D2E-BD7C-6F312FDFBB04}.Release|x86.Build.0 = Release|Any CPU
+		{FA82C5B4-846C-475F-B067-B2E2F3439155}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA82C5B4-846C-475F-B067-B2E2F3439155}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA82C5B4-846C-475F-B067-B2E2F3439155}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{FA82C5B4-846C-475F-B067-B2E2F3439155}.Debug|x64.Build.0 = Debug|Any CPU
+		{FA82C5B4-846C-475F-B067-B2E2F3439155}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{FA82C5B4-846C-475F-B067-B2E2F3439155}.Debug|x86.Build.0 = Debug|Any CPU
+		{FA82C5B4-846C-475F-B067-B2E2F3439155}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA82C5B4-846C-475F-B067-B2E2F3439155}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA82C5B4-846C-475F-B067-B2E2F3439155}.Release|x64.ActiveCfg = Release|Any CPU
+		{FA82C5B4-846C-475F-B067-B2E2F3439155}.Release|x64.Build.0 = Release|Any CPU
+		{FA82C5B4-846C-475F-B067-B2E2F3439155}.Release|x86.ActiveCfg = Release|Any CPU
+		{FA82C5B4-846C-475F-B067-B2E2F3439155}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

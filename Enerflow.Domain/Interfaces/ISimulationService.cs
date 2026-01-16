@@ -24,8 +24,8 @@ public interface ISimulationService : IDisposable
     /// <summary>
     /// Collects the results from the solved flowsheet.
     /// </summary>
-    /// <returns>Dictionary of stream/unit operation results keyed by name</returns>
-    Dictionary<string, Dictionary<string, object>> CollectResults();
+    /// <returns>Strongly-typed simulation results</returns>
+    SimulationResultsDto CollectResults();
 
     /// <summary>
     /// Gets any error messages from the last operation.
