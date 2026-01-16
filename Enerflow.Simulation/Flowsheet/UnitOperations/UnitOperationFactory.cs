@@ -102,42 +102,96 @@ public class UnitOperationFactory : IUnitOperationFactory
             {
                 case UnitOperationType.Pump when unitOp is Pump pump:
                     if (root.TryGetProperty("deltaP", out var deltaP))
+                    {
+                        pump.CalcMode = Pump.CalculationMode.Delta_P;
                         pump.DeltaP = deltaP.GetDouble();
-                    if (root.TryGetProperty("efficiency", out var pumpEff))
+                    }
+                    else if (root.TryGetProperty("efficiency", out var pumpEff))
+                    {
+                        // Outlet Pressure based calculation
+                        if (root.TryGetProperty("outletPressure", out var pumpP))
+                        {
+                            pump.CalcMode = Pump.CalculationMode.OutletPressure;
+                            pump.Pout = pumpP.GetDouble(); // Pout casing for Pump
+                        }
                         pump.Eficiencia = pumpEff.GetDouble();
+                    }
                     break;
 
                 case UnitOperationType.Compressor when unitOp is Compressor comp:
                     if (root.TryGetProperty("efficiency", out var compEff))
                         comp.AdiabaticEfficiency = compEff.GetDouble();
+
                     if (root.TryGetProperty("outletPressure", out var compP))
-                        comp.POut = compP.GetDouble();
+                    {
+                        comp.CalcMode = Compressor.CalculationMode.OutletPressure;
+                        comp.POut = compP.GetDouble(); // POut casing for Compressor
+                    }
+                    else if (root.TryGetProperty("power", out var compPower))
+                    {
+                        comp.CalcMode = Compressor.CalculationMode.PowerRequired;
+                        // Compressor PowerRequired is typically set via Energy Stream or implicitly via DeltaQ?
+                        // grep didn't show PowerRequired property, only the Enum. 
+                        // "DeltaQ" usually represents energy added/removed.
+                        comp.DeltaQ = compPower.GetDouble();
+                    }
                     break;
 
                 case UnitOperationType.Expander when unitOp is Expander exp:
                     if (root.TryGetProperty("efficiency", out var expEff))
                         exp.AdiabaticEfficiency = expEff.GetDouble();
+
                     if (root.TryGetProperty("outletPressure", out var expP))
-                        exp.POut = expP.GetDouble();
+                    {
+                        exp.CalcMode = Expander.CalculationMode.OutletPressure;
+                        exp.POut = expP.GetDouble(); // POut for Expander
+                    }
+                    else if (root.TryGetProperty("power", out var expPower))
+                    {
+                        // Assuming Expander has similar mode
+                        exp.CalcMode = Expander.CalculationMode.PowerGenerated;
+                        exp.DeltaQ = expPower.GetDouble();
+                    }
                     break;
 
                 case UnitOperationType.Heater when unitOp is Heater heater:
                     if (root.TryGetProperty("outletTemperature", out var heaterT))
+                    {
+                        heater.CalcMode = Heater.CalculationMode.OutletTemperature;
                         heater.OutletTemperature = heaterT.GetDouble();
-                    if (root.TryGetProperty("heatDuty", out var heaterQ))
+                    }
+                    else if (root.TryGetProperty("heatDuty", out var heaterQ))
+                    {
+                        heater.CalcMode = Heater.CalculationMode.HeatAdded;
                         heater.DeltaQ = heaterQ.GetDouble();
+                    }
+
+                    // Fallback for efficiency/pressure drop?
+                    if (root.TryGetProperty("pressureDrop", out var heaterDP))
+                        heater.DeltaP = heaterDP.GetDouble();
                     break;
 
                 case UnitOperationType.Cooler when unitOp is Cooler cooler:
                     if (root.TryGetProperty("outletTemperature", out var coolerT))
+                    {
+                        cooler.CalcMode = Cooler.CalculationMode.OutletTemperature;
                         cooler.OutletTemperature = coolerT.GetDouble();
-                    if (root.TryGetProperty("heatDuty", out var coolerQ))
+                    }
+                    else if (root.TryGetProperty("heatDuty", out var coolerQ))
+                    {
+                        cooler.CalcMode = Cooler.CalculationMode.HeatRemoved;
                         cooler.DeltaQ = coolerQ.GetDouble();
+                    }
+
+                    if (root.TryGetProperty("pressureDrop", out var coolerDP))
+                        cooler.DeltaP = coolerDP.GetDouble();
                     break;
 
                 case UnitOperationType.Valve when unitOp is Valve valve:
                     if (root.TryGetProperty("outletPressure", out var valveP))
+                    {
                         valve.OutletPressure = valveP.GetDouble();
+                    }
                     break;
 
                 case UnitOperationType.HeatExchanger when unitOp is HeatExchanger hx:

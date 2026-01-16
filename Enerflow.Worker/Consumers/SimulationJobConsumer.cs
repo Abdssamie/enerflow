@@ -185,7 +185,7 @@ public class SimulationJobConsumer : IConsumer<SimulationJob>
             var resultJson = JsonSerializer.SerializeToDocument(results);
 
             // Update simulation status
-            simulation.Status = solveSuccess ? SimulationStatus.Converged : SimulationStatus.Converged;
+            simulation.Status = solveSuccess ? SimulationStatus.Converged : SimulationStatus.Failed;
             simulation.ResultJson = resultJson;
             simulation.ErrorMessage = solveSuccess ? null : string.Join("; ", _simulationService.GetErrorMessages());
             simulation.UpdatedAt = DateTime.UtcNow;
