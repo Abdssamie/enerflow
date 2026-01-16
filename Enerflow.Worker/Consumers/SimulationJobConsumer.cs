@@ -101,6 +101,9 @@ public class SimulationJobConsumer : IConsumer<SimulationJob>
                 $"Critical error: {ex.Message}",
                 null,
                 cancellationToken);
+
+            // Rethrow to allow MassTransit retry policy (or move to error queue)
+            throw;
         }
         finally
         {
