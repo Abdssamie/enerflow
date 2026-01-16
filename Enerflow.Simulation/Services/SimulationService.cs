@@ -441,7 +441,7 @@ public class SimulationService : ISimulationService
                 var streamId = unitOpDto.InputStreamIds[i];
                 if (!_streamIdToName.TryGetValue(streamId, out var streamName)) continue;
                 if (!_flowsheet.SimulationObjects.TryGetValue(streamName, out var streamObj)) continue;
-                _flowsheet.ConnectObjects(streamObj.GraphicObject, unitOpObj.GraphicObject, i, 0);
+                _flowsheet.ConnectObjects(streamObj.GraphicObject, unitOpObj.GraphicObject, 0, i);
                 if (_logger.IsEnabled(LogLevel.Debug)) _logger.LogDebug("Connected input stream {Stream} to {UnitOp}", streamName, unitOpName);
             }
 
@@ -451,7 +451,8 @@ public class SimulationService : ISimulationService
                 var streamId = unitOpDto.OutputStreamIds[i];
                 if (!_streamIdToName.TryGetValue(streamId, out var streamName)) continue;
                 if (!_flowsheet.SimulationObjects.TryGetValue(streamName, out var streamObj)) continue;
-                _flowsheet.ConnectObjects(unitOpObj.GraphicObject, streamObj.GraphicObject, 0, i);
+                // Connect UnitOp Output (i) to Stream Input (0)
+                _flowsheet.ConnectObjects(unitOpObj.GraphicObject, streamObj.GraphicObject, i, 0);
                 if (_logger.IsEnabled(LogLevel.Debug)) _logger.LogDebug("Connected output stream {Stream} from {UnitOp}", streamName, unitOpName);
             }
         }
@@ -464,7 +465,16 @@ public class SimulationService : ISimulationService
 
     public void Dispose()
     {
-        _flowsheet = null;
+        if (_flowsheet != null)
+        {
+            // Check if Flowsheet is IDisposable or if Automation has a method to close it
+            _flowsheet.ReleaseResources();
+            _flowsheet = null;
+        }
+
+        // Automation context likely needs disposal if it holds the engine process/resources
+        _automation.ReleaseResources(); // Check DWSIM API for correct cleanup
+
         _logger.LogInformation("SimulationService disposed");
     }
 }
