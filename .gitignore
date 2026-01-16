@@ -1,11 +1,20 @@
 ## Ignore Visual Studio temporary files, build results, and
 
+.apm/
+.opencode/
+.qodo/
+
 libs/
 libs/dwsim_9.0.5
 libs/dwsim_src
 output/
 bin/
 obj/
+bin\\Debug/
+obj\\Debug/
+
+**/obj
+**/bin
 *.user
 *.suo
 *.cache

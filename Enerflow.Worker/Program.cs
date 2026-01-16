@@ -1,73 +1,79 @@
-using System.Text.Json;
-using Enerflow.Domain.DTOs;
-using Enerflow.Worker;
+using Enerflow.Domain.Interfaces;
+using Enerflow.Infrastructure.Persistence;
+using Enerflow.Worker.Consumers;
+using Enerflow.Worker.Extensions;
+using Enerflow.Worker.Services;
+using MassTransit;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
-class Program
+var builder = Host.CreateApplicationBuilder(args);
+
+// Configure PostgreSQL connection
+var dbConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("DefaultConnection is not set in configuration");
+
+// Register Entity Framework DbContext
+builder.Services.AddDbContext<EnerflowDbContext>(options =>
 {
-    static void Main(string[] args)
+    options.UseNpgsql(dbConnectionString);
+});
+
+// Configure PostgreSQL as the MassTransit message transport
+builder.Services.ConfigurePostgresTransport(dbConnectionString);
+
+// Register Simulation Services
+builder.Services.AddScoped<UnitOperationFactory>();
+builder.Services.AddScoped<ISimulationService, SimulationService>();
+
+builder.Services.AddMassTransit(x =>
+{
+    // Register the consumer
+    x.AddConsumer<SimulationJobConsumer>();
+
+    x.SetKebabCaseEndpointNameFormatter();
+
+    x.UsingPostgres((context, cfg) =>
     {
-        string? jobFile = null;
-        string? outputFile = null;
+        cfg.AutoStart = true;
 
-        // Simple arg parsing (Enterprise would use System.CommandLine)
-        for (int i = 0; i < args.Length; i++)
+        // Use System.Text.Json serialization (matches API configuration)
+        cfg.ConfigureJsonSerializerOptions(options =>
         {
-            if (args[i] == "--job" && i + 1 < args.Length) jobFile = args[i + 1];
-            if (args[i] == "--output" && i + 1 < args.Length) outputFile = args[i + 1];
-        }
+            options.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+            return options;
+        });
 
-        if (string.IsNullOrEmpty(jobFile) || string.IsNullOrEmpty(outputFile))
-        {
-            Console.WriteLine("Usage: Enerflow.Worker --job <job.json> --output <result.json>");
-            Environment.Exit(1);
-        }
+        cfg.ConfigureEndpoints(context);
+    });
+});
 
-        try
-        {
-            // 1. Read Job Config
-            if (!File.Exists(jobFile)) throw new FileNotFoundException($"Job file not found: {jobFile}");
-            
-            var jobJson = File.ReadAllText(jobFile);
-            var job = JsonSerializer.Deserialize<SimulationJob>(jobJson);
+// Configure MassTransit host options
+builder.Services.AddOptions<MassTransitHostOptions>()
+    .Configure(options =>
+    {
+        options.WaitUntilStarted = true;
+        options.StartTimeout = TimeSpan.FromSeconds(30);
+        options.StopTimeout = TimeSpan.FromSeconds(30);
+    });
 
-            if (job == null) throw new Exception("Failed to deserialize job configuration.");
+// Configure host shutdown options for graceful shutdown
+builder.Services.AddOptions<HostOptions>()
+    .Configure(options =>
+    {
+        options.ShutdownTimeout = TimeSpan.FromSeconds(60);
+    });
 
-            // 2. Initialize Automation Service with the Template File
-            using var service = new AutomationService(job.SimulationFilePath);
-            
-            // 3. Run the Job (Apply Diffs -> Solve -> Collect)
-            var result = service.RunJob(job);
-            
-            // 4. Serialize Result to JSON
-            var resultJson = JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
-            
-            // 5. Write to output file
-            File.WriteAllText(outputFile, resultJson);
-            
-            Console.WriteLine($"Result written to {outputFile}");
-            
-            // Exit code based on success
-            Environment.Exit(result.Success ? 0 : 1);
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"Critical Worker Error: {ex.Message}");
-            Console.Error.WriteLine(ex.StackTrace);
-            
-            // Attempt to write a failure result file if possible
-            try 
-            {
-                var failureResult = new SimulationResult 
-                { 
-                    Success = false, 
-                    StatusMessage = $"Critical Crash: {ex.Message}",
-                    ValidationErrors = new List<string> { ex.ToString() }
-                };
-                File.WriteAllText(outputFile!, JsonSerializer.Serialize(failureResult));
-            }
-            catch { /* Best effort */ }
+var host = builder.Build();
 
-            Environment.Exit(1);
-        }
-    }   
-}
+// Log startup information
+var logger = host.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Enerflow.Worker");
+logger.LogInformation("Enerflow Worker starting...");
+logger.LogInformation("Listening for SimulationJob messages on PostgreSQL transport");
+logger.LogInformation("Database: {ConnectionString}",
+    dbConnectionString.Split(';').FirstOrDefault(s => s.StartsWith("Database=")) ?? "configured");
+
+await host.RunAsync();

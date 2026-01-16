@@ -1,4 +1,9 @@
+using Enerflow.API.Extensions;
+using Enerflow.API.Middleware;
 using Enerflow.API.Services;
+using Enerflow.Domain.Interfaces;
+using MassTransit;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,12 +12,56 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-// Register DWSIM Service as a Singleton
-builder.Services.AddSingleton<IDWSIMService, DWSIMService>();
-builder.Services.AddSingleton<IFlowsheetService, FlowsheetService>();
+// Configure Redis connection for rate limiting
+var redisConfiguration = builder.Configuration["RedisConfiguration"]
+    ?? throw new InvalidOperationException("RedisConfiguration is not set in configuration");
+
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+{
+    var configuration = ConfigurationOptions.Parse(redisConfiguration);
+    configuration.AbortOnConnectFail = false; // Allows app to start even if Redis is temporarily unavailable
+    return ConnectionMultiplexer.Connect(configuration);
+});
+
+// Configure PostgreSQL connection for MassTransit transport
+var dbConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("DefaultConnection is not set in configuration");
+
+// Configure PostgreSQL as the MassTransit message transport
+builder.Services.ConfigurePostgresTransport(dbConnectionString);
+
+builder.Services.AddMassTransit(x =>
+{
+    x.SetKebabCaseEndpointNameFormatter();
+
+    x.UsingPostgres((context, cfg) =>
+    {
+        cfg.AutoStart = true;
+
+        // Use System.Text.Json serialization
+        cfg.ConfigureJsonSerializerOptions(options =>
+        {
+            options.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+            return options;
+        });
+
+        cfg.ConfigureEndpoints(context);
+    });
+});
+
+// Configure MassTransit host options
+builder.Services.AddOptions<MassTransitHostOptions>()
+    .Configure(options =>
+    {
+        options.WaitUntilStarted = true;
+        options.StartTimeout = TimeSpan.FromSeconds(10);
+        options.StopTimeout = TimeSpan.FromSeconds(30);
+    });
+
+// Register Job Producer service
+builder.Services.AddScoped<IJobProducer, JobProducer>();
 
 // Persistence
-builder.Services.AddSingleton<Enerflow.Domain.Interfaces.IFlowsheetRepository, Enerflow.API.Repositories.InMemoryFlowsheetRepository>();
 
 var app = builder.Build();
 
@@ -24,30 +73,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// Apply rate limiting middleware
+app.UseMiddleware<RateLimitingMiddleware>();
+
 app.MapControllers();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
-
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

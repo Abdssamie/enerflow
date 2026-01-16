@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Enerflow.Domain\Enerflow.Domain.csproj" />
+    <ProjectReference Include="..\Enerflow.Infrastructure\Enerflow.Infrastructure.csproj" />
   </ItemGroup>
 
    <ItemGroup>
@@ -68,6 +69,14 @@
       <Link>libSkiaSharp.so</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MassTransit" Version="9.0.0" />
+    <PackageReference Include="MassTransit.SqlTransport.PostgreSQL" Version="9.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.2" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
   </ItemGroup>
 
   </Project>
