@@ -19,7 +19,6 @@ public class FlowsheetController : ControllerBase
     [HttpPost("upload")]
     public async Task<IActionResult> UploadAndLoad(IFormFile file)
     {
-        // TODO: Temporary file is never cleaned up — resource leak.
         if (file == null || file.Length == 0)
             return BadRequest("No file uploaded.");
 

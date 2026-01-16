@@ -3,7 +3,7 @@
     "omnisharp": {
       "binary": {
         "path": "/home/abdssamie/.local/share/omnisharp/run",
-        "arguments": ["-lsp"]
+        "arguments": ["-lsp"],
       },
     },
   },

@@ -5,44 +5,5 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-  
-  <ItemGroup>
-    <Reference Include="DWSIM.Automation">
-      <HintPath>$(DWSIMPath)/DWSIM.Automation.dll</HintPath>
-    </Reference>
-    <Reference Include="DWSIM.Interfaces">
-      <HintPath>$(DWSIMPath)/DWSIM.Interfaces.dll</HintPath>
-    </Reference>
-    <Reference Include="DWSIM.SharedClasses">
-      <HintPath>$(DWSIMPath)/DWSIM.SharedClasses.dll</HintPath>
-    </Reference>
-    <Reference Include="DWSIM.Thermodynamics">
-      <HintPath>$(DWSIMPath)/DWSIM.Thermodynamics.dll</HintPath>
-    </Reference>
-    <Reference Include="DWSIM.UnitOperations">
-      <HintPath>$(DWSIMPath)/DWSIM.UnitOperations.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="$(DWSIMPath)/**/*.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="$(DWSIMPath)/**/*.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="$(DWSIMPath)/**/*.ini">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="$(DWSIMPath)/data/**/*.*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Interfaces\Repositories\" />
-    <Folder Include="Models\" />
-  </ItemGroup>
-
 
 </Project>

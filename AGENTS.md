@@ -6,67 +6,58 @@ This document serves as the primary instruction set for AI coding agents operati
 
 ### Build & Run
 - **Build Solution:** `dotnet build`
-- **Build Project:** `dotnet build Enerflow.API/Enerflow.API.csproj`
-- **Run Web API:** `dotnet run --project Enerflow.API/Enerflow.API.csproj`
+- **Build API:** `dotnet build Enerflow.API/Enerflow.API.csproj`
+- **Build Worker:** `dotnet build Enerflow.Worker/Enerflow.Worker.csproj`
+- **Run API:** `dotnet run --project Enerflow.API/Enerflow.API.csproj`
+- **Run Worker (Manual):** `dotnet run --project Enerflow.Worker/Enerflow.Worker.csproj -- --job <job.json> --output <result.json>`
 
-### Testing (TBD)
-*Note: Test projects are not yet initialized. When creating tests, follow these patterns:*
+### Testing
 - **Run All Tests:** `dotnet test`
 - **Run Specific Test:** `dotnet test --filter "FullyQualifiedName=Namespace.ClassName.MethodName"`
-- **Watch Mode:** `dotnet watch test`
 
-### Linting & Formatting
-- **Check Formatting:** `dotnet format --verify-no-changes`
-- **Fix Formatting:** `dotnet format`
+## 2. Architecture & Design
 
-## 2. DWSIM & Chemical Engineering Constraints
+### The "Enterprise Worker" Pattern
+Enerflow uses a split architecture to ensure stability and isolation:
+1.  **Enerflow.API:** The Orchestrator. Handles HTTP, DB, and Job Queueing. **NEVER** references DWSIM binaries directly for solving. It manages `SimulationJob` entities.
+2.  **Enerflow.Worker:** The Executor. A transient Console App spawned as a child process. It references DWSIM binaries, loads the simulation, solves it, and dies.
+3.  **Enerflow.Domain:** Shared Kernel. Contains Entities (`SimulationSession`) and DTOs (`SimulationJob`, `SimulationResult`) shared by API and Worker.
 
-### Thermodynamic Integrity
-- **SI Units Only:** Internal logic MUST use SI units (Kelvin, Pascal, kg/s, mol/s). Never pass Celsius or Bar directly to DWSIM DLLs without using the `UOMConverter` or manual conversion.
-- **Degrees of Freedom:** When updating material streams, ensure you do not over-define the state. Exactly 2 state variables (usually T & P) + Composition + Flow are required.
-- **Solver Safety:** Always wrap `CalculateFlowsheet2` calls in try-catch blocks. Monitor `flowsheet.SolverState` to prevent infinite recycle loops.
+### DWSIM Integration Constraints
+- **Binaries:** Located in `libs/dwsim_9.0.5/dwsim`. Treat them as immutable.
+- **Headless Mode:** Always set `DWSIM.GlobalSettings.Settings.AutomationMode = true` immediately upon initialization to prevent UI crashes on Linux.
+- **Solver Safety:** `CalculateFlowsheet2/3` in the patched binaries returns `void`. Check `flowsheet.Solved` and `flowsheet.ErrorMessage` to determine success.
+- **SI Units:** All `StreamState` values (T, P, Flow) must be in SI Units (Kelvin, Pascal, kg/s).
 
 ## 3. Code Style & Conventions
 
 ### C# / .NET 10.0 Guidelines
-- **Modern Features:** Use File-scoped namespaces, Primary Constructors (where appropriate), and `var` for obvious types.
-- **Naming Conventions:**
-  - Classes/Methods: `PascalCase`
-  - Interfaces: `IPascalCase`
-  - Local Variables/Fields: `_camelCase` (for private fields), `camelCase` (for locals).
-- **Imports:** Group `System` namespaces first, then third-party (DWSIM), then project namespaces. Remove unused usings.
+- **Modern Features:** Use File-scoped namespaces, Primary Constructors, and `var` for obvious types.
+- **Naming:** `PascalCase` for public members, `_camelCase` for private fields.
+- **DTOs:** Use `record` or `class` with `required` properties for data transfer objects in the Domain.
 
-### Architecture
-- **Dependency Injection:** Use Constructor Injection. Register simulation-critical services (like `IDWSIMService`) as **Singletons** to preserve the heavy automation engine state.
-- **Controllers:** Keep controllers thin. Delegate simulation logic to `Services`.
-- **DWSIM Interaction:** Always cast flowsheet entities to their interfaces (e.g., `IMaterialStream`, `IUnitOperation`) from `DWSIM.Interfaces.dll` to ensure type safety.
+### Error Handling
+- **Worker Safety:** The Worker process must **never** crash silently. Wrap `Main` in a global try-catch and write a `FailureResult` JSON to disk before exiting with code 1.
+- **API Resilience:** The API must assume the Worker might be killed (OOM, SegFault). Implement timeouts (default 60s) when waiting for the Worker process.
 
-## 4. Error Handling & Robustness
+## 4. Workflows
 
-- **Domain Exceptions:** Throw specific exceptions (e.g., `FlowsheetNotFoundException`) rather than generic `Exception`.
-- **API Responses:** Ensure the API returns structured error objects containing:
-  - `StatusCode`: Appropriate HTTP code.
-  - `Message`: Human-readable error.
-  - `DWSIMError`: Specific error message from the solver if available.
-- **Validation Gate:** All inputs destined for DWSIM must be "Clipped". 
-  - T must be > 0.
-  - P must be > 0.
-  - Fractions must sum to 1.0.
+### Running a Simulation
+1.  **API:** Creates `SimulationJob` DTO (Input file path + Parameter Overrides).
+2.  **API:** Serializes Job to JSON.
+3.  **API:** Spawns `Enerflow.Worker` with paths to Job JSON and Output JSON.
+4.  **Worker:** Loads Template -> Applies Overrides -> Solves -> Writes Result JSON.
+5.  **API:** Reads Result JSON -> Updates DB.
 
-## 5. DWSIM Binary Management
+### Modifying a Simulation
+- **Template + Diffs:** Do not overwrite the original `.dwxmz` file on every run. Apply "Diffs" (Parameter Overrides) in memory within the Worker.
 
-- **Binaries:** DLLs are located in `libs/dwsim_9.0.5/dwsim`.
-- **References:** Reference DLLs via `HintPath` in the `.csproj`. Do NOT commit `bin/` or `obj/` folders.
-- **Deployment:** The build process is configured to copy all DWSIM dependencies to the output folder. Ensure any new DWSIM-related DLLs are added to the `<None Update...>` glob in the `.csproj` if they are not picked up automatically.
+## 5. Git & Version Control
+- **Binaries:** `libs/` is gitignored (mostly). Do not commit DLLs unless updating the core engine.
+- **Output:** `output/` is gitignored.
+- **Commits:** Use Conventional Commits (`feat:`, `fix:`, `chore:`).
 
-## 6. Git Protocol
-
-- **Branching:** Use issue-prefixed branch names (e.g., `mndsk-XX-feature-name`).
-- **Commits:** Use Conventional Commits (`feat:`, `fix:`, `chore:`, `refactor:`).
-- **Binary Safety:** Never use `git add .` without checking `git status` to ensure no massive DLLs or build artifacts are accidentally staged.
-
-## 7. Context Memory
-
-- DWSIM 9 is a cross-platform .NET 8+ compatible library.
-- The project targets **.NET 10.0** for the latest runtime optimizations.
-- The system is a hybrid: C# handles the "Physical" simulation, while a planned Python FastAPI layer will handle "Agentic" reasoning.
+## 6. Context Memory
+- DWSIM 9 is patched for Headless Linux execution (AutomationMode fix).
+- The project targets **.NET 10.0**.
+- Architecture is "Job-Based" with process isolation.

@@ -11,6 +11,9 @@ builder.Services.AddOpenApi();
 builder.Services.AddSingleton<IDWSIMService, DWSIMService>();
 builder.Services.AddSingleton<IFlowsheetService, FlowsheetService>();
 
+// Persistence
+builder.Services.AddSingleton<Enerflow.Domain.Interfaces.IFlowsheetRepository, Enerflow.API.Repositories.InMemoryFlowsheetRepository>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

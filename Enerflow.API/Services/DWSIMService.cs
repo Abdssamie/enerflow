@@ -32,6 +32,9 @@ public class DWSIMService : IDWSIMService
     {
         // Initializing the DWSIM Automation manager
         _automationManager = new Automation2();
+        
+        // CRITICAL: Enable AutomationMode to prevent DWSIM from trying to access UI components (Headless mode)
+        DWSIM.GlobalSettings.Settings.AutomationMode = true;
     }
 
     public Automation2 GetAutomationManager()
