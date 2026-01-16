@@ -1,4 +1,6 @@
 using System.Text.Json;
+using System.Threading;
+using System.Threading;
 using Enerflow.Domain.DTOs;
 using Enerflow.Domain.Entities;
 using Enerflow.Domain.Enums;
@@ -16,6 +18,10 @@ namespace Enerflow.Worker.Consumers;
 /// </summary>
 public class SimulationJobConsumer : IConsumer<SimulationJob>
 {
+    // Use a static semaphore to ensure only one simulation runs at a time process-wide.
+    // DWSIM automation is not thread-safe.
+    private static readonly SemaphoreSlim _simulationLock = new(1, 1);
+
     private readonly ILogger<SimulationJobConsumer> _logger;
     private readonly ISimulationService _simulationService;
     private readonly EnerflowDbContext _dbContext;
