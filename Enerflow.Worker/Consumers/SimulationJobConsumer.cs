@@ -75,7 +75,11 @@ public class SimulationJobConsumer : IConsumer<SimulationJob>
             _logger.LogInformation("Step 3/4: Collecting results for Job {JobId}", job.JobId);
             var results = _simulationService.CollectResults();
 
-            _logger.LogDebug("Collected results for {Count} objects in Job {JobId}", results.Count, job.JobId);
+            _logger.LogDebug(
+                "Collected results for Job {JobId}: {StreamCount} streams, {UnitOpCount} unit operations",
+                job.JobId,
+                results.MaterialStreams.Count,
+                results.UnitOperations.Count);
 
             // Step 4: Persist results to database
             _logger.LogInformation("Step 4/4: Persisting results for Job {JobId}", job.JobId);
@@ -147,7 +151,7 @@ public class SimulationJobConsumer : IConsumer<SimulationJob>
     /// </summary>
     private async Task PersistResultsAsync(
         Guid simulationId,
-        Dictionary<string, Dictionary<string, object>> results,
+        SimulationResultsDto results,
         bool solveSuccess,
         CancellationToken cancellationToken)
     {
@@ -171,13 +175,13 @@ public class SimulationJobConsumer : IConsumer<SimulationJob>
             // Update each material stream with results
             foreach (var stream in materialStreams)
             {
-                if (results.TryGetValue(stream.Name, out var streamResults))
+                if (results.MaterialStreams.TryGetValue(stream.Name, out var streamResult))
                 {
-                    UpdateMaterialStreamFromResults(stream, streamResults);
+                    UpdateMaterialStreamFromResults(stream, streamResult);
                 }
             }
 
-            // Create result JSON blob
+            // Create result JSON blob from strongly-typed results
             var resultJson = JsonSerializer.SerializeToDocument(results);
 
             // Update simulation status
@@ -210,21 +214,14 @@ public class SimulationJobConsumer : IConsumer<SimulationJob>
     /// <summary>
     /// Updates a MaterialStream entity with results from the DWSIM simulation.
     /// </summary>
-    private void UpdateMaterialStreamFromResults(MaterialStream stream, Dictionary<string, object> results)
+    private void UpdateMaterialStreamFromResults(MaterialStream stream, MaterialStreamResultDto result)
     {
         try
         {
-            if (results.TryGetValue("temperature", out var temp) && temp is double tempValue)
-                stream.Temperature = tempValue;
-
-            if (results.TryGetValue("pressure", out var pres) && pres is double presValue)
-                stream.Pressure = presValue;
-
-            if (results.TryGetValue("massFlow", out var flow) && flow is double flowValue)
-                stream.MassFlow = flowValue;
-
-            if (results.TryGetValue("molarCompositions", out var comps) && comps is Dictionary<string, double> compDict)
-                stream.MolarCompositions = compDict;
+            stream.Temperature = result.Temperature;
+            stream.Pressure = result.Pressure;
+            stream.MassFlow = result.MassFlow;
+            stream.MolarCompositions = result.MolarCompositions;
 
             _logger.LogDebug("Updated stream {StreamName}: T={Temp}, P={Pres}, F={Flow}",
                 stream.Name, stream.Temperature, stream.Pressure, stream.MassFlow);

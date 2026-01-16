@@ -126,7 +126,19 @@ public class SimulationService : ISimulationService
             // Use the correct DWSIM API method for solving
             _flowsheet.RequestCalculation();
 
-            // Check for calculation errors
+            // "Always check flowsheet.Solved and flowsheet.ErrorMessage"
+            if (_flowsheet.Solved == false)
+            {
+                var flowsheetError = !string.IsNullOrEmpty(_flowsheet.ErrorMessage)
+                    ? _flowsheet.ErrorMessage
+                    : "Flowsheet failed to solve (no error message provided)";
+
+                _errorMessages.Add($"Flowsheet-level error: {flowsheetError}");
+                _logger.LogError("Flowsheet failed to solve: {Error}", flowsheetError);
+                return false;
+            }
+
+            // Check for calculation errors in individual objects
             var hasErrors = false;
             foreach (var obj in _flowsheet.SimulationObjects.Values)
             {
@@ -157,77 +169,119 @@ public class SimulationService : ISimulationService
         }
     }
 
-    public Dictionary<string, Dictionary<string, object>> CollectResults()
+    public SimulationResultsDto CollectResults()
     {
-        var results = new Dictionary<string, Dictionary<string, object>>();
+        var materialStreams = new Dictionary<string, MaterialStreamResultDto>();
+        var unitOperations = new Dictionary<string, UnitOperationResultDto>();
+        var warnings = new List<string>();
 
         if (_flowsheet == null)
         {
             _logger.LogWarning("Cannot collect results: flowsheet not initialized");
-            return results;
+            return new SimulationResultsDto
+            {
+                MaterialStreams = materialStreams,
+                UnitOperations = unitOperations,
+                Warnings = warnings
+            };
         }
 
         try
         {
             foreach (var obj in _flowsheet.SimulationObjects.Values)
             {
-                var objResults = new Dictionary<string, object>();
-
                 if (obj is MaterialStream ms)
                 {
-                    var phase0 = ms.Phases[0];
-                    objResults["temperature"] = phase0.Properties.temperature ?? 0;
-                    objResults["pressure"] = phase0.Properties.pressure ?? 0;
-                    objResults["massFlow"] = phase0.Properties.massflow ?? 0;
-                    objResults["molarFlow"] = phase0.Properties.molarflow ?? 0;
-                    objResults["volumetricFlow"] = phase0.Properties.volumetric_flow ?? 0;
-                    objResults["enthalpy"] = phase0.Properties.enthalpy ?? 0;
-
-                    // Collect phase compositions
-                    var compositions = new Dictionary<string, double>();
-                    foreach (var compound in phase0.Compounds)
+                    try
                     {
-                        compositions[compound.Key] = compound.Value.MoleFraction ?? 0;
-                    }
+                        var phase0 = ms.Phases[0];
 
-                    objResults["molarCompositions"] = compositions;
+                        // Collect phase compositions
+                        var compositions = new Dictionary<string, double>();
+                        foreach (var compound in phase0.Compounds)
+                        {
+                            compositions[compound.Key] = compound.Value.MoleFraction ?? 0;
+                        }
+
+                        var streamResult = new MaterialStreamResultDto
+                        {
+                            Name = ms.Name,
+                            Temperature = phase0.Properties.temperature ?? 0,
+                            Pressure = phase0.Properties.pressure ?? 0,
+                            MassFlow = phase0.Properties.massflow ?? 0,
+                            MolarFlow = phase0.Properties.molarflow ?? 0,
+                            VolumetricFlow = phase0.Properties.volumetric_flow ?? 0,
+                            Enthalpy = phase0.Properties.enthalpy ?? 0,
+                            MolarCompositions = compositions
+                        };
+
+                        materialStreams[ms.Name] = streamResult;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to collect results for stream: {Name}", ms.Name);
+                        warnings.Add($"Failed to collect results for stream '{ms.Name}': {ex.Message}");
+                    }
                 }
                 else
                 {
                     // For unit operations, collect basic info
-                    objResults["calculated"] = obj.Calculated;
-                }
+                    try
+                    {
+                        var unitOpResult = new UnitOperationResultDto
+                        {
+                            Name = obj.Name,
+                            Calculated = obj.Calculated,
+                            ErrorMessage = string.IsNullOrEmpty(obj.ErrorMessage) ? null : obj.ErrorMessage,
+                            AdditionalProperties = null // Can be extended for specific unit ops
+                        };
 
-                results[obj.Name] = objResults;
+                        unitOperations[obj.Name] = unitOpResult;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to collect results for unit operation: {Name}", obj.Name);
+                        warnings.Add($"Failed to collect results for unit operation '{obj.Name}': {ex.Message}");
+                    }
+                }
             }
 
-            _logger.LogInformation("Collected results for {Count} simulation objects", results.Count);
+            _logger.LogInformation(
+                "Collected results: {StreamCount} streams, {UnitOpCount} unit operations",
+                materialStreams.Count,
+                unitOperations.Count);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error collecting results");
             _errorMessages.Add($"Error collecting results: {ex.Message}");
+            warnings.Add($"Critical error during result collection: {ex.Message}");
         }
 
-        return results;
+        return new SimulationResultsDto
+        {
+            MaterialStreams = materialStreams,
+            UnitOperations = unitOperations,
+            Warnings = warnings
+        };
     }
 
     public IReadOnlyList<string> GetErrorMessages() => _errorMessages.AsReadOnly();
 
     public IReadOnlyList<string> GetLogMessages() => _logMessages.AsReadOnly();
 
-    private void SetSystemOfUnits(string systemOfUnits)
+    private void SetSystemOfUnits(SystemOfUnits systemOfUnits)
     {
         if (_flowsheet == null) return;
 
         try
         {
-            // DWSIM uses specific unit system names
-            var units = systemOfUnits.ToUpperInvariant() switch
+            // DWSIM uses specific unit system names - map enum to DWSIM's naming
+            var units = systemOfUnits switch
             {
-                "SI" => _flowsheet.AvailableSystemsOfUnits.FirstOrDefault(u => u.Name.Contains("SI")),
-                "CGS" => _flowsheet.AvailableSystemsOfUnits.FirstOrDefault(u => u.Name.Contains("CGS")),
-                "ENGLISH" or "IMPERIAL" => _flowsheet.AvailableSystemsOfUnits.FirstOrDefault(u =>
+                SystemOfUnits.SI => _flowsheet.AvailableSystemsOfUnits.FirstOrDefault(u => u.Name.Contains("SI")),
+                SystemOfUnits.CGS => _flowsheet.AvailableSystemsOfUnits.FirstOrDefault(u => u.Name.Contains("CGS")),
+                SystemOfUnits.English => _flowsheet.AvailableSystemsOfUnits.FirstOrDefault(u =>
                     u.Name.Contains("English")),
                 _ => _flowsheet.AvailableSystemsOfUnits.FirstOrDefault()
             };
