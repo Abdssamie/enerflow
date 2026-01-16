@@ -9,15 +9,10 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.1" />
+    <PackageReference Include="StackExchange.Redis" Version="2.10.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="DWSIM.GlobalSettings">
-      <HintPath>$(DWSIMPath)/DWSIM.GlobalSettings.dll</HintPath>
-    </Reference>
-    <Reference Include="DWSIM.Automation">
-      <HintPath>$(DWSIMPath)/DWSIM.Automation.dll</HintPath>
-    </Reference>
     <Reference Include="DWSIM.Interfaces">
       <HintPath>$(DWSIMPath)/DWSIM.Interfaces.dll</HintPath>
     </Reference>
