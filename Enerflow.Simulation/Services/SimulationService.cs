@@ -216,6 +216,12 @@ public class SimulationService : ISimulationService
                 {
                     try
                     {
+                        if (ms.Phases == null || ms.Phases.Count == 0)
+                        {
+                            warnings.Add($"Stream '{ms.Name}' has no phases defined.");
+                            continue;
+                        }
+
                         var phase0 = ms.Phases[0];
 
                         // Collect phase compositions
@@ -301,10 +307,10 @@ public class SimulationService : ISimulationService
             // DWSIM uses specific unit system names - map enum to DWSIM's naming
             var units = systemOfUnits switch
             {
-                SystemOfUnits.SI => _flowsheet.AvailableSystemsOfUnits.FirstOrDefault(u => u.Name.Contains("SI")),
-                SystemOfUnits.CGS => _flowsheet.AvailableSystemsOfUnits.FirstOrDefault(u => u.Name.Contains("CGS")),
+                SystemOfUnits.SI => _flowsheet.AvailableSystemsOfUnits.FirstOrDefault(u => u.Name != null && u.Name.Contains("SI")),
+                SystemOfUnits.CGS => _flowsheet.AvailableSystemsOfUnits.FirstOrDefault(u => u.Name != null && u.Name.Contains("CGS")),
                 SystemOfUnits.English => _flowsheet.AvailableSystemsOfUnits.FirstOrDefault(u =>
-                    u.Name.Contains("English")),
+                    u.Name != null && u.Name.Contains("English")),
                 _ => _flowsheet.AvailableSystemsOfUnits.FirstOrDefault()
             };
 
@@ -441,7 +447,7 @@ public class SimulationService : ISimulationService
                 var streamId = unitOpDto.InputStreamIds[i];
                 if (!_streamIdToName.TryGetValue(streamId, out var streamName)) continue;
                 if (!_flowsheet.SimulationObjects.TryGetValue(streamName, out var streamObj)) continue;
-                _flowsheet.ConnectObjects(streamObj.GraphicObject, unitOpObj.GraphicObject, i, 0);
+                _flowsheet.ConnectObjects(streamObj.GraphicObject, unitOpObj.GraphicObject, 0, i);
                 if (_logger.IsEnabled(LogLevel.Debug)) _logger.LogDebug("Connected input stream {Stream} to {UnitOp}", streamName, unitOpName);
             }
 
@@ -451,7 +457,7 @@ public class SimulationService : ISimulationService
                 var streamId = unitOpDto.OutputStreamIds[i];
                 if (!_streamIdToName.TryGetValue(streamId, out var streamName)) continue;
                 if (!_flowsheet.SimulationObjects.TryGetValue(streamName, out var streamObj)) continue;
-                _flowsheet.ConnectObjects(unitOpObj.GraphicObject, streamObj.GraphicObject, 0, i);
+                _flowsheet.ConnectObjects(unitOpObj.GraphicObject, streamObj.GraphicObject, i, 0);
                 if (_logger.IsEnabled(LogLevel.Debug)) _logger.LogDebug("Connected output stream {Stream} from {UnitOp}", streamName, unitOpName);
             }
         }
@@ -464,6 +470,7 @@ public class SimulationService : ISimulationService
 
     public void Dispose()
     {
+        (_flowsheet as IDisposable)?.Dispose();
         _flowsheet = null;
         _logger.LogInformation("SimulationService disposed");
     }
