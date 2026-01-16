@@ -1,57 +1,26 @@
-using System.Text.Json;
-using Enerflow.Domain.Entities;
-using Enerflow.Domain.Enums;
+using Enerflow.Domain.ValueObjects;
 
 namespace Enerflow.Domain.DTOs;
 
-// --- Worker Job DTOs ---
-
-public record SimulationJob
+public class SimulationJob
 {
-    public required Guid JobId { get; init; }
-    public required Guid SimulationId { get; init; }
+    public required string SimulationFilePath { get; set; }
+    public int TimeoutSeconds { get; set; } = 60;
     
-    // The complete definition required to build/solve the flowsheet
-    public required SimulationDefinitionDto Definition { get; init; }
-}
-
-public record SimulationDefinitionDto
-{
-    public required string Name { get; init; }
-    public required string ThermoPackage { get; init; } // e.g., "PengRobinson"
-    public required string SystemOfUnits { get; init; } // e.g., "SI"
+    // Key: Object Tag, Value: Dictionary of PropertyName -> Value
+    public Dictionary<string, Dictionary<string, double>> Overrides { get; set; } = new();
     
-    public List<CompoundDto> Compounds { get; init; } = new();
-    public List<MaterialStreamDto> MaterialStreams { get; init; } = new();
-    public List<EnergyStreamDto> EnergyStreams { get; init; } = new();
-    public List<UnitOperationDto> UnitOperations { get; init; } = new();
+    // Specific overrides for Material Streams (simpler than generic overrides)
+    public Dictionary<string, StreamState> StreamOverrides { get; set; } = new();
 }
 
-public record CompoundDto(Guid Id, string Name, JsonDocument? ConstantProperties);
-
-public record MaterialStreamDto
+public class SimulationResult
 {
-    public required Guid Id { get; init; }
-    public required string Name { get; init; }
-    public double Temperature { get; init; }
-    public double Pressure { get; init; }
-    public double MassFlow { get; init; }
-    public Dictionary<string, double> MolarCompositions { get; init; } = new();
-}
-
-public record EnergyStreamDto
-{
-    public required Guid Id { get; init; }
-    public required string Name { get; init; }
-    public double EnergyFlow { get; init; }
-}
-
-public record UnitOperationDto
-{
-    public required Guid Id { get; init; }
-    public required string Name { get; init; }
-    public required string Type { get; init; } // e.g., "Mixer"
-    public List<Guid> InputStreamIds { get; init; } = new();
-    public List<Guid> OutputStreamIds { get; init; } = new();
-    public JsonDocument? ConfigParams { get; init; }
+    public bool Success { get; set; }
+    public string StatusMessage { get; set; } = string.Empty;
+    public double ExecutionTimeMs { get; set; }
+    
+    public Dictionary<string, StreamState> Streams { get; set; } = new();
+    public List<string> LogMessages { get; set; } = new();
+    public List<string> ValidationErrors { get; set; } = new();
 }

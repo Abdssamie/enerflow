@@ -9,7 +9,7 @@ public record StreamState
     public double Enthalpy { get; init; }    // kJ/kg
     public double[] MoleFractions { get; init; }
 
-    private StreamState(double temperature, double pressure, double massFlow, double molarFlow, double enthalpy, double[]? moleFractions)
+    private StreamState(double temperature, double pressure, double massFlow, double molarFlow, double enthalpy, double[] moleFractions)
     {
         if (temperature <= 0) throw new ArgumentException("Temperature must be greater than 0 K.");
         if (pressure <= 0) throw new ArgumentException("Pressure must be greater than 0 Pa.");

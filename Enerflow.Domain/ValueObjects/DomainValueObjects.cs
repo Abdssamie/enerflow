@@ -1,3 +1,5 @@
+using Enerflow.Domain.Common;
+
 namespace Enerflow.Domain.ValueObjects;
 
 public record Coordinates(double X, double Y);
