@@ -1,7 +1,5 @@
 ## Ignore Visual Studio temporary files, build results, and
 
-.apm/
-.opencode/
 .qodo/
 
 libs/

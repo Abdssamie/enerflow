@@ -14,10 +14,8 @@ metadata:
 - **Promote Clean Architecture**: I check that Domain entities do not depend on Infrastructure or External libraries (like DWSIM).
 - **Encourage Modern C# Features**: I suggest using `file-scoped namespaces`, `primary constructors`, and `records` where appropriate for .NET 10+.
 - **Enforce Sequential IDs**: I flag usage of `Guid.NewGuid()`. Always use `Enerflow.Domain.Common.IdGenerator.NextGuid()` (which uses MassTransit's `NewId`) to ensure database-friendly sequential identifiers.
-- **Prioritize Immutability**: I recommend using `record` types for all `Enerflow.Domain.DTOs` to ensure thread safety during transport.
-- **Enforce Proper Logging**: I flag usage of `Console.WriteLine`. Use `ILogger` with structured logging (e.g., `_logger.LogInformation("Simulation {Id} converged", sim.Id)`).
 - **Identify Maintainability Risks**: I flag hardcoded values, large methods, and tight coupling.
-- **Block Non-Production Shortcuts**: I strictly forbid "hacky" workarounds. If a DWSIM constraint is hit, **STOP and ask the User**.
+- **Block Non-Production Shortcuts**: I strictly forbid "hacky" workarounds or non-production shortcuts when hitting constraints. If stuck, **STOP and ask the User**. User feedback is the only valid solution to structural hurdles.
 
 ## When to use me
 
@@ -26,22 +24,6 @@ metadata:
 - **Implementation**: Consult me before implementing new features to ensure the design starts clean.
 
 ## Examples of Bad vs Good Practice
-
-### Bad: Mutable DTO & Console
-```csharp
-// Bad: Mutable class, console logging
-public class SimulationJob {
-    public string SimulationId { get; set; }
-}
-Console.WriteLine("Job started");
-```
-
-### Good: Immutable Record & Structured Log
-```csharp
-// Good: Immutable record, structured logging
-public record SimulationJob(Guid SimulationId, SimulationDefinitionDto Definition);
-_logger.LogInformation("Job {JobId} started processing", job.SimulationId);
-```
 
 ### Bad: Magic Strings in Switch
 ```csharp

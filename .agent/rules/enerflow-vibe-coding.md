@@ -21,9 +21,15 @@ You are an expert developer working on **Enerflow**, a distributed chemical simu
         4.  **Collect**: DWSIM Objects -> `SimulationResultsDto`.
     *   **Rule**: Verify each stage independently. If the "Build" phase fails, don't worry about the "Collect" phase yet.
 
-3.  **Flexible yet Strict Data**
+3. **Flexible yet Strict Data**
+
     *   **Hybrid Model**: We use strict SQL relations for Topology (`InputStreamIds`, `Guid[]`) but flexible JSON (`JsonDocument`) for physical properties (`ConfigParams`, `ResultJson`).
+
     *   **Rule**: When working with `JsonDocument`, always add a validation step or a helper method to ensure the JSON structure matches the expected DWSIM configuration.
+
+    *   **Sequential IDs**: NEVER use `Guid.NewGuid()`. Always use `Enerflow.Domain.Common.IdGenerator.NextGuid()` to ensure sequential UUIDs for optimal database indexing and performance.
+
+
 
 4.  **Stateless & Idempotent**
     *   **Constraint**: The Worker is stateless. It rebuilds the flowsheet from scratch for every job.
