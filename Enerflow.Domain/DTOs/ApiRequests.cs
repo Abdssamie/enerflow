@@ -19,3 +19,8 @@ public record ConnectStreamRequest
     public required PortType PortType { get; init; }
     public string? PortName { get; init; } // Optional: Specific port name on the unit (e.g. "Inlet 1")
 }
+
+public record SubmitJobRequest
+{
+    public required Guid SimulationId { get; init; }
+}

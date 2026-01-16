@@ -10,7 +10,7 @@ public record SimulationResult
     public required bool Success { get; init; }
     public string? ErrorMessage { get; init; }
     public TimeSpan ExecutionTime { get; init; }
-    
+
     public List<StreamResultDto> StreamResults { get; init; } = new();
     public List<UnitResultDto> UnitResults { get; init; } = new();
 }

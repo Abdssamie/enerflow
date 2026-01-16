@@ -26,6 +26,7 @@ public class EnerflowDbContext : DbContext
             entity.Property(e => e.Id).HasValueGenerator<SequentialGuidValueGenerator>();
             entity.Property(e => e.Name).IsRequired();
             entity.Property(e => e.ThermoPackage).IsRequired();
+            entity.Property(e => e.FlashAlgorithm).IsRequired();
             entity.Property(e => e.SystemOfUnits).IsRequired();
 
             // Status stored as string for readability
@@ -37,10 +38,11 @@ public class EnerflowDbContext : DbContext
             entity.Property(e => e.ResultJson).HasColumnType("jsonb");
 
             // Cascade delete behavior
-            entity.HasMany<Compound>().WithOne().HasForeignKey(c => c.SimulationId).OnDelete(DeleteBehavior.Cascade);
-            entity.HasMany<MaterialStream>().WithOne().HasForeignKey(s => s.SimulationId).OnDelete(DeleteBehavior.Cascade);
-            entity.HasMany<EnergyStream>().WithOne().HasForeignKey(s => s.SimulationId).OnDelete(DeleteBehavior.Cascade);
-            entity.HasMany<UnitOperation>().WithOne().HasForeignKey(u => u.SimulationId).OnDelete(DeleteBehavior.Cascade);
+            // Cascade delete behavior
+            entity.HasMany(e => e.Compounds).WithOne().HasForeignKey(c => c.SimulationId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasMany(e => e.MaterialStreams).WithOne().HasForeignKey(s => s.SimulationId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasMany(e => e.EnergyStreams).WithOne().HasForeignKey(s => s.SimulationId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasMany(e => e.UnitOperations).WithOne().HasForeignKey(u => u.SimulationId).OnDelete(DeleteBehavior.Cascade);
         });
 
         // Compound

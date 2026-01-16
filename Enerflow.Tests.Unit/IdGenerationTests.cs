@@ -63,14 +63,14 @@ public class IdGenerationTests
         var services = new ServiceCollection();
         services.AddDbContext<TestDbContext>(options =>
             options.UseInMemoryDatabase("TestDb"));
-        
+
         var serviceProvider = services.BuildServiceProvider();
         using var scope = serviceProvider.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<TestDbContext>();
 
         // Act
         var entity = new TestEntity { Name = "EF Test" };
-        
+
         context.TestEntities.Add(entity);
         await context.SaveChangesAsync();
 

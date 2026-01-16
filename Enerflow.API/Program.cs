@@ -4,6 +4,7 @@ using Enerflow.API.Services;
 using Enerflow.Domain.Interfaces;
 using MassTransit;
 using StackExchange.Redis;
+using Enerflow.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -65,6 +66,8 @@ builder.Services.AddOptions<MassTransitHostOptions>()
 builder.Services.AddScoped<IJobProducer, JobProducer>();
 
 // Persistence
+// Register Infrastructure (DbContext, etc)
+builder.Services.AddInfrastructure(dbConnectionString);
 
 var app = builder.Build();
 
