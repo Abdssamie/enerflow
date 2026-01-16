@@ -18,7 +18,7 @@ public record SimulationJob
 public record SimulationDefinitionDto
 {
     public required string Name { get; init; }
-    public required string ThermoPackage { get; init; } // e.g., "PengRobinson"
+    public required PropertyPackage PropertyPackage { get; init; } // e.g., "PengRobinson"
     public required string SystemOfUnits { get; init; } // e.g., "SI"
 
     public List<CompoundDto> Compounds { get; init; } = new();

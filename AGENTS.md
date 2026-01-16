@@ -9,55 +9,77 @@ This document serves as the primary instruction set for AI coding agents operati
 - **Build API:** `dotnet build Enerflow.API/Enerflow.API.csproj`
 - **Build Worker:** `dotnet build Enerflow.Worker/Enerflow.Worker.csproj`
 - **Run API:** `dotnet run --project Enerflow.API/Enerflow.API.csproj`
-- **Run Worker (Manual):** `dotnet run --project Enerflow.Worker/Enerflow.Worker.csproj -- --job <job.json> --output <result.json>`
+- **Run Worker:** `dotnet run --project Enerflow.Worker/Enerflow.Worker.csproj` (Runs as a Hosted Service listening to MassTransit)
 
 ### Testing
 - **Run All Tests:** `dotnet test`
 - **Run Specific Test:** `dotnet test --filter "FullyQualifiedName=Namespace.ClassName.MethodName"`
+- **Run Functional Tests:** `dotnet test Enerflow.Tests.Functional/Enerflow.Tests.Functional.csproj` (Requires Docker for Testcontainers)
 
 ## 2. Architecture & Design
 
 ### The "Enterprise Worker" Pattern
 Enerflow uses a split architecture to ensure stability and isolation:
-1.  **Enerflow.API:** The Orchestrator. Handles HTTP, DB, and Job Queueing. **NEVER** references DWSIM binaries directly for solving. It manages `SimulationJob` entities.
-2.  **Enerflow.Worker:** The Executor. A transient Console App spawned as a child process. It references DWSIM binaries, loads the simulation, solves it, and dies.
-3.  **Enerflow.Domain:** Shared Kernel. Contains Entities (`SimulationSession`) and DTOs (`SimulationJob`, `SimulationResult`) shared by API and Worker.
+1.  **Enerflow.API:** The Orchestrator. Handles HTTP, DB, and Job Submission. **NEVER** references DWSIM binaries directly. It communicates with the Worker via MassTransit.
+2.  **Enerflow.Worker:** The Executor. A Hosted Service that consumes `SimulationJob` messages. It references DWSIM binaries, manages the automation engine, and executes simulations.
+3.  **Enerflow.Domain:** Shared Kernel. Contains Entities (`Simulation`), DTOs (`SimulationJob`), and Interfaces (`ISimulationService`).
+
+### Messaging & Transport
+- **Transport:** MassTransit using **PostgreSQL Transport** (SQL Transport).
+- **Queues:** Worker listens on `simulation-jobs` (configured via kebab-case formatter).
+- **Serialization:** System.Text.Json (CamelCase).
 
 ### DWSIM Integration Constraints
-- **Binaries:** Located in `libs/dwsim_9.0.5/dwsim`. Treat them as immutable.
-- **Headless Mode:** Always set `DWSIM.GlobalSettings.Settings.AutomationMode = true` immediately upon initialization to prevent UI crashes on Linux.
-- **Solver Safety:** `CalculateFlowsheet2/3` in the patched binaries returns `void`. Check `flowsheet.Solved` and `flowsheet.ErrorMessage` to determine success.
-- **SI Units:** All `StreamState` values (T, P, Flow) must be in SI Units (Kelvin, Pascal, kg/s).
+- **Binaries:** Located in `libs/dwsim_9.0.5/dwsim`. Treat as immutable.
+- **Headless Mode:** `DWSIM.GlobalSettings.Settings.AutomationMode = true` must be set **before** any other DWSIM call.
+- **Thread Safety:** DWSIM Automation is **NOT** thread-safe.
+    - The Worker enforces `ConcurrentMessageLimit = 1` via `SimulationJobConsumerDefinition`.
+    - **NEVER** remove this concurrency limit.
+- **Solver:** Use `flowsheet.RequestCalculation()`. `CalculateFlowsheet2` is deprecated/void in patched binaries.
 
 ## 3. Code Style & Conventions
 
 ### C# / .NET 10.0 Guidelines
-- **Modern Features:** Use File-scoped namespaces, Primary Constructors, and `var` for obvious types.
-- **Naming:** `PascalCase` for public members, `_camelCase` for private fields.
-- **DTOs:** Use `record` or `class` with `required` properties for data transfer objects in the Domain.
+- **Namespaces:** Use File-scoped namespaces (`namespace Enerflow.Domain;`).
+- **Constructors:** Use Primary Constructors where appropriate, or standard constructors for DI injection.
+- **Properties:** Use `required` modifier for DTOs and Entities to ensure validity.
+- **Typing:** Use `var` for complex object creation (`new Dictionary<...>`), explicit types for primitives (`int`, `string`) and return types.
+- **Async:** Always use `async/await`. Avoid `.Result` or `.Wait()`. Use `CancellationToken` where available.
+
+### Naming Conventions
+- **Classes/Methods:** `PascalCase`
+- **Private Fields:** `_camelCase` (e.g., `_simulationService`)
+- **Local Variables:** `camelCase`
+- **Interfaces:** `I` prefix (e.g., `ISimulationService`)
 
 ### Error Handling
-- **Worker Safety:** The Worker process must **never** crash silently. Wrap `Main` in a global try-catch and write a `FailureResult` JSON to disk before exiting with code 1.
-- **API Resilience:** The API must assume the Worker might be killed (OOM, SegFault). Implement timeouts (default 60s) when waiting for the Worker process.
+- **Worker Safety:** The Worker process must handle exceptions gracefully.
+    - `SimulationJobConsumer` catches all exceptions during execution.
+    - On failure: Update `Simulation.Status` to `Failed`, save `ErrorMessage`, and persist to DB.
+    - The process should **not** crash; it should ack the message (or move to error queue) and be ready for the next job.
 
 ## 4. Workflows
 
-### Running a Simulation
-1.  **API:** Creates `SimulationJob` DTO (Input file path + Parameter Overrides).
-2.  **API:** Serializes Job to JSON.
-3.  **API:** Spawns `Enerflow.Worker` with paths to Job JSON and Output JSON.
-4.  **Worker:** Loads Template -> Applies Overrides -> Solves -> Writes Result JSON.
-5.  **API:** Reads Result JSON -> Updates DB.
+### Simulation Execution
+1.  **API:** Receives request -> Creates/Updates `Simulation` Entity -> Publishes `SimulationJob` via MassTransit.
+2.  **Worker:** Consumes message (Serialized execution) -> Maps DTO to DWSIM Objects -> Solves Flowsheet -> Collects Results.
+3.  **Worker:** Updates `Simulation` Entity (Status, ResultJson) and `MaterialStream` Entities directly in DB.
+4.  **API:** Polls/Reads updated Entities to show results to user.
 
-### Modifying a Simulation
-- **Template + Diffs:** Do not overwrite the original `.dwxmz` file on every run. Apply "Diffs" (Parameter Overrides) in memory within the Worker.
+### Data Access
+- **ORM:** Entity Framework Core with Npgsql.
+- **JSON:** Heavy/Dynamic data (Compositions, Unit Configs, Full Results) is stored in `jsonb` columns using `JsonDocument`.
+- **Arrays:** Native PostgreSQL arrays (`uuid[]`) used for Topology (Input/Output IDs).
 
 ## 5. Git & Version Control
-- **Binaries:** `libs/` is gitignored (mostly). Do not commit DLLs unless updating the core engine.
-- **Output:** `output/` is gitignored.
-- **Commits:** Use Conventional Commits (`feat:`, `fix:`, `chore:`).
+- **Binaries:** `libs/` is gitignored.
+- **Commits:** Use Conventional Commits (`feat:`, `fix:`, `chore:`, `refactor:`).
+- **Configuration:** `appsettings.json` is gitignored; use `appsettings.Development.json` or environment variables.
 
-## 6. Context Memory
-- DWSIM 9 is patched for Headless Linux execution (AutomationMode fix).
-- The project targets **.NET 10.0**.
-- Architecture is "Job-Based" with process isolation.
+## 6. Project Structure
+- `Enerflow.API`: Web API (Controllers, MassTransit Producer).
+- `Enerflow.Worker`: Hosted Service (Consumer, DWSIM Mapper, Solver).
+- `Enerflow.Domain`: Entities, Enums, DTOs, Interfaces.
+- `Enerflow.Infrastructure`: EF Core Context, Migrations.
+- `libs/`: External DWSIM dependencies.
+

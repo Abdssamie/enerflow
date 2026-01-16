@@ -31,8 +31,8 @@ builder.Services.AddScoped<ISimulationService, SimulationService>();
 
 builder.Services.AddMassTransit(x =>
 {
-    // Register the consumer
-    x.AddConsumer<SimulationJobConsumer>();
+    // Register the consumer with its definition to enforce concurrency limits
+    x.AddConsumer<SimulationJobConsumer, SimulationJobConsumerDefinition>();
 
     x.SetKebabCaseEndpointNameFormatter();
 

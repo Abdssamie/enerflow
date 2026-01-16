@@ -4,6 +4,7 @@ using DWSIM.Automation;
 using DWSIM.GlobalSettings;
 using DWSIM.Interfaces;
 using DWSIM.Thermodynamics.Streams;
+using Enerflow.Domain.Enums;
 using DWSIMPropertyPackage = DWSIM.Thermodynamics.PropertyPackages;
 using Microsoft.Extensions.Logging;
 
@@ -21,8 +22,8 @@ public class SimulationService : ISimulationService
     private readonly Automation _automation;
     private IFlowsheet? _flowsheet;
 
-    private readonly List<string> _errorMessages = new();
-    private readonly List<string> _logMessages = new();
+    private readonly List<string> _errorMessages = [];
+    private readonly List<string> _logMessages = [];
 
     // Maps DTO IDs to DWSIM object names for connection resolution
     private readonly Dictionary<Guid, string> _streamIdToName = new();
@@ -63,7 +64,7 @@ public class SimulationService : ISimulationService
             }
 
             // Set property package (thermodynamic model)
-            SetPropertyPackage(definition.ThermoPackage);
+            SetPropertyPackage(definition.PropertyPackage);
 
             // Create material streams
             foreach (var stream in definition.MaterialStreams)
@@ -90,10 +91,15 @@ public class SimulationService : ISimulationService
             }
 
             _logMessages.Add($"Flowsheet '{definition.Name}' built successfully");
-            _logger.LogInformation("Flowsheet built: {Compounds} compounds, {Streams} streams, {UnitOps} unit operations",
-                definition.Compounds.Count,
-                definition.MaterialStreams.Count + definition.EnergyStreams.Count,
-                definition.UnitOperations.Count);
+
+            if (_logger.IsEnabled(LogLevel.Debug))
+            {
+                _logger.LogDebug(
+                    "Flowsheet built: {Compounds} compounds, {Streams} streams, {UnitOps} unit operations",
+                    definition.Compounds.Count,
+                    definition.MaterialStreams.Count + definition.EnergyStreams.Count,
+                    definition.UnitOperations.Count);
+            }
 
             return true;
         }
@@ -183,6 +189,7 @@ public class SimulationService : ISimulationService
                     {
                         compositions[compound.Key] = compound.Value.MoleFraction ?? 0;
                     }
+
                     objResults["molarCompositions"] = compositions;
                 }
                 else
@@ -220,7 +227,8 @@ public class SimulationService : ISimulationService
             {
                 "SI" => _flowsheet.AvailableSystemsOfUnits.FirstOrDefault(u => u.Name.Contains("SI")),
                 "CGS" => _flowsheet.AvailableSystemsOfUnits.FirstOrDefault(u => u.Name.Contains("CGS")),
-                "ENGLISH" or "IMPERIAL" => _flowsheet.AvailableSystemsOfUnits.FirstOrDefault(u => u.Name.Contains("English")),
+                "ENGLISH" or "IMPERIAL" => _flowsheet.AvailableSystemsOfUnits.FirstOrDefault(u =>
+                    u.Name.Contains("English")),
                 _ => _flowsheet.AvailableSystemsOfUnits.FirstOrDefault()
             };
 
@@ -236,7 +244,7 @@ public class SimulationService : ISimulationService
         }
     }
 
-    private void SetPropertyPackage(string thermoPackage)
+    private void SetPropertyPackage(PropertyPackage thermoPackage)
     {
         if (_flowsheet == null) return;
 
@@ -244,20 +252,17 @@ public class SimulationService : ISimulationService
         {
             IPropertyPackage? pp = thermoPackage switch
             {
-                "PengRobinson" or "PR" => new DWSIMPropertyPackage.PengRobinsonPropertyPackage(),
-                "SoaveRedlichKwong" or "SRK" => new DWSIMPropertyPackage.SRKPropertyPackage(),
-                "NRTL" => new DWSIMPropertyPackage.NRTLPropertyPackage(),
-                "UNIQUAC" => new DWSIMPropertyPackage.UNIQUACPropertyPackage(),
-                "RaoultsLaw" or "Raoult" => new DWSIMPropertyPackage.RaoultPropertyPackage(),
-                "SteamTables" or "Steam" => new DWSIMPropertyPackage.SteamTablesPropertyPackage(),
+                PropertyPackage.PengRobinson => new DWSIMPropertyPackage.PengRobinsonPropertyPackage(),
+                PropertyPackage.SoaveRedlichKwong => new DWSIMPropertyPackage.SRKPropertyPackage(),
+                PropertyPackage.NRTL => new DWSIMPropertyPackage.NRTLPropertyPackage(),
+                PropertyPackage.UNIQUAC => new DWSIMPropertyPackage.UNIQUACPropertyPackage(),
+                PropertyPackage.RaoultsLaw => new DWSIMPropertyPackage.RaoultPropertyPackage(),
+                PropertyPackage.SteamTables => new DWSIMPropertyPackage.SteamTablesPropertyPackage(),
                 _ => new DWSIMPropertyPackage.PengRobinsonPropertyPackage()
             };
 
-            if (pp != null)
-            {
-                _flowsheet.AddPropertyPackage(pp);
-                _logger.LogDebug("Set property package to: {Package}", thermoPackage);
-            }
+            _flowsheet.AddPropertyPackage(pp);
+            _logger.LogDebug("Set property package to: {Package}", thermoPackage);
         }
         catch (Exception ex)
         {
@@ -369,14 +374,14 @@ public class SimulationService : ISimulationService
 
         if (!_unitOpIdToName.TryGetValue(unitOpDto.Id, out var unitOpName))
         {
-            _logger.LogWarning("Unit operation not found for connection: {Id}", unitOpDto.Id);
+            if (_logger.IsEnabled(LogLevel.Warning)) _logger.LogWarning("Unit operation not found for connection: {Id}", unitOpDto.Id);
             return;
         }
 
         // Get the unit operation from the simulation objects
         if (!_flowsheet.SimulationObjects.TryGetValue(unitOpName, out var unitOpObj))
         {
-            _logger.LogWarning("Unit operation '{Name}' not found in flowsheet", unitOpName);
+            if (_logger.IsEnabled(LogLevel.Warning)) _logger.LogWarning("Unit operation '{Name}' not found in flowsheet", unitOpName);
             return;
         }
 
@@ -386,28 +391,20 @@ public class SimulationService : ISimulationService
             for (int i = 0; i < unitOpDto.InputStreamIds.Count; i++)
             {
                 var streamId = unitOpDto.InputStreamIds[i];
-                if (_streamIdToName.TryGetValue(streamId, out var streamName))
-                {
-                    if (_flowsheet.SimulationObjects.TryGetValue(streamName, out var streamObj))
-                    {
-                        _flowsheet.ConnectObjects(streamObj.GraphicObject, unitOpObj.GraphicObject, i, 0);
-                        _logger.LogDebug("Connected input stream {Stream} to {UnitOp}", streamName, unitOpName);
-                    }
-                }
+                if (!_streamIdToName.TryGetValue(streamId, out var streamName)) continue;
+                if (!_flowsheet.SimulationObjects.TryGetValue(streamName, out var streamObj)) continue;
+                _flowsheet.ConnectObjects(streamObj.GraphicObject, unitOpObj.GraphicObject, i, 0);
+                if (_logger.IsEnabled(LogLevel.Debug)) _logger.LogDebug("Connected input stream {Stream} to {UnitOp}", streamName, unitOpName);
             }
 
             // Connect output streams
             for (int i = 0; i < unitOpDto.OutputStreamIds.Count; i++)
             {
                 var streamId = unitOpDto.OutputStreamIds[i];
-                if (_streamIdToName.TryGetValue(streamId, out var streamName))
-                {
-                    if (_flowsheet.SimulationObjects.TryGetValue(streamName, out var streamObj))
-                    {
-                        _flowsheet.ConnectObjects(unitOpObj.GraphicObject, streamObj.GraphicObject, 0, i);
-                        _logger.LogDebug("Connected output stream {Stream} from {UnitOp}", streamName, unitOpName);
-                    }
-                }
+                if (!_streamIdToName.TryGetValue(streamId, out var streamName)) continue;
+                if (!_flowsheet.SimulationObjects.TryGetValue(streamName, out var streamObj)) continue;
+                _flowsheet.ConnectObjects(unitOpObj.GraphicObject, streamObj.GraphicObject, 0, i);
+                if (_logger.IsEnabled(LogLevel.Debug)) _logger.LogDebug("Connected output stream {Stream} from {UnitOp}", streamName, unitOpName);
             }
         }
         catch (Exception ex)
