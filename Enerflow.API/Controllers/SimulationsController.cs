@@ -254,4 +254,277 @@ public class SimulationsController : ControllerBase
             outputStreamIds = unit.OutputStreamIds
         });
     }
+
+    /// <summary>
+    /// Exports a simulation as a JSON file.
+    /// </summary>
+    [HttpGet("{id:guid}/export")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ExportSimulation(Guid id)
+    {
+        var simulation = await _context.Simulations
+            .Include(s => s.Compounds)
+            .Include(s => s.MaterialStreams)
+            .Include(s => s.EnergyStreams)
+            .Include(s => s.UnitOperations)
+            .FirstOrDefaultAsync(s => s.Id == id);
+
+        if (simulation == null)
+        {
+            return NotFound(new { code = "SimulationNotFound", message = $"Simulation with ID {id} not found." });
+        }
+
+        // Build export DTO
+        var exportDto = new SimulationExportDto
+        {
+            Name = simulation.Name,
+            ThermoPackage = simulation.ThermoPackage,
+            FlashAlgorithm = simulation.FlashAlgorithm,
+            SystemOfUnits = simulation.SystemOfUnits,
+            Compounds = simulation.Compounds.Select(c => new CompoundExportDto
+            {
+                Id = c.Id,
+                Name = c.Name,
+                ConstantProperties = c.ConstantProperties
+            }).ToList(),
+            MaterialStreams = simulation.MaterialStreams.Select(s => new MaterialStreamExportDto
+            {
+                Id = s.Id,
+                Name = s.Name,
+                Temperature = s.Temperature,
+                Pressure = s.Pressure,
+                MassFlow = s.MassFlow,
+                MolarCompositions = s.MolarCompositions
+            }).ToList(),
+            EnergyStreams = simulation.EnergyStreams.Select(s => new EnergyStreamExportDto
+            {
+                Id = s.Id,
+                Name = s.Name,
+                EnergyFlow = s.EnergyFlow
+            }).ToList(),
+            UnitOperations = simulation.UnitOperations.Select(u => new UnitOperationExportDto
+            {
+                Id = u.Id,
+                Name = u.Name,
+                Type = u.Type,
+                InputStreamIds = u.InputStreamIds,
+                OutputStreamIds = u.OutputStreamIds,
+                ConfigParams = u.ConfigParams
+            }).ToList()
+        };
+
+        var jsonOptions = new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+
+        var jsonContent = JsonSerializer.Serialize(exportDto, jsonOptions);
+        var fileName = $"{SanitizeFileName(simulation.Name)}.json";
+
+        _logger.LogInformation("Exported simulation {SimulationId} as {FileName}", id, fileName);
+
+        return File(
+            System.Text.Encoding.UTF8.GetBytes(jsonContent),
+            "application/json",
+            fileName);
+    }
+
+    /// <summary>
+    /// Imports a simulation from JSON, creating a new simulation with new IDs.
+    /// </summary>
+    [HttpPost("import")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ImportSimulation([FromBody] SimulationExportDto importDto)
+    {
+        if (importDto == null)
+        {
+            return BadRequest(new { code = "InvalidInput", message = "Import data is required." });
+        }
+
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
+        try
+        {
+            // Create new simulation with new ID
+            var simulation = new Simulation
+            {
+                Name = importDto.Name,
+                ThermoPackage = importDto.ThermoPackage,
+                FlashAlgorithm = importDto.FlashAlgorithm,
+                SystemOfUnits = importDto.SystemOfUnits,
+                Status = SimulationStatus.Created,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            _context.Simulations.Add(simulation);
+            await _context.SaveChangesAsync();
+
+            // Map old IDs to new IDs for streams and units
+            var streamIdMap = new Dictionary<Guid, Guid>();
+            var unitIdMap = new Dictionary<Guid, Guid>();
+            var compoundIdMap = new Dictionary<Guid, Guid>();
+
+            // Import compounds
+            foreach (var compoundDto in importDto.Compounds)
+            {
+                var newId = IdGenerator.NextGuid();
+                compoundIdMap[compoundDto.Id] = newId;
+
+                var compound = new Compound
+                {
+                    Id = newId,
+                    SimulationId = simulation.Id,
+                    Name = compoundDto.Name,
+                    ConstantProperties = compoundDto.ConstantProperties
+                };
+                _context.Compounds.Add(compound);
+            }
+
+            // Import material streams
+            foreach (var streamDto in importDto.MaterialStreams)
+            {
+                var newId = IdGenerator.NextGuid();
+                streamIdMap[streamDto.Id] = newId;
+
+                var stream = new MaterialStream
+                {
+                    Id = newId,
+                    SimulationId = simulation.Id,
+                    Name = streamDto.Name,
+                    Temperature = streamDto.Temperature,
+                    Pressure = streamDto.Pressure,
+                    MassFlow = streamDto.MassFlow,
+                    MolarCompositions = streamDto.MolarCompositions ?? new Dictionary<string, double>()
+                };
+                _context.MaterialStreams.Add(stream);
+            }
+
+            // Import energy streams
+            foreach (var streamDto in importDto.EnergyStreams)
+            {
+                var newId = IdGenerator.NextGuid();
+                // Energy streams don't need ID mapping for connections currently
+
+                var stream = new EnergyStream
+                {
+                    Id = newId,
+                    SimulationId = simulation.Id,
+                    Name = streamDto.Name,
+                    EnergyFlow = streamDto.EnergyFlow
+                };
+                _context.EnergyStreams.Add(stream);
+            }
+
+            // Import unit operations with remapped stream IDs
+            foreach (var unitDto in importDto.UnitOperations)
+            {
+                var newId = IdGenerator.NextGuid();
+                unitIdMap[unitDto.Id] = newId;
+
+                // Remap stream IDs
+                var remappedInputIds = unitDto.InputStreamIds
+                    .Where(id => streamIdMap.ContainsKey(id))
+                    .Select(id => streamIdMap[id])
+                    .ToList();
+
+                var remappedOutputIds = unitDto.OutputStreamIds
+                    .Where(id => streamIdMap.ContainsKey(id))
+                    .Select(id => streamIdMap[id])
+                    .ToList();
+
+                var unit = new UnitOperation
+                {
+                    Id = newId,
+                    SimulationId = simulation.Id,
+                    Name = unitDto.Name,
+                    Type = unitDto.Type,
+                    InputStreamIds = remappedInputIds,
+                    OutputStreamIds = remappedOutputIds,
+                    ConfigParams = unitDto.ConfigParams
+                };
+                _context.UnitOperations.Add(unit);
+            }
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            _logger.LogInformation(
+                "Imported simulation {SimulationId} with {StreamCount} streams and {UnitCount} units",
+                simulation.Id, importDto.MaterialStreams.Count, importDto.UnitOperations.Count);
+
+            return CreatedAtAction(nameof(GetSimulation), new { id = simulation.Id }, new
+            {
+                id = simulation.Id,
+                name = simulation.Name,
+                status = simulation.Status.ToString(),
+                importedStreams = importDto.MaterialStreams.Count,
+                importedUnits = importDto.UnitOperations.Count,
+                importedCompounds = importDto.Compounds.Count
+            });
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            _logger.LogError(ex, "Failed to import simulation");
+            return BadRequest(new { code = "ImportFailed", message = $"Failed to import simulation: {ex.Message}" });
+        }
+    }
+
+    private static string SanitizeFileName(string name)
+    {
+        var invalidChars = Path.GetInvalidFileNameChars();
+        var sanitized = string.Join("_", name.Split(invalidChars, StringSplitOptions.RemoveEmptyEntries));
+        return string.IsNullOrWhiteSpace(sanitized) ? "simulation" : sanitized;
+    }
+}
+
+// Export DTOs (matching import format for reversibility)
+public record SimulationExportDto
+{
+    public required string Name { get; init; }
+    public required string ThermoPackage { get; init; }
+    public required string FlashAlgorithm { get; init; }
+    public required string SystemOfUnits { get; init; }
+    public List<CompoundExportDto> Compounds { get; init; } = new();
+    public List<MaterialStreamExportDto> MaterialStreams { get; init; } = new();
+    public List<EnergyStreamExportDto> EnergyStreams { get; init; } = new();
+    public List<UnitOperationExportDto> UnitOperations { get; init; } = new();
+}
+
+public record CompoundExportDto
+{
+    public Guid Id { get; init; }
+    public required string Name { get; init; }
+    public JsonDocument? ConstantProperties { get; init; }
+}
+
+public record MaterialStreamExportDto
+{
+    public Guid Id { get; init; }
+    public required string Name { get; init; }
+    public double Temperature { get; init; }
+    public double Pressure { get; init; }
+    public double MassFlow { get; init; }
+    public Dictionary<string, double>? MolarCompositions { get; init; }
+}
+
+public record EnergyStreamExportDto
+{
+    public Guid Id { get; init; }
+    public required string Name { get; init; }
+    public double EnergyFlow { get; init; }
+}
+
+public record UnitOperationExportDto
+{
+    public Guid Id { get; init; }
+    public required string Name { get; init; }
+    public required string Type { get; init; }
+    public List<Guid> InputStreamIds { get; init; } = new();
+    public List<Guid> OutputStreamIds { get; init; } = new();
+    public JsonDocument? ConfigParams { get; init; }
 }
