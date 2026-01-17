@@ -77,4 +77,111 @@ public class SimulationJobsController : ControllerBase
             status = simulation.Status.ToString()
         });
     }
+
+    /// <summary>
+    /// Gets the current status of a simulation job.
+    /// </summary>
+    /// <param name="id">The simulation ID.</param>
+    /// <returns>Status and error message if applicable.</returns>
+    [HttpGet("{id:guid}/status")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetJobStatus(Guid id)
+    {
+        // Optimized query - only select needed fields, no heavy ResultJson or child entities
+        var statusInfo = await _context.Simulations
+            .Where(s => s.Id == id)
+            .Select(s => new { s.Id, s.Status, s.ErrorMessage, s.UpdatedAt })
+            .FirstOrDefaultAsync();
+
+        if (statusInfo == null)
+        {
+            return NotFound(new { code = "SimulationNotFound", message = $"Simulation with ID {id} not found." });
+        }
+
+        return Ok(new
+        {
+            simulationId = statusInfo.Id,
+            status = statusInfo.Status.ToString(),
+            errorMessage = statusInfo.ErrorMessage,
+            updatedAt = statusInfo.UpdatedAt
+        });
+    }
+
+    /// <summary>
+    /// Gets the result of a completed simulation.
+    /// </summary>
+    /// <param name="id">The simulation ID.</param>
+    /// <returns>Simulation results or appropriate error.</returns>
+    [HttpGet("{id:guid}/result")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetJobResult(Guid id)
+    {
+        var simulation = await _context.Simulations
+            .Where(s => s.Id == id)
+            .Select(s => new { s.Id, s.Status, s.ErrorMessage, s.ResultJson })
+            .FirstOrDefaultAsync();
+
+        if (simulation == null)
+        {
+            return NotFound(new { code = "SimulationNotFound", message = $"Simulation with ID {id} not found." });
+        }
+
+        // Handle based on status
+        switch (simulation.Status)
+        {
+            case SimulationStatus.Converged:
+                // Success - return results
+                if (simulation.ResultJson == null)
+                {
+                    return NotFound(new { code = "ResultsNotAvailable", message = "Simulation converged but no results are stored." });
+                }
+                return Ok(new
+                {
+                    simulationId = simulation.Id,
+                    status = simulation.Status.ToString(),
+                    results = simulation.ResultJson
+                });
+
+            case SimulationStatus.Failed:
+                // AI-Friendly Error structure
+                return BadRequest(new
+                {
+                    code = "SimulationFailed",
+                    message = simulation.ErrorMessage ?? "Simulation failed without an error message.",
+                    context = new
+                    {
+                        simulationId = simulation.Id,
+                        status = simulation.Status.ToString(),
+                        suggestion = "Check the error message for details. Common issues include invalid property package settings, unconverged flash calculations, or missing stream compositions."
+                    }
+                });
+
+            case SimulationStatus.Pending:
+            case SimulationStatus.Running:
+                // Still processing - return 202 Accepted
+                return Accepted(new
+                {
+                    simulationId = simulation.Id,
+                    status = simulation.Status.ToString(),
+                    message = "Simulation is still being processed. Please poll again later."
+                });
+
+            default:
+                // Created, Loaded, or other states - not yet submitted or ready
+                return BadRequest(new
+                {
+                    code = "SimulationNotReady",
+                    message = $"Simulation is in '{simulation.Status}' state. Submit the job first using POST /api/v1/simulation_jobs.",
+                    context = new
+                    {
+                        simulationId = simulation.Id,
+                        status = simulation.Status.ToString()
+                    }
+                });
+        }
+    }
 }

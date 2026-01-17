@@ -24,3 +24,20 @@ public record SubmitJobRequest
 {
     public required Guid SimulationId { get; init; }
 }
+
+public record CreateSimulationRequest
+{
+    public required string Name { get; init; }
+    public required string ThermoPackage { get; init; }
+    public required string FlashAlgorithm { get; init; }
+    public required string SystemOfUnits { get; init; }
+}
+
+public record AddStreamRequest
+{
+    public required string Name { get; init; }
+    public double Temperature { get; init; } = 298.15; // K
+    public double Pressure { get; init; } = 101325;    // Pa
+    public double MassFlow { get; init; } = 1.0;       // kg/s
+    public Dictionary<string, double> MolarCompositions { get; init; } = new();
+}
