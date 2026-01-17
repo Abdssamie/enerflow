@@ -65,6 +65,9 @@ builder.Services.AddOptions<MassTransitHostOptions>()
 // Register Job Producer service
 builder.Services.AddScoped<IJobProducer, JobProducer>();
 
+// Register Catalog Service (static data)
+builder.Services.AddSingleton<ICatalogService, CatalogService>();
+
 // Persistence
 // Register Infrastructure (DbContext, etc)
 builder.Services.AddInfrastructure(dbConnectionString);
@@ -85,3 +88,5 @@ app.UseMiddleware<RateLimitingMiddleware>();
 app.MapControllers();
 
 app.Run();
+
+public partial class Program { }
