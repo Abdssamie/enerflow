@@ -12,5 +12,5 @@ public interface IMaterialStreamFactory
     /// <summary>
     /// Creates and configures a DWSIM material stream from a DTO.
     /// </summary>
-    MaterialStream CreateMaterialStream(MaterialStreamDto streamDto);
+    MaterialStream CreateMaterialStream(MaterialStreamDto streamDto, Enerflow.Domain.Enums.SystemOfUnits systemOfUnits);
 }
