@@ -62,6 +62,9 @@ builder.Services.AddOptions<MassTransitHostOptions>()
         options.StopTimeout = TimeSpan.FromSeconds(30);
     });
 
+// Register DWSIM Service
+builder.Services.AddSingleton<IDWSIMService, DWSIMService>();
+
 // Register Job Producer service
 builder.Services.AddScoped<IJobProducer, JobProducer>();
 
