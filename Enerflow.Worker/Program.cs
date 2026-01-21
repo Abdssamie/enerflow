@@ -41,8 +41,23 @@ builder.Services.AddSingleton<IEnergyStreamFactory, EnergyStreamFactory>();
 builder.Services.AddSingleton<IUnitOperationFactory, UnitOperationFactory>();
 builder.Services.AddSingleton<IFlashAlgorithmManager, FlashAlgorithmManager>();
 
-// Register Simulation Services
-builder.Services.AddScoped<ISimulationService, SimulationService>();
+// Register DWSIM Automation (Singleton due to initialization overhead)
+builder.Services.AddSingleton<DWSIM.Automation.AutomationInterface, DWSIM.Automation.Automation3>();
+
+// Register Builders
+builder.Services.AddScoped<Enerflow.Worker.Builders.IFlowsheetBuilder, Enerflow.Worker.Builders.DWSIMFlowsheetBuilder>();
+
+// Register Mappers
+builder.Services.AddScoped<Enerflow.Worker.Mappers.IStreamMapper, Enerflow.Worker.Mappers.StreamMapper>();
+builder.Services.AddScoped<Enerflow.Worker.Mappers.IUnitOperationMapper, Enerflow.Worker.Mappers.UnitOperationMapper>();
+builder.Services.AddScoped<Enerflow.Worker.Mappers.IConnectionMapper, Enerflow.Worker.Mappers.ConnectionMapper>();
+builder.Services.AddScoped<Enerflow.Worker.Mappers.IPostConnectionConfigurator, Enerflow.Worker.Mappers.PostConnectionConfigurator>();
+
+// Register Convergence & Solvers
+builder.Services.AddScoped<Enerflow.Worker.Convergence.ErrorCalculator>();
+builder.Services.AddScoped<Enerflow.Worker.Convergence.IConvergenceAccelerator, Enerflow.Worker.Convergence.WegsteinAccelerator>();
+builder.Services.AddScoped<Enerflow.Worker.Solvers.IResultCollector, Enerflow.Worker.Solvers.ResultCollector>();
+builder.Services.AddScoped<Enerflow.Worker.Solvers.ISimulationSolver, Enerflow.Worker.Solvers.DWSIMSolver>();
 
 builder.Services.AddMassTransit(x =>
 {
@@ -87,6 +102,12 @@ var host = builder.Build();
 // Log startup information
 var logger = host.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Enerflow.Worker");
 logger.LogInformation("Enerflow Worker starting...");
+
+// CRITICAL: Enable DWSIM Automation Mode (Headless)
+// This prevents UI popups and enables optimizations for non-interactive use.
+DWSIM.GlobalSettings.Settings.AutomationMode = true;
+logger.LogInformation("DWSIM Automation Mode enabled");
+
 logger.LogInformation("Listening for SimulationJob messages on PostgreSQL transport");
 logger.LogInformation("Database: {ConnectionString}",
     dbConnectionString.Split(';').FirstOrDefault(s => s.StartsWith("Database=")) ?? "configured");

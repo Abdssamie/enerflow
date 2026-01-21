@@ -28,9 +28,18 @@ public class EnerflowDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).HasValueGenerator<SequentialGuidValueGenerator>();
             entity.Property(e => e.Name).IsRequired();
-            entity.Property(e => e.ThermoPackage).IsRequired();
-            entity.Property(e => e.FlashAlgorithm).IsRequired();
-            entity.Property(e => e.SystemOfUnits).IsRequired();
+            
+            entity.Property(e => e.ThermoPackage)
+                .HasConversion<string>()
+                .IsRequired();
+            
+            entity.Property(e => e.FlashAlgorithm)
+                .HasConversion<string>()
+                .IsRequired();
+                
+            entity.Property(e => e.SystemOfUnits)
+                .HasConversion<string>()
+                .IsRequired();
 
             // Status stored as string for readability
             entity.Property(e => e.Status)
@@ -103,7 +112,12 @@ public class EnerflowDbContext : DbContext
             entity.HasDiscriminator<string>("UnitType")
                 .HasValue<HeaterObject>(nameof(UnitOperationType.Heater))
                 .HasValue<CoolerObject>(nameof(UnitOperationType.Cooler))
-                .HasValue<RecycleObject>(nameof(UnitOperationType.Recycle));
+                .HasValue<RecycleObject>(nameof(UnitOperationType.Recycle))
+                .HasValue<MixerObject>(nameof(UnitOperationType.Mixer))
+                .HasValue<SplitterObject>(nameof(UnitOperationType.Splitter))
+                .HasValue<ValveObject>(nameof(UnitOperationType.Valve))
+                .HasValue<FlashDrumObject>(nameof(UnitOperationType.FlashDrum))
+                .HasValue<ShortcutColumnObject>(nameof(UnitOperationType.ShortcutColumn));
                 
             // Ignore the abstract Type property as it's computed from class
             entity.Ignore(e => e.Type);
@@ -127,6 +141,24 @@ public class EnerflowDbContext : DbContext
         modelBuilder.Entity<RecycleObject>(entity =>
         {
             entity.Property(e => e.Acceleration).HasConversion<string>();
+        });
+
+        // Valve
+        modelBuilder.Entity<ValveObject>(entity =>
+        {
+            entity.Property(e => e.CalcMode).HasConversion<string>();
+        });
+        
+        // FlashDrum
+        modelBuilder.Entity<FlashDrumObject>(entity =>
+        {
+            entity.Property(e => e.FlashType).HasConversion<string>();
+        });
+
+        // Splitter
+        modelBuilder.Entity<SplitterObject>(entity =>
+        {
+            entity.Property(e => e.SplitRatios).HasColumnType("jsonb");
         });
     }
 }

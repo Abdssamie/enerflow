@@ -1,0 +1,31 @@
+using Enerflow.Domain.Enums;
+
+namespace Enerflow.Domain.Entities.UnitOperations;
+
+public class FlashDrumObject : UnitOperationObject
+{
+    public override UnitOperationType Type => UnitOperationType.FlashDrum;
+    
+    public double OutletTemperature { get; set; } // K
+    public double OutletPressure { get; set; } // Pa
+    public FlashCalculationType FlashType { get; set; } = FlashCalculationType.PressureTemperature;
+
+    public override void Validate()
+    {
+        base.Validate();
+
+        if (InputStreamIds.Count < 1)
+             throw new InvalidOperationException("FlashDrum must have at least one input stream.");
+        
+        // Usually 2 outputs: Vapor and Liquid. Sometimes 3 (Water/Oil/Gas).
+        // Let's enforce at least 2 for now.
+        if (OutputStreamIds.Count < 2)
+             throw new InvalidOperationException("FlashDrum must have at least two output streams (Vapor/Liquid).");
+
+        if (OutletTemperature < 0)
+            throw new ArgumentException("OutletTemperature must be non-negative.", nameof(OutletTemperature));
+            
+        if (OutletPressure < 0)
+            throw new ArgumentException("OutletPressure must be non-negative.", nameof(OutletPressure));
+    }
+}

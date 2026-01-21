@@ -4,5 +4,6 @@ public enum RecycleAccelerationMethod
 {
     None,
     Wegstein,
-    Direct
+    Direct,
+    DominantEigenvalue
 }

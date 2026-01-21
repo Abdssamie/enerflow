@@ -1,40 +1,36 @@
-// TODO: CRITICAL LINUX STABILITY VERIFICATION REQUIRED
-// The DWSIM thermodynamics engine and GDI+ dependencies are unverified in this Linux environment.
-// Before MVP deployment, must verify:
-// 1. Successful convergence of a flowsheet with a Recycle loop (Thermodynamic Stress).
-// 2. Process stability over 500+ consecutive flash calculations.
-// 3. Graceful recovery/timeout when DWSIM's solver hangs (RequestCalculation).
-// 4. Resource cleanup validation (ReleaseResources) to prevent container OOM.
-
 using System.Text.Json;
 using Enerflow.Domain.DTOs;
+using Enerflow.Domain.Entities;
 using Enerflow.Domain.Entities.Streams;
+using Enerflow.Domain.Entities.UnitOperations;
 using Enerflow.Domain.Enums;
-using Enerflow.Domain.Interfaces;
 using Enerflow.Infrastructure.Persistence;
+using Enerflow.Worker.Solvers;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+
+using SimulationEntity = Enerflow.Domain.Entities.Simulation;
 
 namespace Enerflow.Worker.Consumers;
 
 /// <summary>
 /// MassTransit consumer for processing simulation jobs from the message queue.
-/// Orchestrates the full simulation lifecycle: Build -> Solve -> Collect -> Persist.
+/// Orchestrates the full simulation lifecycle using the Solver Engine.
 /// </summary>
 public class SimulationJobConsumer : IConsumer<SimulationJob>
 {
     private readonly ILogger<SimulationJobConsumer> _logger;
-    private readonly ISimulationService _simulationService;
+    private readonly ISimulationSolver _solver;
     private readonly EnerflowDbContext _dbContext;
 
     public SimulationJobConsumer(
         ILogger<SimulationJobConsumer> logger,
-        ISimulationService simulationService,
+        ISimulationSolver solver,
         EnerflowDbContext dbContext)
     {
         _logger = logger;
-        _simulationService = simulationService;
+        _solver = solver;
         _dbContext = dbContext;
     }
 
@@ -52,191 +48,218 @@ public class SimulationJobConsumer : IConsumer<SimulationJob>
         try
         {
             // Update simulation status to Running
-            await UpdateSimulationStatusAsync(job.SimulationId, SimulationStatus.Running, null, null, cancellationToken);
+            await UpdateStatusAsync(job.SimulationId, SimulationStatus.Running, null, cancellationToken);
 
-            // Step 1: Build the flowsheet from the definition
-            _logger.LogInformation("Step 1/4: Building flowsheet for Job {JobId}", job.JobId);
-            var buildSuccess = _simulationService.BuildFlowsheet(job.Definition);
+            // Step 1: Deserialize/Map DTO to Domain Entity
+            _logger.LogDebug("Mapping job definition to domain model for Job {JobId}", job.JobId);
+            var simulation = MapToDomain(job);
 
-            if (!buildSuccess)
-            {
-                var errors = string.Join("; ", _simulationService.GetErrorMessages());
-                _logger.LogError("Failed to build flowsheet for Job {JobId}: {Errors}", job.JobId, errors);
-                await UpdateSimulationStatusAsync(job.SimulationId, SimulationStatus.Failed, $"Build failed: {errors}", null, cancellationToken);
-                return;
-            }
+            // Step 2: Solve
+            _logger.LogInformation("Starting solver for Job {JobId}", job.JobId);
+            var config = new ConvergenceConfig(); // Use defaults
+            
+            // Note: Solve is currently synchronous (CPU-bound)
+            var result = _solver.Solve(simulation, config);
 
-            _logger.LogDebug("Flowsheet built successfully for Job {JobId}", job.JobId);
+            // Step 3: Persist Results
+            var status = result.Success ? SimulationStatus.Converged : SimulationStatus.Failed;
+            _logger.LogInformation("Solver completed for Job {JobId}. Status: {Status}", job.JobId, status);
 
-            // Step 2: Solve the flowsheet
-            _logger.LogInformation("Step 2/4: Solving flowsheet for Job {JobId}", job.JobId);
-            var solveSuccess = _simulationService.Solve();
-
-            if (!solveSuccess)
-            {
-                var errors = string.Join("; ", _simulationService.GetErrorMessages());
-                _logger.LogWarning("Flowsheet solved with errors for Job {JobId}: {Errors}", job.JobId, errors);
-                // Continue to collect partial results even with errors
-            }
-
-            // Step 3: Collect results
-            _logger.LogInformation("Step 3/4: Collecting results for Job {JobId}", job.JobId);
-            var results = _simulationService.CollectResults();
-
-            _logger.LogDebug(
-                "Collected results for Job {JobId}: {StreamCount} streams, {UnitOpCount} unit operations",
-                job.JobId,
-                results.MaterialStreams.Count,
-                results.UnitOperations.Count);
-
-            // Step 4: Persist results to database
-            _logger.LogInformation("Step 4/4: Persisting results for Job {JobId}", job.JobId);
-            await PersistResultsAsync(job.SimulationId, results, solveSuccess, cancellationToken);
-
-            _logger.LogInformation(
-                "Job {JobId} completed successfully. Status: {Status}",
-                job.JobId,
-                solveSuccess ? "Converged" : "Converged with warnings");
+            await PersistResultAsync(job.SimulationId, result, status, cancellationToken);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Critical error processing Job {JobId}", job.JobId);
-
-            // Update simulation status to Failed
-            await UpdateSimulationStatusAsync(
-                job.SimulationId,
-                SimulationStatus.Failed,
-                $"Critical error: {ex.Message}",
-                null,
-                cancellationToken);
-        }
-        finally
-        {
-            // Dispose the simulation service to clean up DWSIM resources
-            _simulationService.Dispose();
+            await UpdateStatusAsync(job.SimulationId, SimulationStatus.Failed, $"Critical error: {ex.Message}", cancellationToken);
         }
     }
 
-    /// <summary>
-    /// Updates the simulation status in the database.
-    /// </summary>
-    private async Task UpdateSimulationStatusAsync(
-        Guid simulationId,
-        SimulationStatus status,
-        string? errorMessage,
-        JsonDocument? resultJson,
-        CancellationToken cancellationToken)
+    private async Task UpdateStatusAsync(Guid simulationId, SimulationStatus status, string? errorMessage, CancellationToken ct)
     {
         try
         {
             var simulation = await _dbContext.Simulations
-                .FirstOrDefaultAsync(s => s.Id == simulationId, cancellationToken);
+                .FirstOrDefaultAsync(s => s.Id == simulationId, ct);
 
             if (simulation != null)
             {
                 simulation.Status = status;
-                simulation.ErrorMessage = errorMessage;
-                simulation.ResultJson = resultJson;
+                if (errorMessage != null)
+                {
+                    simulation.ErrorMessage = errorMessage;
+                }
                 simulation.UpdatedAt = DateTime.UtcNow;
 
-                await _dbContext.SaveChangesAsync(cancellationToken);
-                _logger.LogDebug("Updated Simulation {SimulationId} status to {Status}", simulationId, status);
+                await _dbContext.SaveChangesAsync(ct);
             }
             else
             {
-                _logger.LogWarning("Simulation {SimulationId} not found in database", simulationId);
+                _logger.LogWarning("Simulation {SimulationId} not found for status update", simulationId);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to update simulation status for {SimulationId}", simulationId);
+            _logger.LogError(ex, "Failed to update status for Simulation {SimulationId}", simulationId);
         }
     }
 
-    /// <summary>
-    /// Persists simulation results to the database.
-    /// Updates both the Simulation entity and individual MaterialStream entities.
-    /// </summary>
-    private async Task PersistResultsAsync(
-        Guid simulationId,
-        SimulationResultsDto results,
-        bool solveSuccess,
-        CancellationToken cancellationToken)
+    private async Task PersistResultAsync(
+        Guid simulationId, 
+        SimulationResult result, 
+        SimulationStatus status, 
+        CancellationToken ct)
     {
         try
         {
-            // Get simulation and its streams
             var simulation = await _dbContext.Simulations
-                .FirstOrDefaultAsync(s => s.Id == simulationId, cancellationToken);
+                .FirstOrDefaultAsync(s => s.Id == simulationId, ct);
 
-            if (simulation == null)
+            if (simulation != null)
+            {
+                simulation.Status = status;
+                simulation.ErrorMessage = result.ErrorMessage;
+                simulation.ResultJson = JsonSerializer.SerializeToDocument(result);
+                simulation.UpdatedAt = DateTime.UtcNow;
+
+                await _dbContext.SaveChangesAsync(ct);
+                _logger.LogDebug("Persisted results for Simulation {SimulationId}", simulationId);
+            }
+            else
             {
                 _logger.LogWarning("Simulation {SimulationId} not found for result persistence", simulationId);
-                return;
             }
-
-            // Get material streams for this simulation
-            var materialStreams = await _dbContext.MaterialStreams
-                .Where(s => s.SimulationId == simulationId)
-                .ToListAsync(cancellationToken);
-
-            // Update each material stream with results
-            foreach (var stream in materialStreams)
-            {
-                if (results.MaterialStreams.TryGetValue(stream.Name, out var streamResult))
-                {
-                    UpdateMaterialStreamFromResults(stream, streamResult);
-                }
-            }
-
-            // Create result JSON blob from strongly-typed results
-            var resultJson = JsonSerializer.SerializeToDocument(results);
-
-            // Update simulation status
-            simulation.Status = solveSuccess ? SimulationStatus.Converged : SimulationStatus.Failed;
-            simulation.ResultJson = resultJson;
-            simulation.ErrorMessage = solveSuccess ? null : string.Join("; ", _simulationService.GetErrorMessages());
-            simulation.UpdatedAt = DateTime.UtcNow;
-
-            await _dbContext.SaveChangesAsync(cancellationToken);
-
-            _logger.LogInformation(
-                "Persisted results for Simulation {SimulationId}: {StreamCount} streams updated",
-                simulationId,
-                materialStreams.Count);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to persist results for Simulation {SimulationId}", simulationId);
-
-            // Try to at least update the status
-            await UpdateSimulationStatusAsync(
-                simulationId,
-                SimulationStatus.Failed,
-                $"Failed to persist results: {ex.Message}",
-                null,
-                cancellationToken);
+            // Attempt to mark as failed if persistence fails
+            await UpdateStatusAsync(simulationId, SimulationStatus.Failed, "Failed to persist results", ct);
         }
     }
 
-    /// <summary>
-    /// Updates a MaterialStream entity with results from the DWSIM simulation.
-    /// </summary>
-    private void UpdateMaterialStreamFromResults(MaterialStream stream, MaterialStreamResultDto result)
+    private SimulationEntity MapToDomain(SimulationJob job)
     {
-        try
+        var def = job.Definition;
+        var sim = new SimulationEntity
         {
-            stream.Temperature = result.Temperature;
-            stream.Pressure = result.Pressure;
-            stream.MassFlow = result.MassFlow;
-            stream.Composition = result.Composition;
+            Id = job.SimulationId,
+            Name = def.Name,
+            ThermoPackage = def.PropertyPackageType,
+            FlashAlgorithm = def.FlashAlgorithm,
+            SystemOfUnits = def.SystemOfUnits,
+            Status = SimulationStatus.Running
+        };
 
-            _logger.LogDebug("Updated stream {StreamName}: T={Temp}, P={Pres}, F={Flow}",
-                stream.Name, stream.Temperature, stream.Pressure, stream.MassFlow);
-        }
-        catch (Exception ex)
+        // Map Compounds
+        foreach (var c in def.Compounds)
         {
-            _logger.LogWarning(ex, "Failed to update stream {StreamName} from results", stream.Name);
+            sim.Compounds.Add(new Compound
+            {
+                Id = c.Id,
+                SimulationId = sim.Id,
+                Name = c.Name,
+                ConstantProperties = c.ConstantProperties
+            });
         }
+
+        // Map Material Streams
+        foreach (var ms in def.MaterialStreams)
+        {
+            sim.MaterialStreams.Add(new MaterialStream
+            {
+                Id = ms.Id,
+                SimulationId = sim.Id,
+                Name = ms.Name,
+                Temperature = ms.Temperature,
+                Pressure = ms.Pressure,
+                MassFlow = ms.MassFlow,
+                Composition = ms.MolarCompositions
+            });
+        }
+
+        // Map Energy Streams
+        foreach (var es in def.EnergyStreams)
+        {
+            sim.EnergyStreams.Add(new EnergyStream
+            {
+                Id = es.Id,
+                SimulationId = sim.Id,
+                Name = es.Name,
+                EnergyFlow = es.EnergyFlow
+            });
+        }
+
+        // Map Unit Operations
+        foreach (var uo in def.UnitOperations)
+        {
+            var unit = CreateUnitOperation(uo, sim.Id);
+            if (unit != null)
+            {
+                sim.UnitOperations.Add(unit);
+            }
+            else
+            {
+                _logger.LogWarning("Skipping unsupported unit operation type: {Type}", uo.Type);
+            }
+        }
+
+        return sim;
+    }
+
+    private UnitOperationObject? CreateUnitOperation(UnitOperationDto dto, Guid simulationId)
+    {
+        // Polymorphic creation based on Type
+        return dto.Type switch
+        {
+            UnitOperationType.Mixer => new MixerObject 
+            { 
+                Id = dto.Id, SimulationId = simulationId, Name = dto.Name, 
+                InputStreamIds = dto.InputStreamIds, OutputStreamIds = dto.OutputStreamIds, 
+                ConfigParams = dto.ConfigParams 
+            },
+            UnitOperationType.Splitter => new SplitterObject 
+            { 
+                Id = dto.Id, SimulationId = simulationId, Name = dto.Name, 
+                InputStreamIds = dto.InputStreamIds, OutputStreamIds = dto.OutputStreamIds, 
+                ConfigParams = dto.ConfigParams 
+            },
+            UnitOperationType.Heater => new HeaterObject 
+            { 
+                Id = dto.Id, SimulationId = simulationId, Name = dto.Name, 
+                InputStreamIds = dto.InputStreamIds, OutputStreamIds = dto.OutputStreamIds, 
+                ConfigParams = dto.ConfigParams 
+            },
+            UnitOperationType.Cooler => new CoolerObject 
+            { 
+                Id = dto.Id, SimulationId = simulationId, Name = dto.Name, 
+                InputStreamIds = dto.InputStreamIds, OutputStreamIds = dto.OutputStreamIds, 
+                ConfigParams = dto.ConfigParams 
+            },
+            UnitOperationType.Valve => new ValveObject 
+            { 
+                Id = dto.Id, SimulationId = simulationId, Name = dto.Name, 
+                InputStreamIds = dto.InputStreamIds, OutputStreamIds = dto.OutputStreamIds, 
+                ConfigParams = dto.ConfigParams 
+            },
+            UnitOperationType.FlashDrum => new FlashDrumObject 
+            { 
+                Id = dto.Id, SimulationId = simulationId, Name = dto.Name, 
+                InputStreamIds = dto.InputStreamIds, OutputStreamIds = dto.OutputStreamIds, 
+                ConfigParams = dto.ConfigParams 
+            },
+            UnitOperationType.ShortcutColumn => new ShortcutColumnObject 
+            { 
+                Id = dto.Id, SimulationId = simulationId, Name = dto.Name, 
+                InputStreamIds = dto.InputStreamIds, OutputStreamIds = dto.OutputStreamIds, 
+                ConfigParams = dto.ConfigParams 
+            },
+            UnitOperationType.Recycle => new RecycleObject 
+            { 
+                Id = dto.Id, SimulationId = simulationId, Name = dto.Name, 
+                InputStreamIds = dto.InputStreamIds, OutputStreamIds = dto.OutputStreamIds, 
+                ConfigParams = dto.ConfigParams 
+            },
+            _ => null
+        };
     }
 }

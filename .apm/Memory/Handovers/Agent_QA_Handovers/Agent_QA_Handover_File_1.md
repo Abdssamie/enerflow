@@ -2,53 +2,46 @@
 agent_type: Implementation
 agent_id: Agent_QA_1
 handover_number: 1
-last_completed_task: Task 4.1 (Task 4.2 Blocked)
+last_completed_task: T4.3 (Attempted)
 ---
 
 # Implementation Agent Handover File - Agent_QA
 
 ## Active Memory Context
-**User Preferences:**
-- Prefers fixing specific bugs (like Redis config, DB migrations) immediately when they appear.
-- Uses `docker compose` for infrastructure.
-- Requires strict adherence to .apm/guides.
+**User Preferences:** 
+- **Strict Adherence to Production Standards:** User explicitly forbade modifying production code (specifically `DbContext`) to accommodate test-specific constraints (like EF Core InMemory quirks).
+- **Consultation over Hacks:** "It is better to stop and ask than to commit corrupt or hacky code."
+- **Verification:** Ensure tests reflect reality, not a hacked environment.
 
 **Working Insights:**
-- **DWSIM on Linux**: The project relies on `libs/dwsim_src` or `libs/dwsim_9.0.5` binaries. These binaries have heavy dependencies on `System.Drawing` (GDI+). The tests are crashing because `System.Drawing.Common` is missing or failing on the Linux environment.
-- **Npgsql & JSONB**: We enabled `EnableDynamicJson()` in `Enerflow.Infrastructure` and `IntegrationTestWebAppFactory` to handle `Dictionary<string, double>` serialization to Postgres `jsonb` columns. This is working.
-- **Testcontainers**: Working correctly with `postgres:18-bookworm`, though we had to tweak the volume mount.
+- **EF Core InMemory Limitations:** The project uses `jsonb` columns heavily (for `ResultJson`, `ConstantProperties`, `Composition`, etc.). The standard EF Core InMemory provider does NOT support these types or conversions natively without hacks.
+- **Testing Strategy Shift:** Future testing needs to move away from `UseInMemoryDatabase` for components that rely on PostgreSQL-specific features (`jsonb`, `uuid[]`). Options include:
+    - Testcontainers (Integration Tests).
+    - A dedicated `TestDbContext` inheriting from `EnerflowDbContext` (if strictly necessary and isolated).
+    - Mocking the Repository layer instead of the DbContext directly (Unit Tests).
 
 ## Task Execution Context
 **Working Environment:**
-- **Root**: `/home/abdssamie/ChemforgeProjects/enerflow`
-- **Tests**: `Enerflow.Tests.Functional` project contains the E2E scenarios.
-- **Docker**: Postgres and Redis are running via `docker compose`.
-- **Git**: Repo is active.
+- **Worker Project:** `Enerflow.Worker` is the focus.
+- **Tests:** `Enerflow.Tests.Unit/WorkerTests/SimulationJobConsumerTests.cs` was created but failed due to `jsonb` mapping issues in the InMemory provider.
+- **Rules Updated:** `AGENTS.md` and `.agent/rules/handling-constraints-and-scope.md` have been updated to strictly forbid the "hacky" approach I attempted.
 
 **Issues Identified:**
-- **CRITICAL BLOCKER**: `System.Drawing.Common` crash in `Enerflow.Tests.Functional`. The stack trace shows `DWSIM.FormMain.Dispose`. This suggests DWSIM is initializing UI components even in headless mode, or `System.Drawing` is simply missing.
-- **Fix Attempted**: None for `System.Drawing` yet. The crash happened right at the end of the previous session.
+- **Blocker:** `SimulationJobConsumerTests` are currently failing because `EnerflowDbContext` uses `jsonb`, which crashes on InMemory provider.
+- **Resolution Path:** The incoming agent needs to refactor the tests to use a valid strategy (Mocking or Testcontainers) rather than hacking the DbContext.
 
 ## Current Context
 **Recent User Directives:**
-- Proceed to Handover after the crash.
+- "Remove the anti production and enterprise level of testing against a database that isn't the one used by the main app service."
+- "Never do that again."
+- "Update AGENTS.md and .agent/rules/handling-constraints-and-scope.md."
 
 **Working State:**
-- `Enerflow.Tests.Functional/Scenarios/SimulationFlowTests.cs` is written and semantically correct.
-- `IntegrationTestWebAppFactory` is configured correctly for DB/MassTransit.
-- Database migrations are applied.
-
-**Task Execution Insights:**
-- The next agent needs to solve the GDI+ dependency issue. Options:
-    1.  Install `libgdiplus` (if `sudo` is available).
-    2.  Add `System.Drawing.EnableUnixSupport` to `runtimeconfig.json` (if applicable for .NET 10/9/8).
-    3.  Investigate if DWSIM can be patched to avoid `FormMain` or `System.Drawing` entirely (unlikely without source changes).
+- `EnerflowDbContext.cs` is clean (hacks reverted).
+- `SimulationJobConsumerTests.cs` exists but fails.
+- Rules are updated.
 
 ## Working Notes
 **Development Patterns:**
-- Use `dotnet test` to verify fixes.
-- Use `docker logs` to check container health.
-
-**Environment Setup:**
-- `.NET 10.0` environment.
-- Linux (Debian/Ubuntu based likely).
+- **Do not use `UseInMemoryDatabase`** for `EnerflowDbContext` if `jsonb` columns are involved.
+- **Use `Mock<EnerflowDbContext>`** (difficult due to DbSet mocking) OR **Repository Pattern Mocks** (preferred if repository exists, otherwise Mock DbSet extensions might be needed, or just use Testcontainers).

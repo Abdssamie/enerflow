@@ -267,4 +267,16 @@ Available in `.agent/prompts/`:
 - `architecture-check.md` - Enterprise Worker pattern compliance
 - `thermodynamic-integrity.md` - Units, DWSIM API, physics
 - `bug-hunter.md` - Null refs, edge cases, resource leaks
-- `concurrency-check.md` - Thread safety, async/await, DWSIM constraints
+## 11. Strict Testing Protocols (CRITICAL)
+
+**NEVER compromise production code to facilitate testing.**
+
+1.  **Production Purity**: Do not modify production code (e.g., `DbContext`, Controllers, Services) to support test-specific constraints (e.g., EF Core InMemory provider quirks).
+2.  **Database Strategy**: If a test requires database features not supported by the InMemory provider (like `jsonb` or `uuid[]`), **DO NOT** add conditional logic to the production `DbContext`. Instead:
+    - Use Testcontainers with the actual database engine (PostgreSQL).
+    - Use a separate `TestDbContext` that inherits from the production context but overrides configuration *only* for tests.
+    - Mock the repository/context layer entirely.
+    - **STOP and ask the user** for guidance if stuck.
+3.  **No "Passing at all costs"**: It is better to fail a test and report the architectural constraint than to implement a hack that technically passes the test but corrupts the codebase design.
+4.  **Escalation**: If you encounter a hard constraint where the only solution seems to be a non-production hack, you **MUST** pause and consult the user.
+

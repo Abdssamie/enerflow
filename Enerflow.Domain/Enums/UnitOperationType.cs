@@ -15,6 +15,8 @@ public enum UnitOperationType
     Heater,
     Cooler,
     HeatExchanger,
+    FlashDrum,
+    ShortcutColumn,
 
     // Phase 2
     ReactorConversion,

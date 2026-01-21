@@ -89,14 +89,16 @@
           "spec": "Implement Mixer/Splitter classes. Mixer: no special properties (outputs weighted average). Splitter: SplitRatios (Dictionary<Guid,double>) must sum to 1.0. Add validation in Validate() override.",
           "deps": ["T1.3"],
           "test_criteria": ["SplitRatios validation enforces sum=1", "Mixer accepts N inputs", "Classes serialize correctly"],
-          "est_tokens": 500
+          "est_tokens": 500,
+          "status": "completed"
         },
         {
           "id": "T1.5",
           "spec": "Implement Valve, FlashDrum, ShortcutColumn classes. Valve: OutletPressure, ValveCalcMode. Flash: Temperature, Pressure, FlashAlgorithm enum. Column: RefluxRatio, LightKeyCompound, HeavyKeyCompound, CondenserPressure, ReboilerPressure, NumberOfStages. Add all enums and validation.",
           "deps": ["T1.3"],
           "test_criteria": ["All properties strongly typed", "Enums match DWSIM test cases", "RefluxRatio > 0 validated"],
-          "est_tokens": 900
+          "est_tokens": 900,
+          "status": "completed"
         },
         {
           "id": "T1.6",
@@ -111,7 +113,8 @@
           "spec": "Create Simulation aggregate root with ThermoPackage (PropertyPackageType), SystemOfUnits enum, Compounds (List<string>), SimulationObjects (Dictionary<Guid, SimulationObject>). Add GetTopologicalOrder() method (throws if cyclic without Recycle). Use Graph traversal (Kahn's algorithm).",
           "deps": ["T1.2", "T1.6"],
           "test_criteria": ["Topological sort detects cycles", "Recycle breaks cycles correctly", "Simulation validates object graph"],
-          "est_tokens": 800
+          "est_tokens": 800,
+          "status": "completed"
         }
       ]
     },
@@ -124,42 +127,48 @@
           "spec": "Create IFlowsheetBuilder interface with BuildFlowsheet(Simulation) → DWSIM.FlowSheet. Implement DWSIMFlowsheetBuilder: initialize AutomationMode=true, set PropertyPackage, add Compounds using verified API patterns from Test_01/02.",
           "deps": ["T1.7"],
           "test_criteria": ["Flowsheet initializes headless", "Compounds added without duplication error", "PropertyPackage set correctly"],
-          "est_tokens": 700
+          "est_tokens": 700,
+          "status": "completed"
         },
         {
           "id": "T2.2",
           "spec": "Implement StreamMapper with MapMaterialStream(MaterialStream, Flowsheet) and MapEnergyStream(EnergyStream, Flowsheet). Use flowsheet.AddObject(ObjectType.MaterialStream), set T/P/Flow/Composition using Phases[0].Compounds per Test_03/04 patterns. DO NOT call AddCompoundsToMaterialStream.",
           "deps": ["T2.1"],
           "test_criteria": ["Streams created in DWSIM", "Composition set via Phases[0]", "No duplicate compound errors"],
-          "est_tokens": 650
+          "est_tokens": 650,
+          "status": "completed"
         },
         {
           "id": "T2.3",
           "spec": "Implement UnitOperationMapper with polymorphic Map(UnitOperation) → DWSIM.SimulationObjects.UnitOps.UnitOpBaseClass. Use pattern matching on type. Implement MapHeater/MapCooler: set CalcMode BEFORE properties (OutletTemperature, Efficiency, PressureDrop) per Test_05.",
           "deps": ["T2.1"],
           "test_criteria": ["Heater/Cooler mapped correctly", "CalcMode set first", "Properties applied per DWSIM API"],
-          "est_tokens": 800
+          "est_tokens": 800,
+          "status": "completed"
         },
         {
           "id": "T2.4",
           "spec": "Add MapMixer, MapSplitter, MapValve to UnitOperationMapper. Mixer: connect all InputStreams. Splitter: set SplitRatios via Ratios property. Valve: set CalcMode then OutletPressure. Verify against Test_06 patterns.",
           "deps": ["T2.3"],
           "test_criteria": ["Mixer accepts N inputs", "Splitter ratios applied", "Valve pressure set correctly"],
-          "est_tokens": 700
+          "est_tokens": 700,
+          "status": "completed"
         },
         {
           "id": "T2.5",
           "spec": "Add MapFlashDrum, MapShortcutColumn to UnitOperationMapper. Flash: set FlashAlgorithm, T, P per Test_07. Column: set all properties (RefluxRatio, LightKey, HeavyKey, CondenserP, ReboilerP, Stages) matching Test_08/09 verified configurations.",
           "deps": ["T2.3"],
           "test_criteria": ["Flash converges with correct algorithm", "Column properties match test cases", "LightKey/HeavyKey strings resolved"],
-          "est_tokens": 850
+          "est_tokens": 850,
+          "status": "completed"
         },
         {
           "id": "T2.6",
           "spec": "Implement ConnectionMapper with ConnectStreams(Simulation, Flowsheet). Iterate InputStreams/OutputStreams on each UnitOperation, call flowsheet.ConnectObjects(sourceId, targetId, inletPort, outletPort) using DWSIM API. Handle port indexing (0-based).",
           "deps": ["T2.2", "T2.5"],
           "test_criteria": ["All connections established", "Port indices correct", "Graph connectivity validated"],
-          "est_tokens": 600
+          "est_tokens": 600,
+          "status": "completed"
         }
       ]
     },
@@ -172,28 +181,32 @@
           "spec": "Create ConvergenceConfiguration class (MaxIterations, Tolerance, Lambda) and IConvergenceAccelerator interface. Implement WegsteinAccelerator: Accelerate(X_old, X_calc) → X_next using formula λ·X_calc + (1-λ)·X_old. Support vector inputs (T, P, Flow arrays).",
           "deps": [],
           "test_criteria": ["Wegstein formula implemented", "Lambda ∈ [0,1] validated", "Vector math correct"],
-          "est_tokens": 550
+          "est_tokens": 550,
+          "status": "completed"
         },
         {
           "id": "T3.2",
           "spec": "Implement ErrorCalculator service: CalculateError(Flowsheet) → double. Extract all MaterialStream mass balances, compute ΣIn - ΣOut for each component. Return max absolute relative error. Use flowsheet.SimulationObjects.Values filtered by Type.",
           "deps": [],
           "test_criteria": ["Error calculated for all streams", "Returns max deviation", "Handles zero flows"],
-          "est_tokens": 500
+          "est_tokens": 500,
+          "status": "completed"
         },
         {
           "id": "T3.3",
           "spec": "Create DWSIMSolver service (ISimulationSolver interface). Implement Solve(Simulation, ConvergenceConfig) → SimulationResult. Algorithm: (1) Build flowsheet via IFlowsheetBuilder, (2) Identify recycle streams, (3) Iterate: CalculateFlowsheet2(), check error, accelerate recycle streams, (4) Validate convergence < tolerance or throw.",
           "deps": ["T2.6", "T3.1", "T3.2"],
           "test_criteria": ["Converges for Test_10 recycle case", "Throws on MaxIterations", "Updates recycle streams correctly"],
-          "est_tokens": 1100
+          "est_tokens": 1100,
+          "status": "completed"
         },
         {
           "id": "T3.4",
           "spec": "Add ResultCollector service: ExtractResults(Flowsheet) → SimulationResult DTO. Iterate all MaterialStreams/EnergyStreams, extract T, P, Flow, Composition (Phases[0].Compounds MoleFraction), PhaseType. Create dictionary keyed by object Name. Check flowsheet.Solved and ErrorMessage.",
           "deps": ["T3.3"],
           "test_criteria": ["All stream results captured", "Compositions extracted correctly", "ErrorMessage logged if !Solved"],
-          "est_tokens": 650
+          "est_tokens": 650,
+          "status": "completed"
         }
       ]
     },
@@ -206,14 +219,16 @@
           "spec": "Refactor SimulationJobConsumer in Worker: Inject ISimulationSolver, ILogger. In Consume(): Deserialize SimulationJob → Simulation entity, call Solve() with default ConvergenceConfig, handle exceptions (update DB status to Failed), persist result on success. Maintain SemaphoreSlim wrapper.",
           "deps": ["T3.4"],
           "test_criteria": ["Consumer compiles", "Solver called with correct config", "Exceptions caught and logged"],
-          "est_tokens": 700
+          "est_tokens": 700,
+          "status": "completed"
         },
         {
           "id": "T4.2",
           "spec": "Register all services in Worker Program.cs DI: AddSingleton<IFlowsheetBuilder, DWSIMFlowsheetBuilder>(), AddScoped<ISimulationSolver, DWSIMSolver>(), AddScoped mappers. Ensure DWSIM AutomationMode set in Program.cs before Host.Run(). Verify ConcurrentMessageLimit=1 in MassTransit config.",
           "deps": ["T4.1"],
           "test_criteria": ["All DI registrations compile", "AutomationMode=true at startup", "MassTransit concurrency=1"],
-          "est_tokens": 500
+          "est_tokens": 500,
+          "status": "completed"
         },
         {
           "id": "T4.3",

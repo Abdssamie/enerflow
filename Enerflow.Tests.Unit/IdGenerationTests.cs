@@ -4,6 +4,9 @@ using Enerflow.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
+using Enerflow.Domain.Enums;
+
+using SimulationEntity = Enerflow.Domain.Entities.Simulation;
 
 namespace Enerflow.Tests.Unit;
 
@@ -47,8 +50,8 @@ public class IdGenerationTests
     public void Entity_ShouldInitializeWithSequentialId()
     {
         // Act
-        var simulation1 = new Simulation { Name = "Test 1", ThermoPackage = "PR", SystemOfUnits = "SI", FlashAlgorithm = "Nested Loops" };
-        var simulation2 = new Simulation { Name = "Test 2", ThermoPackage = "PR", SystemOfUnits = "SI", FlashAlgorithm = "Nested Loops" };
+        var simulation1 = new SimulationEntity { Name = "Test 1", ThermoPackage = PropertyPackageType.PengRobinson, SystemOfUnits = SystemOfUnits.SI, FlashAlgorithm = FlashAlgorithm.NestedLoops };
+        var simulation2 = new SimulationEntity { Name = "Test 2", ThermoPackage = PropertyPackageType.PengRobinson, SystemOfUnits = SystemOfUnits.SI, FlashAlgorithm = FlashAlgorithm.NestedLoops };
 
         // Assert
         Assert.NotEqual(Guid.Empty, simulation1.Id);

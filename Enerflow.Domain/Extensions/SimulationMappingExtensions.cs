@@ -22,25 +22,12 @@ public static class SimulationMappingExtensions
 
     public static SimulationDefinitionDto ToSimulationDefinitionDto(this Simulation simulation)
     {
-        // Parse enums
-        var propertyPackage = Enum.TryParse<PropertyPackageType>(simulation.ThermoPackage, out var pp)
-            ? pp
-            : PropertyPackageType.PengRobinson; // Default or fallback
-
-        var flashAlgorithm = Enum.TryParse<FlashAlgorithm>(simulation.FlashAlgorithm, out var fa)
-            ? fa
-            : FlashAlgorithm.NestedLoops; // Default
-
-        var systemOfUnits = Enum.TryParse<SystemOfUnits>(simulation.SystemOfUnits, out var sou)
-            ? sou
-            : SystemOfUnits.SI;
-
         return new SimulationDefinitionDto
         {
             Name = simulation.Name,
-            PropertyPackageType = propertyPackage,
-            FlashAlgorithm = flashAlgorithm,
-            SystemOfUnits = systemOfUnits,
+            PropertyPackageType = simulation.ThermoPackage,
+            FlashAlgorithm = simulation.FlashAlgorithm,
+            SystemOfUnits = simulation.SystemOfUnits,
             Compounds = simulation.Compounds.Select(c => c.ToCompoundDto()).ToList(),
             MaterialStreams = simulation.MaterialStreams.Select(s => s.ToMaterialStreamDto()).ToList(),
             EnergyStreams = simulation.EnergyStreams.Select(s => s.ToEnergyStreamDto()).ToList(),
