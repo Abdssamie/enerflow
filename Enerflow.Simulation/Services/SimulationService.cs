@@ -5,7 +5,6 @@ using DWSIM.GlobalSettings;
 using DWSIM.Interfaces;
 using DWSIM.Thermodynamics.Streams;
 using Enerflow.Domain.Enums;
-using DWSIMPropertyPackage = DWSIM.Thermodynamics.PropertyPackages;
 using Microsoft.Extensions.Logging;
 using Enerflow.Simulation.Flowsheet.Compounds;
 using Enerflow.Simulation.Flowsheet.PropertyPackages;
