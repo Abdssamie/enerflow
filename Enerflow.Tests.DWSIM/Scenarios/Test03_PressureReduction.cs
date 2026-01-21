@@ -39,7 +39,6 @@ public class Test03PressureReduction : TestBase
         // Create high-pressure feed (20 bar, 40°C, 50/50 mol% Propane/n-Butane)
         var feed = flowsheet.AddObject(ObjectType.MaterialStream, 100, 100, "Feed") as MaterialStream;
         Assert.NotNull(feed);
-        flowsheet.AddCompoundsToMaterialStream(feed);
 
         feed.Phases[0].Properties.temperature = 313.15; // 40°C
         feed.Phases[0].Properties.pressure = 2000000;   // 20 bar
@@ -53,13 +52,13 @@ public class Test03PressureReduction : TestBase
         // Create valve (pressure reduction from 20 bar to 5 bar)
         var valve = flowsheet.AddObject(ObjectType.Valve, 200, 100, "Valve") as Valve;
         Assert.NotNull(valve);
+        valve.CalcMode = Valve.CalculationMode.OutletPressure;
         valve.OutletPressure = 500000; // 5 bar
-        Logger.Information("Valve: 20 bar → 5 bar (isenthalpic expansion)");
+        Logger.Information("Valve: 20 bar -> 5 bar (isenthalpic expansion)");
 
         // Create stream after valve (will be two-phase)
         var flashed = flowsheet.AddObject(ObjectType.MaterialStream, 300, 100, "Flashed") as MaterialStream;
         Assert.NotNull(flashed);
-        flowsheet.AddCompoundsToMaterialStream(flashed);
 
         // Create separator (flash vessel)
         var separator = flowsheet.AddObject(ObjectType.Vessel, 400, 100, "Separator") as Vessel;
@@ -70,12 +69,10 @@ public class Test03PressureReduction : TestBase
         // Create vapor outlet
         var vapor = flowsheet.AddObject(ObjectType.MaterialStream, 500, 50, "Vapor") as MaterialStream;
         Assert.NotNull(vapor);
-        flowsheet.AddCompoundsToMaterialStream(vapor);
 
         // Create liquid outlet
         var liquid = flowsheet.AddObject(ObjectType.MaterialStream, 500, 150, "Liquid") as MaterialStream;
         Assert.NotNull(liquid);
-        flowsheet.AddCompoundsToMaterialStream(liquid);
 
         // Connect: Feed → Valve → Flashed → Separator → Vapor + Liquid
         flowsheet.ConnectObjects(feed.GraphicObject, valve.GraphicObject, 0, 0);
@@ -88,12 +85,7 @@ public class Test03PressureReduction : TestBase
         // Act
         Logger.Information("========================================");
         Logger.Information("Solving flowsheet...");
-        var errors = Automation.CalculateFlowsheet2(flowsheet);
-
-        if (errors != null && errors.Any())
-        {
-            Logger.Warning("Calculation returned {Count} errors/warnings", errors.Count);
-        }
+        Automation.CalculateFlowsheet2(flowsheet);
 
         // Assert
         AssertConverged(flowsheet);

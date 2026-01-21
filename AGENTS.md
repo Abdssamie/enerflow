@@ -5,90 +5,266 @@ This document serves as the primary instruction set for AI coding agents operati
 ## 1. Development Commands
 
 ### Build & Run
-- **Build Solution:** `dotnet build`
-- **Build API:** `dotnet build Enerflow.API/Enerflow.API.csproj`
-- **Build Worker:** `dotnet build Enerflow.Worker/Enerflow.Worker.csproj`
-- **Run API:** `dotnet run --project Enerflow.API/Enerflow.API.csproj`
-- **Run Worker:** `dotnet run --project Enerflow.Worker/Enerflow.Worker.csproj` (Runs as a Hosted Service listening to MassTransit)
+```bash
+dotnet build                                              # Build entire solution
+dotnet build Enerflow.API/Enerflow.API.csproj             # Build API only
+dotnet build Enerflow.Worker/Enerflow.Worker.csproj       # Build Worker only
+dotnet run --project Enerflow.API/Enerflow.API.csproj     # Run API
+dotnet run --project Enerflow.Worker/Enerflow.Worker.csproj  # Run Worker (MassTransit listener)
+```
 
 ### Testing
-- **Run All Tests:** `dotnet test`
-- **Run Specific Test:** `dotnet test --filter "FullyQualifiedName=Namespace.ClassName.MethodName"`
-- **Run Functional Tests:** `dotnet test Enerflow.Tests.Functional/Enerflow.Tests.Functional.csproj` (Requires Docker for Testcontainers)
+```bash
+dotnet test                                               # Run all tests
+dotnet test --filter "FullyQualifiedName~ClassName"       # Run tests matching class name
+dotnet test --filter "FullyQualifiedName=Namespace.Class.Method"  # Run single test
+dotnet test Enerflow.Tests.DWSIM/Enerflow.Tests.DWSIM.csproj      # DWSIM API tests
+dotnet test Enerflow.Tests.Unit/Enerflow.Tests.Unit.csproj        # Unit tests
+dotnet test Enerflow.Tests.Functional/Enerflow.Tests.Functional.csproj  # Requires Docker
+dotnet test --logger "console;verbosity=detailed"         # Verbose output
+```
 
-## 2. Enerflow Vibe Coding (Opencode)
-Adhere to these principles to maintain flow and quality within our specific architecture:
-1.  **Domain-First Intent:** Describe code in terms of `MaterialStream`, `UnitOperation`, and `Topology`. Avoid generic "data processing" language.
-2.  **Lifecycle Chunking:** Implement features by following the Simulation Lifecycle: **Map -> Build -> Solve -> Collect**.
-3.  **Hybrid Data Model:** Enforce strict typing for Relations/Topology (Guids), but embrace `JsonDocument` for flexible physical properties.
-4.  **Stateless Execution:** The Worker is stateless. Ensure every `SimulationJob` contains *everything* needed to run.
-5.  **Fail Safe:** DWSIM is fragile. Always wrap solver logic in robust error handling to protect the Worker process.
+### DWSIM Tests (Special)
+DWSIM tests run sequentially (single-threaded requirement). Do NOT modify `xunit.runner.json`:
+```bash
+dotnet test Enerflow.Tests.DWSIM --no-build --filter "FullyQualifiedName~Test01"
+```
 
-## 3. Architecture & Design
+## 2. Project Structure
 
-### The "Enterprise Worker" Pattern
-Enerflow uses a split architecture to ensure stability and isolation:
-1.  **Enerflow.API:** The Orchestrator. Handles HTTP, DB, and Job Submission. **NEVER** references DWSIM binaries directly. It communicates with the Worker via MassTransit.
-2.  **Enerflow.Worker:** The Executor. A Hosted Service that consumes `SimulationJob` messages. It references DWSIM binaries, manages the automation engine, and executes simulations.
-3.  **Enerflow.Domain:** Shared Kernel. Contains Entities (`Simulation`), DTOs (`SimulationJob`), and Interfaces (`ISimulationService`).
+| Project | Purpose | DWSIM Reference |
+|---------|---------|-----------------|
+| `Enerflow.API` | HTTP API, MassTransit Producer | NO |
+| `Enerflow.Worker` | Job Consumer, DWSIM Solver | YES |
+| `Enerflow.Domain` | Entities, DTOs, Interfaces | NO |
+| `Enerflow.Infrastructure` | EF Core, Migrations | NO |
+| `Enerflow.Simulation` | DWSIM wrapper library | YES |
+| `Enerflow.Tests.DWSIM` | DWSIM API isolation tests | YES |
+| `libs/dwsim_9.0.5/dwsim` | DWSIM binaries (immutable) | - |
 
-### Messaging & Transport
-- **Transport:** MassTransit using **PostgreSQL Transport** (SQL Transport).
-- **Queues:** Worker listens on `simulation-jobs` (configured via kebab-case formatter).
-- **Serialization:** System.Text.Json (CamelCase).
+## 3. Architecture Rules
+
+### Enterprise Worker Pattern
+1. **API**: Orchestrator. Handles HTTP, DB, job submission. NEVER references DWSIM.
+2. **Worker**: Executor. Consumes jobs via MassTransit. References DWSIM, runs simulations.
+3. **Domain**: Shared kernel. Contains `Simulation`, `SimulationJob`, interfaces.
 
 ### DWSIM Integration Constraints
-- **Binaries:** Located in `libs/dwsim_9.0.5/dwsim`. Treat as immutable.
-- **Headless Mode:** `DWSIM.GlobalSettings.Settings.AutomationMode = true` must be set **before** any other DWSIM call.
-- **Thread Safety:** DWSIM Automation is **NOT** thread-safe.
-    - The Worker enforces `ConcurrentMessageLimit = 1` via `SimulationJobConsumerDefinition`.
-    - **NEVER** remove this concurrency limit.
-- **Solver:** Use `flowsheet.RequestCalculation()`. `CalculateFlowsheet2` is deprecated/void in patched binaries.
+- **Headless Mode**: Set `DWSIM.GlobalSettings.Settings.AutomationMode = true` BEFORE any DWSIM call
+- **Thread Safety**: DWSIM is NOT thread-safe. Worker uses `ConcurrentMessageLimit = 1`
+- **Automation Class**: Use `DWSIM.Automation.Automation3`, NOT legacy `Automation`
+- **Calculation**: `Automation.CalculateFlowsheet2(flowsheet)` returns VOID, not exceptions
+- **Error Check**: Use `flowsheet.Solved` and `flowsheet.ErrorMessage` after calculation
 
-## 3. Code Style & Conventions
+### Messaging
+- **Transport**: MassTransit with PostgreSQL Transport
+- **Queue**: `simulation-jobs` (kebab-case)
+- **Serialization**: System.Text.Json (camelCase)
 
-### C# / .NET 10.0 Guidelines
-- **Namespaces:** Use File-scoped namespaces (`namespace Enerflow.Domain;`).
-- **Constructors:** Use Primary Constructors where appropriate, or standard constructors for DI injection.
-- **Sequential IDs:** Use `Enerflow.Domain.Common.IdGenerator.NextGuid()` for generating new identifiers. **NEVER** use `Guid.NewGuid()`. Sequential IDs (NewId) are required for database performance and clustered index stability.
-- **Properties:** Use `required` modifier for DTOs and Entities to ensure validity.
-- **Typing:** Use `var` for complex object creation (`new Dictionary<...>`), explicit types for primitives (`int`, `string`) and return types.
-- **Async:** Always use `async/await`. Avoid `.Result` or `.Wait()`. Use `CancellationToken` where available.
+## 4. Code Style & Conventions
+
+### C# / .NET 10.0
+```csharp
+// File-scoped namespaces (REQUIRED)
+namespace Enerflow.Domain.Entities;
+
+// Primary constructors for simple classes
+public class StreamData(string name, double temperature);
+
+// Standard constructors for DI
+public class SimulationService
+{
+    private readonly IDbContext _context;
+    public SimulationService(IDbContext context) => _context = context;
+}
+
+// Required modifier for DTOs/Entities
+public class Simulation
+{
+    public required string Name { get; set; }
+    public required string ThermoPackage { get; set; }
+}
+```
+
+### Sequential IDs (CRITICAL)
+```csharp
+// WRONG - Fragmented clustered index
+public Guid Id { get; set; } = Guid.NewGuid();
+
+// CORRECT - Sequential for DB performance
+public Guid Id { get; set; } = Common.IdGenerator.NextGuid();
+```
 
 ### Naming Conventions
-- **Classes/Methods:** `PascalCase`
-- **Private Fields:** `_camelCase` (e.g., `_simulationService`)
-- **Local Variables:** `camelCase`
-- **Interfaces:** `I` prefix (e.g., `ISimulationService`)
+| Element | Convention | Example |
+|---------|------------|---------|
+| Classes/Methods | PascalCase | `SimulationService`, `CalculateFlowsheet` |
+| Private Fields | _camelCase | `_simulationService`, `_logger` |
+| Local Variables | camelCase | `flowsheet`, `materialStream` |
+| Interfaces | I prefix | `ISimulationService`, `IJobProducer` |
+| Constants | PascalCase | `MaxRetryCount`, `DefaultTimeout` |
 
-### Error Handling
-- **Worker Safety:** The Worker process must handle exceptions gracefully.
-    - `SimulationJobConsumer` catches all exceptions during execution.
-    - On failure: Update `Simulation.Status` to `Failed`, save `ErrorMessage`, and persist to DB.
-    - The process should **not** crash; it should ack the message (or move to error queue) and be ready for the next job.
+### Typing Rules
+```csharp
+// Use var for complex objects
+var streams = new Dictionary<Guid, MaterialStream>();
+var config = new FlowsheetConfiguration { Name = "Test" };
 
-## 4. Workflows
+// Explicit types for primitives and return types
+int count = 0;
+string name = "Feed";
+double temperature = 298.15;
 
-### Simulation Execution
-1.  **API:** Receives request -> Creates/Updates `Simulation` Entity -> Publishes `SimulationJob` via MassTransit.
-2.  **Worker:** Consumes message (Serialized execution) -> Maps DTO to DWSIM Objects -> Solves Flowsheet -> Collects Results.
-3.  **Worker:** Updates `Simulation` Entity (Status, ResultJson) and `MaterialStream` Entities directly in DB.
-4.  **API:** Polls/Reads updated Entities to show results to user.
+public async Task<Simulation> GetSimulationAsync(Guid id)
+```
 
-### Data Access
-- **ORM:** Entity Framework Core with Npgsql.
-- **JSON:** Heavy/Dynamic data (Compositions, Unit Configs, Full Results) is stored in `jsonb` columns using `JsonDocument`.
-- **Arrays:** Native PostgreSQL arrays (`uuid[]`) used for Topology (Input/Output IDs).
+### Async/Await
+```csharp
+// CORRECT - Always async/await with CancellationToken
+public async Task<Result> ProcessAsync(CancellationToken ct)
+{
+    var data = await _repository.GetAsync(id, ct);
+    return await _solver.SolveAsync(data, ct);
+}
 
-## 5. Git & Version Control
-- **Binaries:** `libs/` is gitignored.
-- **Commits:** Use Conventional Commits (`feat:`, `fix:`, `chore:`, `refactor:`).
-- **Configuration:** `appsettings.json` is gitignored; use `appsettings.Development.json` or environment variables.
+// WRONG - Blocking calls
+var result = _repository.GetAsync(id).Result;  // NEVER
+_solver.SolveAsync(data).Wait();               // NEVER
+```
 
-## 6. Project Structure
-- `Enerflow.API`: Web API (Controllers, MassTransit Producer).
-- `Enerflow.Worker`: Hosted Service (Consumer, DWSIM Mapper, Solver).
-- `Enerflow.Domain`: Entities, Enums, DTOs, Interfaces.
-- `Enerflow.Infrastructure`: EF Core Context, Migrations.
-- `libs/`: External DWSIM dependencies.
+## 5. Error Handling
 
+### Worker Safety Pattern
+```csharp
+public async Task Consume(ConsumeContext<SimulationJob> context)
+{
+    var job = context.Message;
+    try
+    {
+        // Execute simulation
+        var result = await _solver.SolveAsync(job);
+        await UpdateStatus(job.SimulationId, SimulationStatus.Completed, result);
+    }
+    catch (Exception ex)
+    {
+        // NEVER crash - update status and continue
+        await UpdateStatus(job.SimulationId, SimulationStatus.Failed, ex.Message);
+        _logger.LogError(ex, "Simulation {Id} failed", job.SimulationId);
+    }
+}
+```
+
+### DWSIM Exception Handling
+```csharp
+Automation.CalculateFlowsheet2(flowsheet);
+
+if (!flowsheet.Solved)
+{
+    throw new SimulationException(flowsheet.ErrorMessage ?? "Unknown solver error");
+}
+
+// Check individual objects
+foreach (var obj in flowsheet.SimulationObjects.Values)
+{
+    if (!string.IsNullOrEmpty(obj.ErrorMessage))
+        _logger.LogWarning("{Name}: {Error}", obj.Name, obj.ErrorMessage);
+}
+```
+
+## 6. DWSIM API Pitfalls
+
+### DO NOT Call AddCompoundsToMaterialStream
+```csharp
+// WRONG - Causes duplicate key exception
+var stream = flowsheet.AddObject(ObjectType.MaterialStream, 100, 100, "Feed");
+flowsheet.AddCompoundsToMaterialStream(stream);  // THROWS!
+
+// CORRECT - AddObject already adds compounds
+var stream = flowsheet.AddObject(ObjectType.MaterialStream, 100, 100, "Feed");
+stream.Phases[0].Compounds["Methane"].MoleFraction = 1.0;
+```
+
+### Set CalcMode BEFORE Values
+```csharp
+// Valve
+valve.CalcMode = Valve.CalculationMode.OutletPressure;
+valve.OutletPressure = 500000;
+
+// Heater/Cooler
+heater.CalcMode = Heater.CalculationMode.OutletTemperature;
+heater.OutletTemperature = 348.15;
+
+// Compressor
+compressor.CalcMode = Compressor.CalculationMode.OutletPressure;
+compressor.POut = 2000000;
+```
+
+### Property Name Case Sensitivity
+```csharp
+// VB.NET origin - some properties are lowercase
+stream.Phases[0].Properties.molarfraction = 0.5;  // NOT MolarFraction
+stream.SpecType = StreamSpec.Pressure_and_VaporFraction;  // underscore
+```
+
+## 7. Data Access
+
+- **ORM**: Entity Framework Core with Npgsql
+- **JSON Columns**: Use `JsonDocument` for flexible data (compositions, configs, results)
+- **Arrays**: Native PostgreSQL `uuid[]` for topology (InputIds, OutputIds)
+
+## 8. Git & Version Control
+
+- **Commits**: Conventional Commits (`feat:`, `fix:`, `chore:`, `refactor:`, `test:`)
+- **Binaries**: `libs/` is gitignored - never commit DWSIM binaries
+- **Config**: `appsettings.json` gitignored - use `appsettings.Development.json`
+
+## 9. Domain Terminology
+
+Use domain language in code and comments:
+- `MaterialStream` not "data stream" or "pipe"
+- `UnitOperation` not "processor" or "node"
+- `Topology` not "graph" or "connections"
+- `PropertyPackage` not "thermodynamic model"
+- Lifecycle: **Map -> Build -> Solve -> Collect**
+
+## 10. Agent Resources
+
+### Directory Structure
+```
+.agent/                    # Antigravity/Cursor IDE
+  rules/                   # Coding rules
+  skills/                  # Loadable skills (dwsim-api-verification, etc.)
+  workflows/               # APM workflow definitions
+  prompts/                 # Code review prompts (security, architecture, etc.)
+
+.opencode/                 # OpenCode IDE
+  command/                 # Slash commands
+
+.apm/                      # Agentic Project Management (separate system)
+  guides/                  # APM methodology guides
+  Memory/                  # Task logs and handovers
+
+docs/DWSIM/                # DWSIM reference documentation
+  DWSIM_API_MAP.md         # Authoritative API surface
+  IPhaseProperties.cs      # Property interface reference
+
+libs/                      # External dependencies (gitignored binaries)
+  dwsim_9.0.5/dwsim/       # DWSIM runtime binaries
+  dwsim_src/               # DWSIM source for API verification
+```
+
+### Skills & Verification
+Before using DWSIM APIs, load the verification skill:
+```
+/skill dwsim-api-verification
+```
+
+Or manually check: `.agent/skills/dwsim-api-verification/SKILL.md`
+
+### Code Review Prompts
+Available in `.agent/prompts/`:
+- `security-audit.md` - Input validation, injection, secrets
+- `architecture-check.md` - Enterprise Worker pattern compliance
+- `thermodynamic-integrity.md` - Units, DWSIM API, physics
+- `bug-hunter.md` - Null refs, edge cases, resource leaks
+- `concurrency-check.md` - Thread safety, async/await, DWSIM constraints

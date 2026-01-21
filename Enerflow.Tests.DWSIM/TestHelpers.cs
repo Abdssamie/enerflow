@@ -40,6 +40,7 @@ public static class TestHelpers
             logger.Information("    Entropy: {Entropy:F2} kJ/[kg.K]", (phase0.Properties.entropy ?? 0) / 1000.0);
 
             // Log vapor fraction
+            // you can also use phase0.Property.molarFraction
             logger.Information("    Vapor Fraction in moles: {VaporFrac:F4}", phase0.Properties.molarfraction ?? 0);
 
             // Log composition

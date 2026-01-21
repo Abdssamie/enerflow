@@ -1,6 +1,6 @@
 using Serilog;
 using Serilog.Core;
-using DWSIMAutomation = DWSIM.Automation.Automation;
+using DWSIMAutomation = DWSIM.Automation.Automation3;
 using DWSIM.GlobalSettings;
 using DWSIM.Thermodynamics.Streams;
 using DWSIM.Interfaces;

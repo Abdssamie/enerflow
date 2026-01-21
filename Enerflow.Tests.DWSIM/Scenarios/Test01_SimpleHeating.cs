@@ -41,7 +41,6 @@ public class Test01SimpleHeating : TestBase
         // Create inlet stream (Feed)
         var feed = flowsheet.AddObject(ObjectType.MaterialStream, 100, 100, "Feed") as MaterialStream;
         Assert.NotNull(feed);
-        flowsheet.AddCompoundsToMaterialStream(feed);
 
         // Set feed conditions: 25°C (298.15 K), 1 bar (101325 Pa), 1 kg/s of pure methane
         feed.Phases[0].Properties.temperature = 298.15; // 25°C
@@ -65,7 +64,6 @@ public class Test01SimpleHeating : TestBase
         // Create outlet stream (Product)
         var product = flowsheet.AddObject(ObjectType.MaterialStream, 300, 100, "Product") as MaterialStream;
         Assert.NotNull(product);
-        flowsheet.AddCompoundsToMaterialStream(product);
         Logger.Information("Created product stream");
 
         // Connect: Feed → Heater → Product
@@ -76,16 +74,7 @@ public class Test01SimpleHeating : TestBase
         // Act
         Logger.Information("========================================");
         Logger.Information("Solving flowsheet...");
-        var errors = Automation.CalculateFlowsheet2(flowsheet);
-
-        if (errors != null && errors.Any())
-        {
-            Logger.Warning("Calculation returned {Count} errors/warnings:", errors.Count);
-            foreach (var error in errors)
-            {
-                Logger.Warning("  {Error}", error.Message);
-            }
-        }
+        Automation.CalculateFlowsheet2(flowsheet);
 
         // Assert
         AssertConverged(flowsheet);

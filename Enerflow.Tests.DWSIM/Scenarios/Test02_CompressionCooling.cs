@@ -41,7 +41,6 @@ public class Test02CompressionCooling : TestBase
         // Create inlet stream (Feed) - 5 bar, 25°C, natural gas composition
         var feed = flowsheet.AddObject(ObjectType.MaterialStream, 100, 100, "Feed") as MaterialStream;
         Assert.NotNull(feed);
-        flowsheet.AddCompoundsToMaterialStream(feed);
 
         feed.Phases[0].Properties.temperature = 298.15; // 25°C
         feed.Phases[0].Properties.pressure = 500000;    // 5 bar
@@ -65,7 +64,6 @@ public class Test02CompressionCooling : TestBase
         // Create intermediate stream (after compressor, before cooler)
         var compressed = flowsheet.AddObject(ObjectType.MaterialStream, 300, 100, "Compressed") as MaterialStream;
         Assert.NotNull(compressed);
-        flowsheet.AddCompoundsToMaterialStream(compressed);
 
         // Create cooler (cool back to 25°C)
         var cooler = flowsheet.AddObject(ObjectType.Cooler, 400, 100, "Cooler") as Cooler;
@@ -77,7 +75,6 @@ public class Test02CompressionCooling : TestBase
         // Create outlet stream (Product)
         var product = flowsheet.AddObject(ObjectType.MaterialStream, 500, 100, "Product") as MaterialStream;
         Assert.NotNull(product);
-        flowsheet.AddCompoundsToMaterialStream(product);
 
         // Connect: Feed → Compressor → Compressed → Cooler → Product
         flowsheet.ConnectObjects(feed.GraphicObject, compressor.GraphicObject, 0, 0);
@@ -89,12 +86,7 @@ public class Test02CompressionCooling : TestBase
         // Act
         Logger.Information("========================================");
         Logger.Information("Solving flowsheet...");
-        var errors = Automation.CalculateFlowsheet2(flowsheet);
-
-        if (errors != null && errors.Any())
-        {
-            Logger.Warning("Calculation returned {Count} errors/warnings", errors.Count);
-        }
+        Automation.CalculateFlowsheet2(flowsheet);
 
         // Assert
         AssertConverged(flowsheet);
@@ -145,10 +137,10 @@ public class Test02CompressionCooling : TestBase
         Assert.True(compPower > 0, "Compressor power should be positive");
         Logger.Information("✓ Compressor power: {Power:F2} kW", compPower);
 
-        // Verify cooling duty is negative (heat removed)
+        // Verify cooling duty is significant (heat removed - DWSIM reports as positive magnitude)
         var coolingDuty = cooler.DeltaQ ?? 0;
-        Assert.True(coolingDuty < 0, "Cooling duty should be negative (heat removed)");
-        Logger.Information("✓ Cooling duty (heat removed): {Duty:F2} kW", Math.Abs(coolingDuty));
+        Assert.True(coolingDuty > 0, "Cooling duty should be positive (DWSIM reports magnitude of heat removed)");
+        Logger.Information("Cooling duty (heat removed): {Duty:F2} kW", coolingDuty);
 
         LogFlowsheetSummary(flowsheet);
         TestHelpers.CheckGlobalMassBalance(flowsheet, Logger);

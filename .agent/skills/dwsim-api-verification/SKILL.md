@@ -51,14 +51,39 @@ grep -r "Enum PropertyPackageType" libs/dwsim_src
 
 ## Common DWSIM Pitfalls
 
-### 1. Calculation Methods
-- **WRONG**: `flowsheet.CalculateFlowsheet2(...)` (Often void or deprecated in patched binaries)
-- **CORRECT**: `flowsheet.RequestCalculation(...)`
+### 1. Automation Class Selection
+- **WRONG**: `DWSIM.Automation.Automation` (Legacy, limited features)
+- **CORRECT**: `DWSIM.Automation.Automation3` (Full-featured, use for tests and advanced automation)
+- **Alias**: `using DWSIMAutomation = DWSIM.Automation.Automation3;`
 
-### 2. Automation Mode
-- **Requirement**: `DWSIM.GlobalSettings.Settings.AutomationMode = true` must be set.
-- **Verification**: Check `DWSIM.GlobalSettings/Settings.vb` to confirm the property exists if you are unsure.
+### 2. Calculation Methods
+- **WRONG**: `var errors = Automation.CalculateFlowsheet2(flowsheet)` (Automation3 returns **void**, not List<Exception>)
+- **CORRECT**: `Automation.CalculateFlowsheet2(flowsheet);` (Call without assignment)
+- **Error Checking**: Use `flowsheet.Solved` and `flowsheet.ErrorMessage` properties after calculation
+- **Alternative**: `flowsheet.RequestCalculation(...)` (For async/internal calculation)
 
-### 3. Thread Safety
+### 3. MaterialStream Compound Handling
+- **WRONG**: Calling `flowsheet.AddCompoundsToMaterialStream(stream)` after `AddObject(ObjectType.MaterialStream, ...)`
+- **CORRECT**: Just use `AddObject()` - it **already calls** `AddCompoundsToMaterialStream` internally
+- **Error**: Double-calling causes `ArgumentException: An item with the same key has already been added`
+- **Source**: `FlowsheetBase.vb:1297` shows `AddCompoundsToMaterialStream(myCOMS)` is called during `AddObjectToSurface`
+
+### 4. Unit Operation Calculation Modes
+- **Valve**: Default `CalcMode` is `DeltaP`. To specify outlet pressure, set `CalcMode = Valve.CalculationMode.OutletPressure` **before** setting `OutletPressure`
+- **Heater/Cooler**: Set `CalcMode` to `OutletTemperature`, `HeatAdded`, etc. based on known specification
+- **Compressor**: Use `CalculationMode.OutletPressure` when specifying target pressure
+
+### 5. Heat Duty Sign Convention
+- **DWSIM Convention**: Both Heater and Cooler report `DeltaQ` as **positive magnitude**
+- Cooler does NOT return negative values for heat removed
+- **Validation**: Check that cooler output temperature is lower than input, not the duty sign
+
+### 6. Property Names Case Sensitivity
+- **Observation**: VB.NET origin means some properties are lowercase or inconsistent.
+- **Example**: `IPhaseProperties.molarfraction` (lowercase) instead of `VaporFraction` or `MolarFraction`.
+- **Reference**: Check `docs/DWSIM_API/IPhaseProperties.cs` for exact property names.
+
+### 7. Thread Safety
 - **Constraint**: DWSIM Automation is **single-threaded**.
-- **Verification**: Ensure no `Task.Run` wraps direct DWSIM calls without a lock, although the Worker architecture handles this via `ConcurrentMessageLimit = 1`.
+- **xUnit Config**: Use `xunit.runner.json` with `"parallelizeTestCollections": false` and `"maxParallelThreads": 1`
+- **Worker**: Architecture handles this via `ConcurrentMessageLimit = 1`.
