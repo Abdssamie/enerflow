@@ -8,7 +8,7 @@
 
 using System.Text.Json;
 using Enerflow.Domain.DTOs;
-using Enerflow.Domain.Entities;
+using Enerflow.Domain.Entities.Streams;
 using Enerflow.Domain.Enums;
 using Enerflow.Domain.Interfaces;
 using Enerflow.Infrastructure.Persistence;
@@ -229,7 +229,7 @@ public class SimulationJobConsumer : IConsumer<SimulationJob>
             stream.Temperature = result.Temperature;
             stream.Pressure = result.Pressure;
             stream.MassFlow = result.MassFlow;
-            stream.MolarCompositions = result.MolarCompositions;
+            stream.Composition = result.Composition;
 
             _logger.LogDebug("Updated stream {StreamName}: T={Temp}, P={Pres}, F={Flow}",
                 stream.Name, stream.Temperature, stream.Pressure, stream.MassFlow);

@@ -18,7 +18,7 @@ public record SimulationJob
 public record SimulationDefinitionDto
 {
     public required string Name { get; init; }
-    public required PropertyPackage PropertyPackage { get; init; }
+    public required PropertyPackageType PropertyPackageType { get; init; }
     public required FlashAlgorithm FlashAlgorithm { get; init; }
     public required SystemOfUnits SystemOfUnits { get; init; }
 

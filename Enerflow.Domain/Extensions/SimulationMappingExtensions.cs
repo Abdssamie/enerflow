@@ -1,5 +1,8 @@
+using System.Text.Json;
 using Enerflow.Domain.DTOs;
 using Enerflow.Domain.Entities;
+using Enerflow.Domain.Entities.Streams;
+using Enerflow.Domain.Entities.UnitOperations;
 using Enerflow.Domain.Enums;
 using Enerflow.Domain.Common;
 
@@ -20,9 +23,9 @@ public static class SimulationMappingExtensions
     public static SimulationDefinitionDto ToSimulationDefinitionDto(this Simulation simulation)
     {
         // Parse enums
-        var propertyPackage = Enum.TryParse<PropertyPackage>(simulation.ThermoPackage, out var pp)
+        var propertyPackage = Enum.TryParse<PropertyPackageType>(simulation.ThermoPackage, out var pp)
             ? pp
-            : PropertyPackage.PengRobinson; // Default or fallback
+            : PropertyPackageType.PengRobinson; // Default or fallback
 
         var flashAlgorithm = Enum.TryParse<FlashAlgorithm>(simulation.FlashAlgorithm, out var fa)
             ? fa
@@ -35,13 +38,13 @@ public static class SimulationMappingExtensions
         return new SimulationDefinitionDto
         {
             Name = simulation.Name,
-            PropertyPackage = propertyPackage,
+            PropertyPackageType = propertyPackage,
             FlashAlgorithm = flashAlgorithm,
             SystemOfUnits = systemOfUnits,
-            Compounds = simulation.Compounds?.Select(c => c.ToCompoundDto()).ToList() ?? new(),
-            MaterialStreams = simulation.MaterialStreams?.Select(s => s.ToMaterialStreamDto()).ToList() ?? new(),
-            EnergyStreams = simulation.EnergyStreams?.Select(s => s.ToEnergyStreamDto()).ToList() ?? new(),
-            UnitOperations = simulation.UnitOperations?.Select(u => u.ToUnitOperationDto()).ToList() ?? new()
+            Compounds = simulation.Compounds.Select(c => c.ToCompoundDto()).ToList(),
+            MaterialStreams = simulation.MaterialStreams.Select(s => s.ToMaterialStreamDto()).ToList(),
+            EnergyStreams = simulation.EnergyStreams.Select(s => s.ToEnergyStreamDto()).ToList(),
+            UnitOperations = simulation.UnitOperations.Select(u => u.ToUnitOperationDto()).ToList()
         };
     }
 
@@ -59,7 +62,7 @@ public static class SimulationMappingExtensions
             Temperature = stream.Temperature,
             Pressure = stream.Pressure,
             MassFlow = stream.MassFlow,
-            MolarCompositions = stream.MolarCompositions ?? new()
+            MolarCompositions = stream.Composition
         };
     }
 
@@ -73,20 +76,16 @@ public static class SimulationMappingExtensions
         };
     }
 
-    public static UnitOperationDto ToUnitOperationDto(this UnitOperation unit)
+    public static UnitOperationDto ToUnitOperationDto(this UnitOperationObject unit)
     {
-        var type = Enum.TryParse<UnitOperationType>(unit.Type, out var uot)
-            ? uot
-            : UnitOperationType.Mixer; // Default? Or maybe throw if unknown.
-
         return new UnitOperationDto
         {
             Id = unit.Id,
             Name = unit.Name,
-            Type = type,
-            InputStreamIds = unit.InputStreamIds ?? new(),
-            OutputStreamIds = unit.OutputStreamIds ?? new(),
-            ConfigParams = unit.ConfigParams
+            Type = unit.Type,
+            InputStreamIds = unit.InputStreamIds,
+            OutputStreamIds = unit.OutputStreamIds,
+            ConfigParams = JsonSerializer.SerializeToDocument(unit, unit.GetType())
         };
     }
 }

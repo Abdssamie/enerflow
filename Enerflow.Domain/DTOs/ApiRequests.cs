@@ -39,7 +39,8 @@ public record AddStreamRequest
     public double Temperature { get; init; } = 298.15; // K
     public double Pressure { get; init; } = 101325;    // Pa
     public double MassFlow { get; init; } = 1.0;       // kg/s
-    public Dictionary<string, double> MolarCompositions { get; init; } = new();
+    
+    public Dictionary<string, double> Composition { get; init; } = new();
 }
 
 public record AddCompoundRequest

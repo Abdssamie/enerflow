@@ -4,7 +4,6 @@ using System.Text.Json;
 using Enerflow.Domain.DTOs;
 using Enerflow.Domain.Enums;
 using FluentAssertions;
-using Xunit;
 
 // TODO: TROUBLESHOOTING PAUSED (2026-01-17)
 // Current Status:
@@ -61,7 +60,7 @@ public class SimulationFlowTests : BaseIntegrationTest
             Temperature = 300, // K
             Pressure = 101325, // Pa
             MassFlow = 1.0,    // kg/s
-            MolarCompositions = new Dictionary<string, double> { { "Water", 1.0 } }
+            Composition = new Dictionary<string, double> { { "Water", 1.0 } }
         };
         var inlet1Res = await HttpClient.PostAsJsonAsync($"/api/v1/simulations/{simId}/streams", inlet1Request);
         if (!inlet1Res.IsSuccessStatusCode)
@@ -78,7 +77,7 @@ public class SimulationFlowTests : BaseIntegrationTest
             Temperature = 300,
             Pressure = 101325,
             MassFlow = 2.0,
-            MolarCompositions = new Dictionary<string, double> { { "Water", 1.0 } }
+            Composition = new Dictionary<string, double> { { "Water", 1.0 } }
         };
         var inlet2Res = await HttpClient.PostAsJsonAsync($"/api/v1/simulations/{simId}/streams", inlet2Request);
         var inlet2Data = await inlet2Res.Content.ReadFromJsonAsync<JsonElement>();
@@ -90,7 +89,7 @@ public class SimulationFlowTests : BaseIntegrationTest
             Temperature = 300,
             Pressure = 101325,
             MassFlow = 0.0,
-            MolarCompositions = new Dictionary<string, double> { { "Water", 1.0 } }
+            Composition = new Dictionary<string, double> { { "Water", 1.0 } }
         };
         var outletRes = await HttpClient.PostAsJsonAsync($"/api/v1/simulations/{simId}/streams", outletRequest);
         var outletData = await outletRes.Content.ReadFromJsonAsync<JsonElement>();

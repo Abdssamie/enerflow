@@ -17,16 +17,15 @@ public class PropertyPackageManager : IPropertyPackageManager
         _logger = logger;
     }
 
-    public IPropertyPackage CreatePropertyPackage(PropertyPackage packageType)
+    public IPropertyPackage CreatePropertyPackage(PropertyPackageType packageType)
     {
         IPropertyPackage pp = packageType switch
         {
-            PropertyPackage.PengRobinson => new DWSIMPropertyPackage.PengRobinsonPropertyPackage(),
-            PropertyPackage.SoaveRedlichKwong => new DWSIMPropertyPackage.SRKPropertyPackage(),
-            PropertyPackage.NRTL => new DWSIMPropertyPackage.NRTLPropertyPackage(),
-            PropertyPackage.UNIQUAC => new DWSIMPropertyPackage.UNIQUACPropertyPackage(),
-            PropertyPackage.RaoultsLaw => new DWSIMPropertyPackage.RaoultPropertyPackage(),
-            PropertyPackage.SteamTables => new DWSIMPropertyPackage.SteamTablesPropertyPackage(),
+            PropertyPackageType.PengRobinson => new DWSIMPropertyPackage.PengRobinsonPropertyPackage(),
+            PropertyPackageType.SoaveRedlichKwong => new DWSIMPropertyPackage.SRKPropertyPackage(),
+            PropertyPackageType.NRTL => new DWSIMPropertyPackage.NRTLPropertyPackage(),
+            PropertyPackageType.UNIQUAC => new DWSIMPropertyPackage.UNIQUACPropertyPackage(),
+            PropertyPackageType.RaoultsLaw => new DWSIMPropertyPackage.RaoultPropertyPackage(),
             _ => new DWSIMPropertyPackage.PengRobinsonPropertyPackage()
         };
 

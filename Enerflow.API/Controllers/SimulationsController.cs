@@ -2,6 +2,8 @@ using System.Text.Json;
 using Enerflow.Domain.Common;
 using Enerflow.Domain.DTOs;
 using Enerflow.Domain.Entities;
+using Enerflow.Domain.Entities.Streams;
+using Enerflow.Domain.Entities.UnitOperations;
 using Enerflow.Domain.Enums;
 using Enerflow.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
@@ -80,7 +82,8 @@ public class SimulationsController : ControllerBase
         simulation.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation("Added compound {CompoundId} ({Name}) to simulation {SimulationId}", compound.Id, compound.Name, id);
+        _logger.LogInformation("Added compound {CompoundId} ({Name}) to simulation {SimulationId}", compound.Id,
+            compound.Name, id);
 
         return CreatedAtAction(nameof(GetSimulation), new { id }, new
         {
@@ -127,7 +130,7 @@ public class SimulationsController : ControllerBase
                 s.Temperature,
                 s.Pressure,
                 s.MassFlow,
-                s.MolarCompositions
+                s.Composition
             }),
             energyStreams = simulation.EnergyStreams.Select(s => new { s.Id, s.Name, s.EnergyFlow }),
             unitOperations = simulation.UnitOperations.Select(u => new
@@ -155,13 +158,42 @@ public class SimulationsController : ControllerBase
             return NotFound(new { code = "SimulationNotFound", message = $"Simulation with ID {id} not found." });
         }
 
-        var unit = new UnitOperation
+        UnitOperationObject unit;
+        switch (request.UnitOperation)
         {
-            Id = IdGenerator.NextGuid(),
-            SimulationId = id,
-            Name = request.Name,
-            Type = request.UnitOperation.ToString()
-        };
+            case UnitOperationType.Heater:
+                unit = new HeaterObject
+                        {
+                            Name = simulation.Name,
+                            SimulationId = simulation.Id
+                        };
+                break;
+            case UnitOperationType.Cooler:
+                unit = new CoolerObject
+                        {
+                            Name = simulation.Name,
+                            SimulationId = simulation.Id
+                        };
+                break;
+            case UnitOperationType.Recycle:
+                unit = new RecycleObject
+                        {
+                            Name = simulation.Name,
+                            SimulationId = simulation.Id
+                        };
+                break;
+            default:
+                return BadRequest(new
+                {
+                    code = "NotImplemented",
+                    message = $"Unit type {request.UnitOperation} is not yet supported in the strongly-typed domain."
+                });
+        }
+
+        unit.Id = IdGenerator.NextGuid();
+        unit.SimulationId = id;
+        unit.Name = request.Name;
+        // Type is determined by the class
 
         _context.UnitOperations.Add(unit);
         simulation.UpdatedAt = DateTime.UtcNow;
@@ -199,7 +231,7 @@ public class SimulationsController : ControllerBase
             Temperature = request.Temperature,
             Pressure = request.Pressure,
             MassFlow = request.MassFlow,
-            MolarCompositions = request.MolarCompositions
+            Composition = request.Composition
         };
 
         _context.MaterialStreams.Add(stream);
@@ -239,7 +271,8 @@ public class SimulationsController : ControllerBase
 
         if (unit == null)
         {
-            return NotFound(new { code = "UnitNotFound", message = $"Unit {request.UnitId} not found in simulation {id}." });
+            return NotFound(new
+                { code = "UnitNotFound", message = $"Unit {request.UnitId} not found in simulation {id}." });
         }
 
         // Verify stream belongs to this simulation
@@ -248,7 +281,8 @@ public class SimulationsController : ControllerBase
 
         if (!streamExists)
         {
-            return NotFound(new { code = "StreamNotFound", message = $"Stream {request.StreamId} not found in simulation {id}." });
+            return NotFound(new
+                { code = "StreamNotFound", message = $"Stream {request.StreamId} not found in simulation {id}." });
         }
 
         // Connect based on port type
@@ -259,6 +293,7 @@ public class SimulationsController : ControllerBase
                 {
                     unit.InputStreamIds.Add(request.StreamId);
                 }
+
                 break;
 
             case PortType.Outlet:
@@ -266,6 +301,7 @@ public class SimulationsController : ControllerBase
                 {
                     unit.OutputStreamIds.Add(request.StreamId);
                 }
+
                 break;
 
             default:
@@ -329,7 +365,7 @@ public class SimulationsController : ControllerBase
                 Temperature = s.Temperature,
                 Pressure = s.Pressure,
                 MassFlow = s.MassFlow,
-                MolarCompositions = s.MolarCompositions
+                Composition = s.Composition
             }).ToList(),
             EnergyStreams = simulation.EnergyStreams.Select(s => new EnergyStreamExportDto
             {
@@ -344,7 +380,7 @@ public class SimulationsController : ControllerBase
                 Type = u.Type,
                 InputStreamIds = u.InputStreamIds,
                 OutputStreamIds = u.OutputStreamIds,
-                ConfigParams = u.ConfigParams
+                ConfigParams = JsonSerializer.SerializeToDocument(u, u.GetType())
             }).ToList()
         };
 
@@ -368,10 +404,11 @@ public class SimulationsController : ControllerBase
     /// <summary>
     /// Imports a simulation from JSON, creating a new simulation with new IDs.
     /// </summary>
+    /// <exception cref="ArgumentNullException"></exception>
     [HttpPost("import")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> ImportSimulation([FromBody] SimulationExportDto importDto)
+    public async Task<IActionResult> ImportSimulation([FromBody] SimulationExportDto? importDto)
     {
         if (importDto == null)
         {
@@ -400,7 +437,9 @@ public class SimulationsController : ControllerBase
             // Map old IDs to new IDs for streams and units
             var streamIdMap = new Dictionary<Guid, Guid>();
             var unitIdMap = new Dictionary<Guid, Guid>();
+            if (unitIdMap == null) throw new ArgumentNullException(nameof(unitIdMap));
             var compoundIdMap = new Dictionary<Guid, Guid>();
+            if (compoundIdMap == null) throw new ArgumentNullException(nameof(compoundIdMap));
 
             // Import compounds
             foreach (var compoundDto in importDto.Compounds)
@@ -432,7 +471,7 @@ public class SimulationsController : ControllerBase
                     Temperature = streamDto.Temperature,
                     Pressure = streamDto.Pressure,
                     MassFlow = streamDto.MassFlow,
-                    MolarCompositions = streamDto.MolarCompositions ?? new Dictionary<string, double>()
+                    Composition = streamDto.Composition ?? new Dictionary<string, double>()
                 };
                 _context.MaterialStreams.Add(stream);
             }
@@ -470,16 +509,41 @@ public class SimulationsController : ControllerBase
                     .Select(id => streamIdMap[id])
                     .ToList();
 
-                var unit = new UnitOperation
+                UnitOperationObject unit;
+                switch (unitDto.Type)
                 {
-                    Id = newId,
-                    SimulationId = simulation.Id,
-                    Name = unitDto.Name,
-                    Type = unitDto.Type,
-                    InputStreamIds = remappedInputIds,
-                    OutputStreamIds = remappedOutputIds,
-                    ConfigParams = unitDto.ConfigParams
-                };
+                    case UnitOperationType.Heater:
+                        unit = unitDto.ConfigParams?.Deserialize<HeaterObject>() ?? new HeaterObject
+                        {
+                            Name = simulation.Name,
+                            SimulationId = simulation.Id
+                        };
+                        break;
+                    case UnitOperationType.Cooler:
+                        unit = unitDto.ConfigParams?.Deserialize<CoolerObject>() ?? new CoolerObject
+                        {
+                            Name = simulation.Name,
+                            SimulationId = simulation.Id
+                        };
+                        break;
+                    case UnitOperationType.Recycle:
+                        unit = unitDto.ConfigParams?.Deserialize<RecycleObject>() ?? new RecycleObject
+                        {
+                            Name = simulation.Name,
+                            SimulationId = simulation.Id
+                        };
+                        break;
+                    default:
+                        // Skip unsupported units for now or throw
+                        continue;
+                }
+
+                unit.Id = newId;
+                unit.SimulationId = simulation.Id;
+                unit.Name = unitDto.Name;
+                unit.InputStreamIds = remappedInputIds;
+                unit.OutputStreamIds = remappedOutputIds;
+
                 _context.UnitOperations.Add(unit);
             }
 
@@ -543,7 +607,7 @@ public record MaterialStreamExportDto
     public double Temperature { get; init; }
     public double Pressure { get; init; }
     public double MassFlow { get; init; }
-    public Dictionary<string, double>? MolarCompositions { get; init; }
+    public Dictionary<string, double>? Composition { get; init; }
 }
 
 public record EnergyStreamExportDto
@@ -557,8 +621,9 @@ public record UnitOperationExportDto
 {
     public Guid Id { get; init; }
     public required string Name { get; init; }
-    public required string Type { get; init; }
+    public required UnitOperationType Type { get; init; }
     public List<Guid> InputStreamIds { get; init; } = new();
     public List<Guid> OutputStreamIds { get; init; } = new();
+    public Guid SimulationId { get; set; } = IdGenerator.NextGuid();
     public JsonDocument? ConfigParams { get; init; }
 }

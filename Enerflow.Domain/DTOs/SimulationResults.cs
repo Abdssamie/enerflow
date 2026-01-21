@@ -38,7 +38,7 @@ public record MaterialStreamResultDto
     public double Enthalpy { get; init; }
 
     /// <summary>Molar compositions (compound name -> mole fraction)</summary>
-    public required Dictionary<string, double> MolarCompositions { get; init; }
+    public required Dictionary<string, double> Composition { get; init; }
 }
 
 /// <summary>

@@ -1,4 +1,6 @@
 using System.Text.Json;
+using Enerflow.Domain.Entities.Streams;
+using Enerflow.Domain.Entities.UnitOperations;
 using Enerflow.Domain.Enums;
 
 namespace Enerflow.Domain.Entities;
@@ -25,5 +27,5 @@ public class Simulation
     public ICollection<Compound> Compounds { get; set; } = new List<Compound>();
     public ICollection<MaterialStream> MaterialStreams { get; set; } = new List<MaterialStream>();
     public ICollection<EnergyStream> EnergyStreams { get; set; } = new List<EnergyStream>();
-    public ICollection<UnitOperation> UnitOperations { get; set; } = new List<UnitOperation>();
+    public ICollection<UnitOperationObject> UnitOperations { get; set; } = new List<UnitOperationObject>();
 }

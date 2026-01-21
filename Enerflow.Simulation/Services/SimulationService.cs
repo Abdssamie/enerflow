@@ -85,7 +85,7 @@ public class SimulationService : ISimulationService
             }
 
             // Set property package (thermodynamic model) and flash algorithm
-            SetPropertyPackage(definition.PropertyPackage, definition.FlashAlgorithm);
+            SetPropertyPackage(definition.PropertyPackageType, definition.FlashAlgorithm);
 
             // Create material streams
             foreach (var stream in definition.MaterialStreams)
@@ -240,7 +240,7 @@ public class SimulationService : ISimulationService
                             MolarFlow = phase0.Properties.molarflow ?? 0,
                             VolumetricFlow = phase0.Properties.volumetric_flow ?? 0,
                             Enthalpy = phase0.Properties.enthalpy ?? 0,
-                            MolarCompositions = compositions
+                            Composition = compositions
                         };
 
                         materialStreams[ms.Name] = streamResult;
@@ -326,7 +326,7 @@ public class SimulationService : ISimulationService
         }
     }
 
-    private void SetPropertyPackage(PropertyPackage thermoPackage, FlashAlgorithm flashAlgorithm)
+    private void SetPropertyPackage(PropertyPackageType thermoPackage, FlashAlgorithm flashAlgorithm)
     {
         if (_flowsheet == null) return;
 

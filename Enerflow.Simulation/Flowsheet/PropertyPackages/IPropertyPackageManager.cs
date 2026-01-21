@@ -12,7 +12,7 @@ public interface IPropertyPackageManager
     /// <summary>
     /// Creates a DWSIM property package instance based on the package type.
     /// </summary>
-    IPropertyPackage CreatePropertyPackage(PropertyPackage packageType);
+    IPropertyPackage CreatePropertyPackage(PropertyPackageType packageType);
 
     /// <summary>
     /// Adds a property package to the flowsheet.
