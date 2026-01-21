@@ -1,4 +1,4 @@
-# APM 0.5.3 - Memory Log Guide
+# APM 0.6.0-token-efficient - Memory Log Guide
 This guide defines how Implementation Agents log their work for Manager Agents and Users. Memory Logs capture task-level context using **Dynamic-MD** format.
 
 Both Manager and Implementation Agents must read this guide during session initialization. Implementation Agents reference it when logging; Manager Agents use it when reviewing logs.
@@ -15,9 +15,9 @@ Memory Logs are populated by Implementation Agents after each task execution or 
 All Memory Log entries must follow a precise structure to ensure clarity, traceability, and context retention. For the Dynamic-MD Memory System, each log is in a dedicated file created empty by Manager Agent, then populated by Implementation Agent. Use parsable Markdown with YAML front-matter and minimal formatting. Include optional sections only when their front-matter boolean is true:
 
 ### 2.1 Frontmatter Flags
-- `important_findings: [true|false]` -> Set to **true** if you discovered architectural constraints, new requirements, or critical context that necessitates a further review by the Manager.
-- `compatibility_issues: [true|false]` -> Set to **true** if the task output conflicts with existing systems or requires a plan update.
-
+- `important_findings: [true|false]` -> Set to **true** if you discovered architectural constraints or made a decision that belongs in the **Architectural Decision Log (ADL)**.
+- `compatibility_issues: [true|false]` -> Set to **true** if the task output conflicts with existing systems.
+- `compliance_score: [0-100]` -> Self-assessed score of how well the output matches the `test_criteria` and spec.
 
 ### Memory Log Template
 ```yaml
@@ -25,6 +25,7 @@ All Memory Log entries must follow a precise structure to ensure clarity, tracea
 agent: [Agent ID]
 task_ref: [Task_ID]
 status: [Completed|Partial|Blocked|Error]
+compliance_score: [0-100]
 ad_hoc_delegation: [true|false]
 compatibility_issues: [true|false]
 important_findings: [true|false]
@@ -37,17 +38,15 @@ important_findings: [true|false]
 ## Summary
 [1-2 sentences describing main outcome]
 
-## Details
-[Work performed, decisions made, steps taken in logical order]
+## Property-Based Test Results
+- [Test 1]: PASS/FAIL (Brief rationale)
+- [Test 2]: PASS/FAIL (Brief rationale)
 
-## Output
-- File paths for created/modified files
-- Code snippets (if necessary, ≤ 20 lines)
-- Configuration changes
-- Results or deliverables
+## Delta (Changes Only)
+- [File Path]: [Brief description of change or diff link]
 
-## Issues
-[Specific blockers or errors, include error messages if relevant, or "None"]
+## Issues/Blockers
+[Specific blockers or "None"]
 
 ## Compatibility Concerns
 [Only include this section if compatibility_issues: true]

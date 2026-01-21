@@ -1,42 +1,22 @@
-# APM 0.5.3 - Task Assignment Guide
+# APM 0.6.0-token-efficient - Task Assignment Guide
 This guide defines how Manager Agents issue task assignments to Implementation Agents and evaluate their completion. Task assignments coordinate agent work during the Task Loop of an APM session, following the Implementation Plan.
 
 ## 1. Task Loop Overview
-Manager Agent issues Task Assignment Prompt → User passes to Implementation Agent → Implementation Agent executes task and logs work → User returns log to Manager → Manager reviews and determines next action (continue, follow-up, delegate, or plan update).
+The workflow follows either the **Standard** or **Learning Loop** pattern, as defined during Setup.
+
+- **Standard**: Manager issues Task Assignment → AI Executes → Review.
+- **Learning Loop**: Research → Scaffolding → Insight Rule → AI Execution → Review.
 
 ## 2. Task Assignment Prompt Format
-Task Assignment Prompts must correlate 1-1 with Implementation Plan tasks and include all necessary context for successful execution. Manager Agent must issue these prompts following this format:
+Task Assignment Prompts must correlate 1-1 with Implementation Plan tasks and include all necessary context.
 
-### 2.1. Dependency Check
-Before creating any Task Assignment Prompt check for task dependencies.
+### 2.1. Token-Efficient Constraints (MANDATORY)
+To minimize token consumption and maximize reliability:
+1. **Diff-Only Outputs**: Instruct agents to provide code changes in `git diff` format or specific block replacements. Avoid re-outputting entire files.
+2. **Property-Based Verification**: Every task must include 3-5 automated property-based tests (e.g., "input X -> no crash", "output Y -> valid schema").
+3. **Spec Compliance**: Agents must self-audit against the `test_criteria` in the Implementation Plan.
 
-**Step 1: Identify Dependencies**
-Check Implementation Plan task's `Guidance` field for dependency declarations:
-- `"Depends on: Task X.Y Output"` = Same-agent dependency
-- `"Depends on: Task X.Y Output by Agent Z"` = **CROSS-AGENT DEPENDENCY**
-
-**Step 2: Determine Context Integration Approach**
-- **Same Agent** (no "by Agent X" tag) → Use **Simple Contextual Reference** (Section 4.1)
-- **Cross Agent** (has "by Agent X" tag) → Use **MANDATORY Comprehensive Integration Context** (Section 4.2)
-
-### **Cross-Agent Dependency Warning**
-**CRITICAL**: Cross-agent dependencies require Implementation Agents to complete detailed file reading and integration steps BEFORE starting main task work.
-
-### 2.2. User Explanation Requests
-When Users request explanations for upcoming complex tasks, Manager Agent should include detailed explanation instructions within the `## Detailed Instructions` section of the Task Assignment Prompt.
-
-**Explanation Timing Protocol**:
-- **Single-Step Tasks**: Provide brief approach introduction BEFORE execution, detailed explanation AFTER task completion
-- **Multi-Step Tasks**: Apply same pattern to each step - brief approach introduction BEFORE each step execution, detailed explanation AFTER each step completion
-
-**Integration Approach**: Add explanation instructions as part of the task execution flow, specifying:
-- **What aspects** need detailed explanation (technical approach, decision rationale, architectural impact)  
-- **Explanation scope** for complex technical areas
-- **Timing requirements** following the protocol above
-
-**Implementation**: Include explanation instructions alongside normal task instructions in the `## Detailed Instructions` section. Use clear formatting to distinguish explanation requirements from execution requirements. **Only include explanation instructions when they are explicitly requested by the User.**
-
-### 2.3. Prompt Structure with YAML Frontmatter
+### 2.2. Prompt Structure with YAML Frontmatter
 Include optional sections only when their front-matter boolean is true
 
 ```markdown
@@ -79,12 +59,12 @@ Follow .apm/guides/Memory_Log_Guide.md instructions.
 
 ## Reporting Protocol
 After logging, you **MUST** output a **Final Task Report** code block.
-- **Format:** Use the exact template provided in your .opencode/command/apm-3-initiate-implementation.md instructions.
+- **Format:** Use the exact template provided in your .opencode/command/Implementation_Agent_Initiation_Prompt.md instructions.
 - **Perspective:** Write it from the User's perspective so they can copy-paste it back to the Manager.
 
 ## Ad-Hoc Delegation
 [Only include if ad_hoc_delegation: true]
-[Manager fills this section with section §7 content guidance, including explicit command references for Debug/Research delegations (.opencode/command/apm-8-delegate-debug.md or .opencode/command/apm-7-delegate-research.md)]
+[Manager fills this section with section §7 content guidance, including explicit command references for Debug/Research delegations (.opencode/command/Debug_Delegation_Guide.md or .opencode/command/Research_Delegation_Guide.md)]
 ```
 
 ### 2.4. Delivery Format  
@@ -234,8 +214,8 @@ When Implementation Plan contains explicit delegation steps, Manager Agents must
 - Specify what to delegate and expected deliverables in prompt
 
 **Standard Delegation Command References**:
-- **Debug Delegation**: Reference .opencode/command/apm-8-delegate-debug.md
-- **Research Delegation**: Reference .opencode/command/apm-7-delegate-research.md  
+- **Debug Delegation**: Reference .opencode/command/Debug_Delegation_Guide.md
+- **Research Delegation**: Reference .opencode/command/Research_Delegation_Guide.md  
 - **Custom Delegations**: Reference appropriate custom command files if available
 
 ### 6.2. Integration Requirements

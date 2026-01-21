@@ -1,0 +1,29 @@
+name: TODO Guard
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  check-todos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Scan for TODOs
+        run: |
+          # Search for TODOs while ignoring the workflow file itself and hidden directories
+          # Returns 1 (failure) if any matches are found
+          if grep -rEi "//\s*TODO:|TODO:" . \
+            --exclude-dir=.git \
+            --exclude-dir=node_modules \
+            --exclude-dir=bin \
+            --exclude-dir=obj \
+            --exclude=.github/workflows/todo-guard.yml; then
+            echo "Error: TODO comments found in the codebase. Please resolve them before pushing."
+            exit 1
+          else
+            echo "No TODOs found. Clean to proceed."
+          fi

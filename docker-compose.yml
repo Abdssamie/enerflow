@@ -9,7 +9,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - enerflow_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-enerflow} -d ${POSTGRES_DB:-enerflow_db}"]
       interval: 10s
@@ -30,4 +30,4 @@ services:
     restart: always
 
 volumes:
-  postgres_data:
+  enerflow_data:

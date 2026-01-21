@@ -1,4 +1,4 @@
-# APM 0.5.3 - Context Synthesis Guide
+# APM 0.6.0-token-efficient - Context Synthesis Guide
 This guide defines how the Setup Agent collects all information needed to build an accurate and detailed Implementation Plan. The goal is gathering enough context to break work into focused, manageable tasks that can be assigned to specialized agents. At this stage, the Setup Agent passes control flow to this guide.
 
 ## Principles for Discovery & Objectives
@@ -230,4 +230,4 @@ Present comprehensive summary covering:
 - Continue through remaining Question Rounds in sequence
 
 ## Pass Control Flow Back to the Initiation Prompt
-**ONLY after completing ALL four Question Rounds and receiving user approval in Question Round 4**, switch control flow back to the .opencode/command/apm-1-initiate-setup.md prompt at **Step 2: Project Breakdown & Plan Creation Step**.
+**ONLY after completing ALL four Question Rounds and receiving user approval in Question Round 4**, switch control flow back to the .opencode/command/Setup_Agent_Initiation_Prompt.md prompt at **Step 2: Project Breakdown & Plan Creation Step**.

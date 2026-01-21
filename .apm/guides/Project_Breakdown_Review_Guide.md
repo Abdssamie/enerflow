@@ -1,4 +1,4 @@
-# APM 0.5.3 - Project Breakdown Review Guide
+# APM 0.6.0-token-efficient - Project Breakdown Review Guide
 This guide defines how Setup Agents conduct targeted, user-selected review of Implementation Plans to detect and fix critical task quality issues before enhancement. Using fresh context from Implementation Plan creation, agents propose specific areas for systematic review and let users choose which sections receive detailed analysis.
 
 ---
@@ -329,8 +329,8 @@ Based on the Implementation Plan I just created, I recommend systematic review f
 - Confirm all task headers, agent assignments, and dependency tags are formatted correctly.
 
 **Bootstrap Prompt Generation:**
-- Pass control back to the .opencode/command/apm-1-initiate-setup.md logic.
-- **Context Recovery:** When generating the Bootstrap Prompt, you must use the **EXACT TEMPLATE** from .opencode/command/apm-1-initiate-setup.md. If the template is degraded or missing from your context window, **READ .opencode/command/apm-1-initiate-setup.md** to retrieve it before generating the final artifact.
+- Pass control back to the .opencode/command/Setup_Agent_Initiation_Prompt.md logic.
+- **Context Recovery:** When generating the Bootstrap Prompt, you must use the **EXACT TEMPLATE** from .opencode/command/Setup_Agent_Initiation_Prompt.md. If the template is degraded or missing from your context window, **READ .opencode/command/Setup_Agent_Initiation_Prompt.md** to retrieve it before generating the final artifact.
 
 ---
 

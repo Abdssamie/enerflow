@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Pre-push hook to prevent pushing code with TODO comments.
+# This uses 'git grep' for maximum performance.
+
+echo "Running TODO check..."
+
+# Search for TODOs in tracked files, excluding the hook itself and markdown/workflow files.
+# git grep returns 0 if matches are found, 1 otherwise.
+if git grep -Ei "//\s*TODO:|TODO:" -- ':(exclude).githooks/*' ':(exclude).github/workflows/*' ':(exclude)*.md' ':(exclude)*.json' > /dev/null; then
+    echo "------------------------------------------------------------"
+    echo "Error: TODO comments found in the codebase:"
+    git grep -Ei -n "//\s*TODO:|TODO:" -- ':(exclude).githooks/*' ':(exclude).github/workflows/*' ':(exclude)*.md' ':(exclude)*.json'
+    echo "------------------------------------------------------------"
+    echo "Please resolve these TODOs before pushing."
+    exit 1
+fi
+
+echo "No TODOs found. Proceeding with push."
+exit 0

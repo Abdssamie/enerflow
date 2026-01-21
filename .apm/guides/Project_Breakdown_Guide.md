@@ -1,4 +1,4 @@
-# APM 0.5.3 - Project Breakdown Guide
+# APM 0.6.0-token-efficient - Project Breakdown Guide
 This guide defines how Setup Agents transform Context Synthesis findings into structured, agent-assigned task breakdowns. Following systematic high-level-to-detail methodology, it prevents template matching through strategic workflow sequencing and chat-to-file output switching. The guide ensures task breakdown precision required for Implementation Agent success while minimizing Manager Agent coordination overhead.
 
 ## 1. Context Integration & Breakdown Overview
@@ -222,7 +222,7 @@ Determine appropriate task content:
 - **If Multi-step**: "This needs [X] steps because [workflow dependency analysis]. Each step represents [natural progression]."
 
 **Content Definition:**
-- If flagged in §4.1, first add an ad-hoc delegation step: "Ad-Hoc Delegation – <purpose>" (optional ref to .opencode/command/apm-7-delegate-research.md or .opencode/command/apm-8-delegate-debug.md), then continue
+- If flagged in §4.1, first add an ad-hoc delegation step: "Ad-Hoc Delegation – <purpose>" (optional ref to .opencode/command/Research_Delegation_Guide.md or .opencode/command/Debug_Delegation_Guide.md), then continue
 - [Present actual bullets or steps with applied reasoning]
 
 **Task [X.Y] analysis complete** ← State this before proceeding to next task
@@ -327,7 +327,7 @@ Present **in chat** high-level plan statistics:
 Once the plan is approved:
 1. **If User requests Systematic Review:** Proceed to read .apm/guides/Project_Breakdown_Review_Guide.md`.
 2. **If User skips Review:** Proceed directly to **Manager Bootstrap Creation**.
-  - **CRITICAL:** You must generate the Bootstrap Prompt using the **EXACT TEMPLATE** defined in your initiation prompt .opencode/command/apm-1-initiate-setup.md.
-  - **Context Recovery:** If you cannot retrieve the template word-for-word from your context, you must **READ** the .opencode/command/apm-1-initiate-setup.md file to refresh your memory before generating the prompt. Do not approximate the template.
+  - **CRITICAL:** You must generate the Bootstrap Prompt using the **EXACT TEMPLATE** defined in your initiation prompt .opencode/command/Setup_Agent_Initiation_Prompt.md.
+  - **Context Recovery:** If you cannot retrieve the template word-for-word from your context, you must **READ** the .opencode/command/Setup_Agent_Initiation_Prompt.md file to refresh your memory before generating the prompt. Do not approximate the template.
 
 **End of Guide**

@@ -56,6 +56,40 @@ public class SimulationsController : ControllerBase
     }
 
     /// <summary>
+    /// Adds a compound to the simulation.
+    /// </summary>
+    [HttpPost("{id:guid}/compounds")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> AddCompound(Guid id, [FromBody] AddCompoundRequest request)
+    {
+        var simulation = await _context.Simulations.FindAsync(id);
+        if (simulation == null)
+        {
+            return NotFound(new { code = "SimulationNotFound", message = $"Simulation with ID {id} not found." });
+        }
+
+        var compound = new Compound
+        {
+            Id = IdGenerator.NextGuid(),
+            SimulationId = id,
+            Name = request.Name
+        };
+
+        _context.Compounds.Add(compound);
+        simulation.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Added compound {CompoundId} ({Name}) to simulation {SimulationId}", compound.Id, compound.Name, id);
+
+        return CreatedAtAction(nameof(GetSimulation), new { id }, new
+        {
+            compoundId = compound.Id,
+            name = compound.Name
+        });
+    }
+
+    /// <summary>
     /// Gets the full simulation graph including streams and units.
     /// </summary>
     [HttpGet("{id:guid}")]

@@ -1,9 +1,10 @@
 {
-  "cliVersion": "0.5.3",
-  "templateVersion": "v0.5.3+templates.1",
+  "cliVersion": "0.6.0-token-efficient",
+  "templateVersion": "v0.6.0-token-efficient+local",
   "assistants": [
-    "opencode"
+    "opencode",
+    "Antigravity"
   ],
   "installedAt": "2026-01-16T04:27:37.591Z",
-  "lastUpdated": "2026-01-16T04:27:37.591Z"
+  "lastUpdated": "2026-01-19T22:55:30.130Z"
 }

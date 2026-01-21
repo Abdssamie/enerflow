@@ -13,9 +13,9 @@ public class RateLimitingMiddleware
     private readonly RequestDelegate _next;
     private readonly IConnectionMultiplexer _redis;
     private readonly ILogger<RateLimitingMiddleware> _logger;
+    private readonly int _maxRequests;
+    private readonly int _windowSeconds;
 
-    private const int MaxRequests = 15;
-    private const int WindowSeconds = 60;
     private const string RateLimitKeyPrefix = "ratelimit:";
 
     /// <summary>
@@ -35,11 +35,14 @@ public class RateLimitingMiddleware
     public RateLimitingMiddleware(
         RequestDelegate next,
         IConnectionMultiplexer redis,
-        ILogger<RateLimitingMiddleware> logger)
+        ILogger<RateLimitingMiddleware> logger,
+        IConfiguration configuration)
     {
         _next = next;
         _redis = redis;
         _logger = logger;
+        _maxRequests = configuration.GetValue<int>("RateLimit:MaxRequests", 15);
+        _windowSeconds = configuration.GetValue<int>("RateLimit:WindowSeconds", 60);
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -54,7 +57,7 @@ public class RateLimitingMiddleware
             var scriptResult = await db.ScriptEvaluateAsync(RateLimitScript, new
             {
                 key = (RedisKey)redisKey,
-                expiry = WindowSeconds
+                expiry = _windowSeconds
             });
 
             // Handle potential null result from Redis script
@@ -71,11 +74,11 @@ public class RateLimitingMiddleware
 
             var resetTime = DateTimeOffset.UtcNow.AddSeconds(ttlSeconds).ToUnixTimeSeconds();
 
-            if (currentCount > MaxRequests)
+            if (currentCount > _maxRequests)
             {
                 _logger.LogWarning(
                     "Rate limit exceeded for client {ClientId}. Count: {Count}/{Max}",
-                    clientId, currentCount, MaxRequests);
+                    clientId, currentCount, _maxRequests);
 
                 context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
                 context.Response.Headers["Retry-After"] = ttlSeconds.ToString();
@@ -84,14 +87,14 @@ public class RateLimitingMiddleware
                 await context.Response.WriteAsJsonAsync(new
                 {
                     error = "Rate limit exceeded",
-                    message = $"Too many requests. Maximum {MaxRequests} requests per minute allowed.",
+                    message = $"Too many requests. Maximum {_maxRequests} requests per minute allowed.",
                     retryAfter = ttlSeconds
                 });
                 return;
             }
 
             // Add headers to the successful response
-            var remaining = MaxRequests - currentCount;
+            var remaining = _maxRequests - currentCount;
             context.Response.OnStarting(() =>
             {
                 AddRateLimitHeaders(context.Response, remaining, resetTime);
@@ -113,7 +116,7 @@ public class RateLimitingMiddleware
     /// </summary>
     private void AddRateLimitHeaders(HttpResponse response, long remaining, long reset)
     {
-        response.Headers["X-RateLimit-Limit"] = MaxRequests.ToString();
+        response.Headers["X-RateLimit-Limit"] = _maxRequests.ToString();
         response.Headers["X-RateLimit-Remaining"] = remaining.ToString();
         response.Headers["X-RateLimit-Reset"] = reset.ToString();
     }

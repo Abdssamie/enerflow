@@ -178,7 +178,7 @@ If you receive a **Handover Prompt** (see section §7), your agent name is alrea
 ### Delegation Steps - MANDATORY PROTOCOL
 **When delegation is triggered, you MUST follow these steps in order:**
 1. **STOP debugging immediately** - Do not make any additional debugging attempts
-2. **Read .opencode/command/Debug_Delegation_Guide.md** - Follow the guide exactly
+2. **Read .agent/workflows/Debug_Delegation_Guide.md** - Follow the guide exactly
 3. **Create delegation prompt** using the guide template - Include ALL required template content
 4. **Include all context**: errors, reproduction steps, failed attempts, what you tried, why it failed
 5. **Notify User immediately**: "Delegating this debugging per mandatory protocol after 3 failed attempts"
@@ -251,8 +251,8 @@ Ad-Hoc agent delegation occurs in two scenarios during task execution:
 
 ### Delegation Protocol
 1. **Create Prompt:** Read and follow the appropriate delegation command from:
-  - .opencode/command/Debug_Delegation_Guide.md for debugging issues
-  - .opencode/command/Research_Delegation_Guide.md for information gathering
+  - .agent/workflows/Debug_Delegation_Guide.md for debugging issues
+  - .agent/workflows/Research_Delegation_Guide.md for information gathering
   - Other custom guides as specified in Task Assignment Prompt
 2. **User Coordination**: User opens Ad-Hoc agent session and passes the prompt
 3. **Integration**: Incorporate Ad-Hoc findings to proceed with task execution

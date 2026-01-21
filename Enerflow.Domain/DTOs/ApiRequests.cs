@@ -41,3 +41,8 @@ public record AddStreamRequest
     public double MassFlow { get; init; } = 1.0;       // kg/s
     public Dictionary<string, double> MolarCompositions { get; init; } = new();
 }
+
+public record AddCompoundRequest
+{
+    public required string Name { get; init; }
+}

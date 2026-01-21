@@ -22,7 +22,9 @@ metadata:
 
 ## How to Verify (The "Grep Check")
 
-Since `libs/dwsim_src` contains the authoritative source code, use `grep` and `read` to validate your assumptions.
+**FIRST:** Check the `DWSIM_API_MAP.md` file in the project root. It contains the pre-scanned, authoritative API context.
+
+If the information is not in the map, use `grep` to find it in `libs/dwsim_src`.
 
 ### 1. Find the Class Definition
 Do not guess where a class is. Find it.

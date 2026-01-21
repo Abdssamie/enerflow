@@ -1,3 +1,11 @@
+// TODO: CRITICAL LINUX STABILITY VERIFICATION REQUIRED
+// The DWSIM thermodynamics engine and GDI+ dependencies are unverified in this Linux environment.
+// Before MVP deployment, must verify:
+// 1. Successful convergence of a flowsheet with a Recycle loop (Thermodynamic Stress).
+// 2. Process stability over 500+ consecutive flash calculations.
+// 3. Graceful recovery/timeout when DWSIM's solver hangs (RequestCalculation).
+// 4. Resource cleanup validation (ReleaseResources) to prevent container OOM.
+
 using System.Text.Json;
 using Enerflow.Domain.DTOs;
 using Enerflow.Domain.Entities;
