@@ -32,7 +32,7 @@ public static class PostgresTransportExtensions
             options.Schema = "transport";
             options.Role = "transport";
             options.Username = builder.Username ?? "enerflow";
-            options.Password = builder.Password ?? "enerflow_password";
+            options.Password = builder.Password; // No default password for security
             options.AdminUsername = builder.Username;
             options.AdminPassword = builder.Password;
         });

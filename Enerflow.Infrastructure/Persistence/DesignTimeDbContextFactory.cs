@@ -10,8 +10,15 @@ public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<EnerflowDb
     {
         var optionsBuilder = new DbContextOptionsBuilder<EnerflowDbContext>();
 
-        // Default development connection string matching .env.example
-        var connectionString = "Host=localhost;Port=5433;Database=enerflow_db;Username=enerflow;Password=enerflow_password;";
+        // Try to get connection string from environment variable first
+        var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            // Fallback for local development if env var not set
+            // Requires ConnectionStrings__DefaultConnection environment variable or proper setup
+            throw new InvalidOperationException("Connection string 'ConnectionStrings__DefaultConnection' not found in environment variables.");
+        }
 
         optionsBuilder.UseNpgsql(connectionString);
 
