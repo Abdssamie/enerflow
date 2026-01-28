@@ -186,8 +186,9 @@ public class SimulationsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> AddStream(Guid id, [FromBody] AddStreamRequest request)
     {
-        var simulation = await _context.Simulations.FindAsync(id);
-        if (simulation == null)
+        // Optimization: Check existence without loading full entity
+        var exists = await _context.Simulations.AnyAsync(s => s.Id == id);
+        if (!exists)
         {
             return NotFound(new { code = "SimulationNotFound", message = $"Simulation with ID {id} not found." });
         }
@@ -204,7 +205,22 @@ public class SimulationsController : ControllerBase
         };
 
         _context.MaterialStreams.Add(stream);
-        simulation.UpdatedAt = DateTime.UtcNow;
+
+        // Optimization: Update timestamp using stub to avoid loading the entity
+        var simulationStub = new Simulation
+        {
+            Id = id,
+            // Required properties set to dummy values - they won't be saved as we only modify UpdatedAt
+            Name = null!,
+            ThermoPackage = null!,
+            FlashAlgorithm = null!,
+            SystemOfUnits = null!
+        };
+
+        _context.Attach(simulationStub);
+        _context.Entry(simulationStub).Property(p => p.UpdatedAt).CurrentValue = DateTime.UtcNow;
+        _context.Entry(simulationStub).Property(p => p.UpdatedAt).IsModified = true;
+
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Added stream {StreamId} to simulation {SimulationId}", stream.Id, id);
