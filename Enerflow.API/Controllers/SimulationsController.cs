@@ -98,6 +98,7 @@ public class SimulationsController : ControllerBase
     public async Task<IActionResult> GetSimulation(Guid id)
     {
         var simulation = await _context.Simulations
+            .AsNoTracking()
             .Include(s => s.Compounds)
             .Include(s => s.MaterialStreams)
             .Include(s => s.EnergyStreams)
