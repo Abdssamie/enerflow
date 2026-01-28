@@ -225,7 +225,7 @@ public class SimulationService : ISimulationService
                         var phase0 = ms.Phases[0];
 
                         // Collect phase compositions
-                        var compositions = new Dictionary<string, double>();
+                        var compositions = new Dictionary<string, double>(phase0.Compounds.Count);
                         foreach (var compound in phase0.Compounds)
                         {
                             compositions[compound.Key] = compound.Value.MoleFraction ?? 0;
