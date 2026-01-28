@@ -404,6 +404,7 @@ public class SimulationsController : ControllerBase
             var compoundIdMap = new Dictionary<Guid, Guid>();
 
             // Import compounds
+            var compounds = new List<Compound>();
             foreach (var compoundDto in importDto.Compounds)
             {
                 var newId = IdGenerator.NextGuid();
@@ -416,10 +417,12 @@ public class SimulationsController : ControllerBase
                     Name = compoundDto.Name,
                     ConstantProperties = compoundDto.ConstantProperties
                 };
-                _context.Compounds.Add(compound);
+                compounds.Add(compound);
             }
+            _context.Compounds.AddRange(compounds);
 
             // Import material streams
+            var materialStreams = new List<MaterialStream>();
             foreach (var streamDto in importDto.MaterialStreams)
             {
                 var newId = IdGenerator.NextGuid();
@@ -435,10 +438,12 @@ public class SimulationsController : ControllerBase
                     MassFlow = streamDto.MassFlow,
                     MolarCompositions = streamDto.MolarCompositions ?? new Dictionary<string, double>()
                 };
-                _context.MaterialStreams.Add(stream);
+                materialStreams.Add(stream);
             }
+            _context.MaterialStreams.AddRange(materialStreams);
 
             // Import energy streams
+            var energyStreams = new List<EnergyStream>();
             foreach (var streamDto in importDto.EnergyStreams)
             {
                 var newId = IdGenerator.NextGuid();
@@ -451,10 +456,12 @@ public class SimulationsController : ControllerBase
                     Name = streamDto.Name,
                     EnergyFlow = streamDto.EnergyFlow
                 };
-                _context.EnergyStreams.Add(stream);
+                energyStreams.Add(stream);
             }
+            _context.EnergyStreams.AddRange(energyStreams);
 
             // Import unit operations with remapped stream IDs
+            var unitOperations = new List<UnitOperation>();
             foreach (var unitDto in importDto.UnitOperations)
             {
                 var newId = IdGenerator.NextGuid();
@@ -481,8 +488,9 @@ public class SimulationsController : ControllerBase
                     OutputStreamIds = remappedOutputIds,
                     ConfigParams = unitDto.ConfigParams
                 };
-                _context.UnitOperations.Add(unit);
+                unitOperations.Add(unit);
             }
+            _context.UnitOperations.AddRange(unitOperations);
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
