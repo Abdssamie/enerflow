@@ -98,11 +98,38 @@ public class SimulationsController : ControllerBase
     public async Task<IActionResult> GetSimulation(Guid id)
     {
         var simulation = await _context.Simulations
-            .Include(s => s.Compounds)
-            .Include(s => s.MaterialStreams)
-            .Include(s => s.EnergyStreams)
-            .Include(s => s.UnitOperations)
-            .FirstOrDefaultAsync(s => s.Id == id);
+            .Where(s => s.Id == id)
+            .Select(s => new
+            {
+                s.Id,
+                s.Name,
+                s.ThermoPackage,
+                s.FlashAlgorithm,
+                s.SystemOfUnits,
+                s.Status,
+                s.CreatedAt,
+                s.UpdatedAt,
+                Compounds = s.Compounds.Select(c => new { c.Id, c.Name }).ToList(),
+                MaterialStreams = s.MaterialStreams.Select(ms => new
+                {
+                    ms.Id,
+                    ms.Name,
+                    ms.Temperature,
+                    ms.Pressure,
+                    ms.MassFlow,
+                    ms.MolarCompositions
+                }).ToList(),
+                EnergyStreams = s.EnergyStreams.Select(es => new { es.Id, es.Name, es.EnergyFlow }).ToList(),
+                UnitOperations = s.UnitOperations.Select(u => new
+                {
+                    u.Id,
+                    u.Name,
+                    u.Type,
+                    u.InputStreamIds,
+                    u.OutputStreamIds
+                }).ToList()
+            })
+            .FirstOrDefaultAsync();
 
         if (simulation == null)
         {
@@ -119,25 +146,10 @@ public class SimulationsController : ControllerBase
             status = simulation.Status.ToString(),
             createdAt = simulation.CreatedAt,
             updatedAt = simulation.UpdatedAt,
-            compounds = simulation.Compounds.Select(c => new { c.Id, c.Name }),
-            materialStreams = simulation.MaterialStreams.Select(s => new
-            {
-                s.Id,
-                s.Name,
-                s.Temperature,
-                s.Pressure,
-                s.MassFlow,
-                s.MolarCompositions
-            }),
-            energyStreams = simulation.EnergyStreams.Select(s => new { s.Id, s.Name, s.EnergyFlow }),
-            unitOperations = simulation.UnitOperations.Select(u => new
-            {
-                u.Id,
-                u.Name,
-                u.Type,
-                u.InputStreamIds,
-                u.OutputStreamIds
-            })
+            compounds = simulation.Compounds,
+            materialStreams = simulation.MaterialStreams,
+            energyStreams = simulation.EnergyStreams,
+            unitOperations = simulation.UnitOperations
         });
     }
 
