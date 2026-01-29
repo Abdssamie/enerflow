@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 
 namespace Enerflow.Infrastructure.Persistence;
 
@@ -8,11 +8,30 @@ public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<EnerflowDb
 {
     public EnerflowDbContext CreateDbContext(string[] args)
     {
+        // Build configuration
+        IConfiguration configuration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: true)
+            .AddJsonFile("appsettings.Development.json", optional: true)
+            .AddEnvironmentVariables()
+            .Build();
+
+        // Get connection string from configuration
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
+
+        // Fallback for when running via dotnet ef from a different directory (optional safety net)
+        if (string.IsNullOrEmpty(connectionString))
+        {
+             connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+                                ?? Environment.GetEnvironmentVariable("DefaultConnection");
+        }
+
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            throw new InvalidOperationException("Could not find connection string 'DefaultConnection'. Please set it in appsettings.json, appsettings.Development.json, or environment variables.");
+        }
+
         var optionsBuilder = new DbContextOptionsBuilder<EnerflowDbContext>();
-
-        // Default development connection string matching .env.example
-        var connectionString = "Host=localhost;Port=5433;Database=enerflow_db;Username=enerflow;Password=enerflow_password;";
-
         optionsBuilder.UseNpgsql(connectionString);
 
         return new EnerflowDbContext(optionsBuilder.Options);
