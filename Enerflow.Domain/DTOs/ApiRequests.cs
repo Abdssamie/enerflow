@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Enerflow.Domain.Enums;
 
 namespace Enerflow.Domain.DTOs;
@@ -6,6 +7,8 @@ namespace Enerflow.Domain.DTOs;
 
 public record AddUnitRequest
 {
+    [Required]
+    [StringLength(100)]
     public required string Name { get; init; }
     public required UnitOperationType UnitOperation { get; init; }
     public double PositionX { get; init; } = 0;
@@ -27,22 +30,44 @@ public record SubmitJobRequest
 
 public record CreateSimulationRequest
 {
+    [Required]
+    [StringLength(100, MinimumLength = 1)]
     public required string Name { get; init; }
+
+    [Required]
+    [StringLength(50)]
     public required string ThermoPackage { get; init; }
+
+    [Required]
+    [StringLength(50)]
     public required string FlashAlgorithm { get; init; }
+
+    [Required]
+    [StringLength(20)]
     public required string SystemOfUnits { get; init; }
 }
 
 public record AddStreamRequest
 {
+    [Required]
+    [StringLength(100)]
     public required string Name { get; init; }
+
+    [Range(0d, 10000d)]
     public double Temperature { get; init; } = 298.15; // K
+
+    [Range(0d, 1000000000d)]
     public double Pressure { get; init; } = 101325;    // Pa
+
+    [Range(0d, 1000000d)]
     public double MassFlow { get; init; } = 1.0;       // kg/s
+
     public Dictionary<string, double> MolarCompositions { get; init; } = new();
 }
 
 public record AddCompoundRequest
 {
+    [Required]
+    [StringLength(100)]
     public required string Name { get; init; }
 }
