@@ -7,6 +7,7 @@ namespace Enerflow.Domain.DTOs;
 
 public record AddUnitRequest
 {
+    [Required]
     [StringLength(100, MinimumLength = 1)]
     public required string Name { get; init; }
     public required UnitOperationType UnitOperation { get; init; }
@@ -29,6 +30,7 @@ public record SubmitJobRequest
 
 public record CreateSimulationRequest
 {
+    [Required]
     [StringLength(100, MinimumLength = 1)]
     public required string Name { get; init; }
     public required PropertyPackageType PropertyPackage { get; init; }
@@ -38,6 +40,7 @@ public record CreateSimulationRequest
 
 public record AddStreamRequest
 {
+    [Required]
     [StringLength(100, MinimumLength = 1)]
     public required string Name { get; init; }
 
@@ -60,6 +63,7 @@ public record AddCompoundRequest
         Name = name;
     }
 
+    [Required]
     [StringLength(100, MinimumLength = 1)]
     public required string Name { get; init; }
 }
