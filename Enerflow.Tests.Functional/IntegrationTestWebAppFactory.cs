@@ -23,6 +23,7 @@ using Enerflow.Worker.Convergence;
 using Enerflow.Worker.Solvers;
 using Enerflow.Worker.Mappers;
 using Enerflow.Worker.Builders;
+using Enerflow.Worker.Validation;
 
 namespace Enerflow.Tests.Functional;
 
@@ -146,6 +147,9 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
             services.TryAddScoped<IConvergenceAccelerator, WegsteinAccelerator>();
             services.TryAddScoped<IResultCollector, ResultCollector>();
             services.TryAddScoped<ISimulationSolver, DWSIMSolver>();
+            
+            // Register Validation
+            services.TryAddScoped<IFlowsheetValidator, FlowsheetValidator>();
         });
     }
 

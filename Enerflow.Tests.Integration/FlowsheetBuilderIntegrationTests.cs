@@ -9,6 +9,7 @@ using Enerflow.Simulation.Flowsheet.PropertyPackages;
 using Enerflow.Simulation.Flowsheet.Streams;
 using Enerflow.Simulation.Flowsheet.UnitOperations;
 using Enerflow.Worker.Builders;
+using Enerflow.Worker.Validation;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit.Abstractions;
 using DWSIMRecycle = DWSIM.UnitOperations.SpecialOps.Recycle;
@@ -36,6 +37,7 @@ public class FlowsheetBuilderIntegrationTests
         var materialStreamFactory = new MaterialStreamFactory(NullLogger<MaterialStreamFactory>.Instance);
         var energyStreamFactory = new EnergyStreamFactory(NullLogger<EnergyStreamFactory>.Instance);
         var unitOpFactory = new UnitOperationFactory(NullLogger<UnitOperationFactory>.Instance);
+        var validator = new FlowsheetValidator(NullLogger<FlowsheetValidator>.Instance);
 
         // 3. Instantiate Builder
         _builder = new DWSIMFlowsheetBuilder(
@@ -46,6 +48,7 @@ public class FlowsheetBuilderIntegrationTests
             materialStreamFactory,
             energyStreamFactory,
             unitOpFactory,
+            validator,
             logger
         );
     }

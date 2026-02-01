@@ -6,6 +6,7 @@ using Enerflow.Domain.Entities.UnitOperations;
 using Enerflow.Domain.Enums;
 using Enerflow.Infrastructure.Persistence;
 using Enerflow.Worker.Solvers;
+using Enerflow.Worker.Validation;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -66,6 +67,14 @@ public class SimulationJobConsumer : IConsumer<SimulationJob>
             _logger.LogInformation("Solver completed for Job {JobId}. Status: {Status}", job.JobId, status);
 
             await PersistResultAsync(job.SimulationId, result, status, cancellationToken);
+        }
+        catch (FlowsheetValidationException ex)
+        {
+            _logger.LogWarning(ex, "Flowsheet validation failed for Job {JobId}", job.JobId);
+            
+            var errorMessage = string.Join("; ", ex.ValidationResult.Errors.Select(e => e.Message));
+            await UpdateStatusAsync(job.SimulationId, SimulationStatus.Failed, 
+                $"Validation error: {errorMessage}", cancellationToken);
         }
         catch (Exception ex)
         {

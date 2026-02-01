@@ -8,6 +8,7 @@ using Enerflow.Simulation.Flowsheet.FlashAlgorithms;
 using Enerflow.Simulation.Flowsheet.PropertyPackages;
 using Enerflow.Simulation.Flowsheet.Streams;
 using Enerflow.Simulation.Flowsheet.UnitOperations;
+using Enerflow.Worker.Validation;
 using Microsoft.Extensions.Logging;
 using SimulationEntity = Enerflow.Domain.Entities.Simulation;
 
@@ -22,6 +23,7 @@ public class DWSIMFlowsheetBuilder : IFlowsheetBuilder
     private readonly IMaterialStreamFactory _materialStreamFactory;
     private readonly IEnergyStreamFactory _energyStreamFactory;
     private readonly IUnitOperationFactory _unitOperationFactory;
+    private readonly IFlowsheetValidator _validator;
     private readonly ILogger<DWSIMFlowsheetBuilder> _logger;
 
     public DWSIMFlowsheetBuilder(
@@ -32,6 +34,7 @@ public class DWSIMFlowsheetBuilder : IFlowsheetBuilder
         IMaterialStreamFactory materialStreamFactory,
         IEnergyStreamFactory energyStreamFactory,
         IUnitOperationFactory unitOperationFactory,
+        IFlowsheetValidator validator,
         ILogger<DWSIMFlowsheetBuilder> logger)
     {
         _automation = automation;
@@ -41,6 +44,7 @@ public class DWSIMFlowsheetBuilder : IFlowsheetBuilder
         _materialStreamFactory = materialStreamFactory;
         _energyStreamFactory = energyStreamFactory;
         _unitOperationFactory = unitOperationFactory;
+        _validator = validator;
         _logger = logger;
     }
 
@@ -185,6 +189,18 @@ public class DWSIMFlowsheetBuilder : IFlowsheetBuilder
             }
         }
 
+        // VALIDATE BEFORE RETURNING
+        _logger.LogInformation("Validating flowsheet for simulation {Id}", simulation.Id);
+        var validationResult = _validator.Validate(simulation, flowsheet);
+        
+        if (!validationResult.IsValid)
+        {
+            _logger.LogWarning("Flowsheet validation failed for simulation {Id} with {Count} errors", 
+                simulation.Id, validationResult.Errors.Count);
+            throw new FlowsheetValidationException(validationResult);
+        }
+        
+        _logger.LogInformation("Flowsheet validation passed for simulation {Id}", simulation.Id);
         return flowsheet;
     }
 

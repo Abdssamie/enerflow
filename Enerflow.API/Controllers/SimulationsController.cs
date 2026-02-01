@@ -161,24 +161,31 @@ public class SimulationsController : ControllerBase
         UnitOperationObject unit;
         switch (request.UnitOperation)
         {
+            case UnitOperationType.Mixer:
+                unit = new MixerObject
+                        {
+                            Name = request.Name,
+                            SimulationId = simulation.Id
+                        };
+                break;
             case UnitOperationType.Heater:
                 unit = new HeaterObject
                         {
-                            Name = simulation.Name,
+                            Name = request.Name,
                             SimulationId = simulation.Id
                         };
                 break;
             case UnitOperationType.Cooler:
                 unit = new CoolerObject
                         {
-                            Name = simulation.Name,
+                            Name = request.Name,
                             SimulationId = simulation.Id
                         };
                 break;
             case UnitOperationType.Recycle:
                 unit = new RecycleObject
                         {
-                            Name = simulation.Name,
+                            Name = request.Name,
                             SimulationId = simulation.Id
                         };
                 break;
