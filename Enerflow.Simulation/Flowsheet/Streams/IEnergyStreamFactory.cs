@@ -1,5 +1,5 @@
+using DWSIM.UnitOperations.Streams;
 using Enerflow.Domain.DTOs;
-using Microsoft.Extensions.Logging;
 
 namespace Enerflow.Simulation.Flowsheet.Streams;
 
@@ -11,5 +11,11 @@ public interface IEnergyStreamFactory
     /// <summary>
     /// Creates and configures a DWSIM energy stream from a DTO.
     /// </summary>
-    DWSIM.UnitOperations.Streams.EnergyStream CreateEnergyStream(EnergyStreamDto streamDto);
+    EnergyStream CreateEnergyStream(EnergyStreamDto streamDto);
+
+    /// <summary>
+    /// Configures an existing DWSIM energy stream instance.
+    /// Used when the stream is created via flowsheet.AddObject().
+    /// </summary>
+    void Configure(EnergyStream stream, EnergyStreamDto streamDto);
 }

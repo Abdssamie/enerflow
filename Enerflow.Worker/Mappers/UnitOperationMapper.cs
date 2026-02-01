@@ -1,17 +1,10 @@
 using DWSIM.Interfaces;
 using DWSIM.Interfaces.Enums.GraphicObjects;
+using DWSIM.UnitOperations.SpecialOps;
+using DWSIM.UnitOperations.UnitOperations;
 using Enerflow.Domain.Entities.UnitOperations;
 using Enerflow.Domain.Enums;
 using Microsoft.Extensions.Logging;
-using DWSIMHeater = DWSIM.UnitOperations.UnitOperations.Heater;
-using DWSIMCooler = DWSIM.UnitOperations.UnitOperations.Cooler;
-using DWSIMValve = DWSIM.UnitOperations.UnitOperations.Valve;
-using DWSIMMixer = DWSIM.UnitOperations.UnitOperations.Mixer;
-using DWSIMSplitter = DWSIM.UnitOperations.UnitOperations.Splitter;
-using DWSIMVessel = DWSIM.UnitOperations.UnitOperations.Vessel;
-using DWSIMShortcutColumn = DWSIM.UnitOperations.UnitOperations.ShortcutColumn;
-using DWSIMRecycle = DWSIM.UnitOperations.SpecialOps.Recycle;
-
 namespace Enerflow.Worker.Mappers;
 
 public class UnitOperationMapper : IUnitOperationMapper
@@ -62,7 +55,7 @@ public class UnitOperationMapper : IUnitOperationMapper
     private void MapHeater(HeaterObject domainHeater, IFlowsheet flowsheet)
     {
         var obj = flowsheet.AddObject(ObjectType.Heater, 0, 0, domainHeater.Name);
-        var heater = (DWSIMHeater)obj;
+        var heater = (Heater)obj;
 
         // CRITICAL: Set CalcMode FIRST
         heater.CalcMode = MapHeaterCalcMode(domainHeater.CalcMode);
@@ -90,7 +83,7 @@ public class UnitOperationMapper : IUnitOperationMapper
     private void MapCooler(CoolerObject domainCooler, IFlowsheet flowsheet)
     {
         var obj = flowsheet.AddObject(ObjectType.Cooler, 0, 0, domainCooler.Name);
-        var cooler = (DWSIMCooler)obj;
+        var cooler = (Cooler)obj;
 
         // CRITICAL: Set CalcMode FIRST
         cooler.CalcMode = MapCoolerCalcMode(domainCooler.CalcMode);
@@ -118,14 +111,14 @@ public class UnitOperationMapper : IUnitOperationMapper
     private void MapValve(ValveObject domainValve, IFlowsheet flowsheet)
     {
         var obj = flowsheet.AddObject(ObjectType.Valve, 0, 0, domainValve.Name);
-        var valve = (DWSIMValve)obj;
+        var valve = (Valve)obj;
 
         // CRITICAL: Set CalcMode FIRST
         valve.CalcMode = domainValve.CalcMode switch
         {
-            ValveCalculationMode.OutletPressure => DWSIMValve.CalculationMode.OutletPressure,
-            ValveCalculationMode.PressureDrop => DWSIMValve.CalculationMode.DeltaP,
-            _ => DWSIMValve.CalculationMode.OutletPressure
+            ValveCalculationMode.OutletPressure => Valve.CalculationMode.OutletPressure,
+            ValveCalculationMode.PressureDrop => Valve.CalculationMode.DeltaP,
+            _ => Valve.CalculationMode.OutletPressure
         };
 
         if (domainValve.CalcMode == ValveCalculationMode.OutletPressure)
@@ -147,10 +140,10 @@ public class UnitOperationMapper : IUnitOperationMapper
     private void MapSplitter(SplitterObject domainSplitter, IFlowsheet flowsheet)
     {
         var obj = flowsheet.AddObject(ObjectType.Splitter, 0, 0, domainSplitter.Name);
-        var splitter = (DWSIMSplitter)obj;
+        var splitter = (Splitter)obj;
 
         // Ensure we are in SplitRatios mode
-        splitter.OperationMode = DWSIMSplitter.OpMode.SplitRatios;
+        splitter.OperationMode = Splitter.OpMode.SplitRatios;
 
         // Note: Split ratios depend on connection order. 
         // We cannot reliably set them here without knowing which port connects to which stream.
@@ -162,13 +155,13 @@ public class UnitOperationMapper : IUnitOperationMapper
     private void MapFlashDrum(FlashDrumObject domainFlash, IFlowsheet flowsheet)
     {
         var obj = flowsheet.AddObject(ObjectType.Vessel, 0, 0, domainFlash.Name);
-        var vessel = (DWSIMVessel)obj;
+        var vessel = (Vessel)obj;
 
         // Map Flash Calculation Type
         switch (domainFlash.FlashType)
         {
             case FlashCalculationType.PressureTemperature:
-                vessel.CalculationMode = DWSIMVessel.CalculationModes.Legacy;
+                vessel.CalculationMode = Vessel.CalculationModes.Legacy;
                 vessel.OverrideP = true;
                 vessel.OverrideT = true;
                 vessel.FlashPressure = domainFlash.OutletPressure;
@@ -176,13 +169,13 @@ public class UnitOperationMapper : IUnitOperationMapper
                 break;
             case FlashCalculationType.PressureEnthalpy:
                 // Adiabatic flash (Heat Duty = 0)
-                vessel.CalculationMode = DWSIMVessel.CalculationModes.Adiabatic;
+                vessel.CalculationMode = Vessel.CalculationModes.Adiabatic;
                 vessel.OverrideP = false;
                 vessel.OverrideT = false;
                 break;
             default:
                 _logger.LogWarning("Flash Type {Type} not fully supported for FlashDrum {Name}. Defaulting to Adiabatic.", domainFlash.FlashType, domainFlash.Name);
-                vessel.CalculationMode = DWSIMVessel.CalculationModes.Adiabatic;
+                vessel.CalculationMode = Vessel.CalculationModes.Adiabatic;
                 break;
         }
     }
@@ -190,7 +183,7 @@ public class UnitOperationMapper : IUnitOperationMapper
     private void MapShortcutColumn(ShortcutColumnObject domainColumn, IFlowsheet flowsheet, IReadOnlyDictionary<Guid, string> compoundNames)
     {
         var obj = flowsheet.AddObject(ObjectType.ShortcutColumn, 0, 0, domainColumn.Name);
-        var column = (DWSIMShortcutColumn)obj;
+        var column = (ShortcutColumn)obj;
 
         column.m_refluxratio = domainColumn.RefluxRatio;
         column.m_condenserpressure = domainColumn.CondenserPressure;
@@ -219,13 +212,13 @@ public class UnitOperationMapper : IUnitOperationMapper
         column.m_heavykeymolarfrac = domainColumn.HeavyKeyFraction;
         
         // Condenser Type? Domain doesn't have it yet. Defaulting to Total.
-        column.condtype = DWSIMShortcutColumn.CondenserType.TotalCond;
+        column.condtype = ShortcutColumn.CondenserType.TotalCond;
     }
 
     private void MapRecycle(RecycleObject domainRecycle, IFlowsheet flowsheet)
     {
         var obj = flowsheet.AddObject(ObjectType.OT_Recycle, 0, 0, domainRecycle.Name);
-        var recycle = (DWSIMRecycle)obj;
+        var recycle = (Recycle)obj;
 
         recycle.MaximumIterations = domainRecycle.MaxIterations;
         
@@ -243,27 +236,27 @@ public class UnitOperationMapper : IUnitOperationMapper
         };
     }
 
-    private DWSIMHeater.CalculationMode MapHeaterCalcMode(HeaterCalculationMode mode)
+    private Heater.CalculationMode MapHeaterCalcMode(HeaterCalculationMode mode)
     {
         return mode switch
         {
-            HeaterCalculationMode.OutletTemperature => DWSIMHeater.CalculationMode.OutletTemperature,
-            HeaterCalculationMode.HeatDuty => DWSIMHeater.CalculationMode.HeatAdded,
-            HeaterCalculationMode.EnergyStream => DWSIMHeater.CalculationMode.EnergyStream,
-            HeaterCalculationMode.TemperatureDrop => DWSIMHeater.CalculationMode.TemperatureChange,
-            _ => DWSIMHeater.CalculationMode.OutletTemperature
+            HeaterCalculationMode.OutletTemperature => Heater.CalculationMode.OutletTemperature,
+            HeaterCalculationMode.HeatDuty => Heater.CalculationMode.HeatAdded,
+            HeaterCalculationMode.EnergyStream => Heater.CalculationMode.EnergyStream,
+            HeaterCalculationMode.TemperatureDrop => Heater.CalculationMode.TemperatureChange,
+            _ => Heater.CalculationMode.OutletTemperature
         };
     }
 
-    private DWSIMCooler.CalculationMode MapCoolerCalcMode(HeaterCalculationMode mode)
+    private Cooler.CalculationMode MapCoolerCalcMode(HeaterCalculationMode mode)
     {
         return mode switch
         {
-            HeaterCalculationMode.OutletTemperature => DWSIMCooler.CalculationMode.OutletTemperature,
-            HeaterCalculationMode.HeatDuty => DWSIMCooler.CalculationMode.HeatRemoved,
-            HeaterCalculationMode.EnergyStream => DWSIMCooler.CalculationMode.EnergyStream,
-            HeaterCalculationMode.TemperatureDrop => DWSIMCooler.CalculationMode.TemperatureChange,
-            _ => DWSIMCooler.CalculationMode.OutletTemperature
+            HeaterCalculationMode.OutletTemperature => Cooler.CalculationMode.OutletTemperature,
+            HeaterCalculationMode.HeatDuty => Cooler.CalculationMode.HeatRemoved,
+            HeaterCalculationMode.EnergyStream => Cooler.CalculationMode.EnergyStream,
+            HeaterCalculationMode.TemperatureDrop => Cooler.CalculationMode.TemperatureChange,
+            _ => Cooler.CalculationMode.OutletTemperature
         };
     }
 }

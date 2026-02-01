@@ -36,7 +36,7 @@ public class SimulationsController : ControllerBase
         var simulation = new Simulation
         {
             Name = request.Name,
-            ThermoPackage = request.ThermoPackage,
+            PropertyPackage = request.PropertyPackage,
             FlashAlgorithm = request.FlashAlgorithm,
             SystemOfUnits = request.SystemOfUnits,
             Status = SimulationStatus.Created,
@@ -116,7 +116,7 @@ public class SimulationsController : ControllerBase
         {
             id = simulation.Id,
             name = simulation.Name,
-            thermoPackage = simulation.ThermoPackage,
+            simulation.PropertyPackage,
             flashAlgorithm = simulation.FlashAlgorithm,
             systemOfUnits = simulation.SystemOfUnits,
             status = simulation.Status.ToString(),
@@ -161,24 +161,31 @@ public class SimulationsController : ControllerBase
         UnitOperationObject unit;
         switch (request.UnitOperation)
         {
+            case UnitOperationType.Mixer:
+                unit = new MixerObject
+                        {
+                            Name = request.Name,
+                            SimulationId = simulation.Id
+                        };
+                break;
             case UnitOperationType.Heater:
                 unit = new HeaterObject
                         {
-                            Name = simulation.Name,
+                            Name = request.Name,
                             SimulationId = simulation.Id
                         };
                 break;
             case UnitOperationType.Cooler:
                 unit = new CoolerObject
                         {
-                            Name = simulation.Name,
+                            Name = request.Name,
                             SimulationId = simulation.Id
                         };
                 break;
             case UnitOperationType.Recycle:
                 unit = new RecycleObject
                         {
-                            Name = simulation.Name,
+                            Name = request.Name,
                             SimulationId = simulation.Id
                         };
                 break;
@@ -349,7 +356,7 @@ public class SimulationsController : ControllerBase
         var exportDto = new SimulationExportDto
         {
             Name = simulation.Name,
-            ThermoPackage = simulation.ThermoPackage,
+            PropertyPackage = simulation.PropertyPackage,
             FlashAlgorithm = simulation.FlashAlgorithm,
             SystemOfUnits = simulation.SystemOfUnits,
             Compounds = simulation.Compounds.Select(c => new CompoundExportDto
@@ -423,7 +430,7 @@ public class SimulationsController : ControllerBase
             var simulation = new Simulation
             {
                 Name = importDto.Name,
-                ThermoPackage = importDto.ThermoPackage,
+                PropertyPackage = importDto.PropertyPackage,
                 FlashAlgorithm = importDto.FlashAlgorithm,
                 SystemOfUnits = importDto.SystemOfUnits,
                 Status = SimulationStatus.Created,
@@ -584,9 +591,9 @@ public class SimulationsController : ControllerBase
 public record SimulationExportDto
 {
     public required string Name { get; init; }
-    public required string ThermoPackage { get; init; }
-    public required string FlashAlgorithm { get; init; }
-    public required string SystemOfUnits { get; init; }
+    public required PropertyPackageType PropertyPackage { get; init; }
+    public required FlashAlgorithm FlashAlgorithm { get; init; }
+    public required SystemOfUnits SystemOfUnits { get; init; }
     public List<CompoundExportDto> Compounds { get; init; } = new();
     public List<MaterialStreamExportDto> MaterialStreams { get; init; } = new();
     public List<EnergyStreamExportDto> EnergyStreams { get; init; } = new();

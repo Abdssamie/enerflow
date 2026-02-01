@@ -3,7 +3,7 @@ using Enerflow.Domain.Entities;
 using Enerflow.Domain.Entities.UnitOperations;
 using Microsoft.Extensions.Logging;
 using SimulationEntity = Enerflow.Domain.Entities.Simulation;
-using DWSIMSplitter = DWSIM.UnitOperations.UnitOperations.Splitter;
+using Splitter = DWSIM.UnitOperations.UnitOperations.Splitter;
 
 namespace Enerflow.Worker.Mappers;
 
@@ -29,14 +29,14 @@ public class PostConnectionConfigurator : IPostConnectionConfigurator
         {
             if (unit is SplitterObject splitterDomain && 
                 flowsheet.SimulationObjects.TryGetValue(splitterDomain.Name, out var simObj) && 
-                simObj is DWSIMSplitter splitterDWSIM)
+                simObj is Splitter splitterDWSIM)
             {
                 ConfigureSplitterRatios(splitterDomain, splitterDWSIM, flowsheet, simulation);
             }
         }
     }
 
-    private void ConfigureSplitterRatios(SplitterObject domain, DWSIMSplitter dwsim, IFlowsheet flowsheet, SimulationEntity simulation)
+    private void ConfigureSplitterRatios(SplitterObject domain, Splitter dwsim, IFlowsheet flowsheet, SimulationEntity simulation)
     {
         // Splitter Ratios in Domain: Dictionary<Guid, double> (StreamId -> Ratio)
         // Splitter Ratios in DWSIM: List/Array of doubles corresponding to Output Ports (0, 1, 2...)

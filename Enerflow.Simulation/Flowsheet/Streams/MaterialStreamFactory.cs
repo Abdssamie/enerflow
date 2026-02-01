@@ -22,7 +22,20 @@ public class MaterialStreamFactory : IMaterialStreamFactory
         try
         {
             var stream = new MaterialStream(streamDto.Name, "");
+            Configure(stream, streamDto, systemOfUnits);
+            return stream;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create material stream: {Name}", streamDto.Name);
+            throw;
+        }
+    }
 
+    public void Configure(MaterialStream stream, MaterialStreamDto streamDto, SystemOfUnits systemOfUnits)
+    {
+        try
+        {
             // Convert inputs to SI (Kelvin, Pascal, kg/s)
             double tempK = ConvertTemperatureToSI(streamDto.Temperature, systemOfUnits);
             double pressPa = ConvertPressureToSI(streamDto.Pressure, systemOfUnits);
@@ -34,21 +47,23 @@ public class MaterialStreamFactory : IMaterialStreamFactory
             stream.Phases[0].Properties.massflow = massFlowKgS;
 
             // Set compositions
-            foreach (var (compoundName, moleFraction) in streamDto.MolarCompositions)
+            if (streamDto.MolarCompositions != null)
             {
-                if (stream.Phases[0].Compounds.ContainsKey(compoundName))
+                foreach (var (compoundName, moleFraction) in streamDto.MolarCompositions)
                 {
-                    stream.Phases[0].Compounds[compoundName].MoleFraction = moleFraction;
+                    if (stream.Phases[0].Compounds.ContainsKey(compoundName))
+                    {
+                        stream.Phases[0].Compounds[compoundName].MoleFraction = moleFraction;
+                    }
                 }
             }
 
-            _logger.LogDebug("Created material stream: {Name} (T={T}K, P={P}Pa, F={F}kg/s)",
+            _logger.LogDebug("Configured material stream: {Name} (T={T}K, P={P}Pa, F={F}kg/s)",
                 streamDto.Name, tempK, pressPa, massFlowKgS);
-            return stream;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to create material stream: {Name}", streamDto.Name);
+            _logger.LogError(ex, "Failed to configure material stream: {Name}", streamDto.Name);
             throw;
         }
     }

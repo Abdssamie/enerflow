@@ -6,12 +6,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Enerflow.Infrastructure.Persistence;
 
-public class EnerflowDbContext : DbContext
+public class EnerflowDbContext(DbContextOptions<EnerflowDbContext> options) : DbContext(options)
 {
-    public EnerflowDbContext(DbContextOptions<EnerflowDbContext> options) : base(options)
-    {
-    }
-
     public DbSet<Simulation> Simulations { get; set; }
     public DbSet<Compound> Compounds { get; set; }
     public DbSet<MaterialStream> MaterialStreams { get; set; }
@@ -29,21 +25,17 @@ public class EnerflowDbContext : DbContext
             entity.Property(e => e.Id).HasValueGenerator<SequentialGuidValueGenerator>();
             entity.Property(e => e.Name).IsRequired();
             
-            entity.Property(e => e.ThermoPackage)
-                .HasConversion<string>()
+            entity.Property(e => e.PropertyPackage)
                 .IsRequired();
             
             entity.Property(e => e.FlashAlgorithm)
-                .HasConversion<string>()
                 .IsRequired();
                 
             entity.Property(e => e.SystemOfUnits)
-                .HasConversion<string>()
                 .IsRequired();
 
             // Status stored as string for readability
             entity.Property(e => e.Status)
-                .HasConversion<string>()
                 .IsRequired();
 
             // Results stored as JSONB
@@ -80,8 +72,6 @@ public class EnerflowDbContext : DbContext
             // Map Composition to JSONB
             entity.Property(e => e.Composition).HasColumnType("jsonb");
             
-            // Map Phase enum
-            entity.Property(e => e.Phase).HasConversion<string>();
         });
 
         // EnergyStream

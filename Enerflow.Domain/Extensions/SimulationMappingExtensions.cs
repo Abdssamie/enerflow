@@ -3,7 +3,6 @@ using Enerflow.Domain.DTOs;
 using Enerflow.Domain.Entities;
 using Enerflow.Domain.Entities.Streams;
 using Enerflow.Domain.Entities.UnitOperations;
-using Enerflow.Domain.Enums;
 using Enerflow.Domain.Common;
 
 namespace Enerflow.Domain.Extensions;
@@ -25,7 +24,7 @@ public static class SimulationMappingExtensions
         return new SimulationDefinitionDto
         {
             Name = simulation.Name,
-            PropertyPackageType = simulation.ThermoPackage,
+            PropertyPackageType = simulation.PropertyPackage,
             FlashAlgorithm = simulation.FlashAlgorithm,
             SystemOfUnits = simulation.SystemOfUnits,
             Compounds = simulation.Compounds.Select(c => c.ToCompoundDto()).ToList(),

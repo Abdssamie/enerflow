@@ -36,9 +36,9 @@ public class SimulationFlowTests : BaseIntegrationTest
         var createRequest = new CreateSimulationRequest
         {
             Name = "Mixer E2E Test",
-            ThermoPackage = "PengRobinson",
-            FlashAlgorithm = "NestedLoops",
-            SystemOfUnits = "SI"
+            PropertyPackage = PropertyPackageType.PengRobinson,
+            FlashAlgorithm = FlashAlgorithm.NestedLoops,
+            SystemOfUnits = SystemOfUnits.SI
         };
         var response = await HttpClient.PostAsJsonAsync("/api/v1/simulations", createRequest);
         if (!response.IsSuccessStatusCode)
@@ -171,9 +171,9 @@ public class SimulationFlowTests : BaseIntegrationTest
         var createRequest = new CreateSimulationRequest
         {
             Name = "Failure Test",
-            ThermoPackage = "PengRobinson",
-            FlashAlgorithm = "NestedLoops",
-            SystemOfUnits = "SI"
+            PropertyPackage = PropertyPackageType.PengRobinson,
+            FlashAlgorithm = FlashAlgorithm.NestedLoops,
+            SystemOfUnits = SystemOfUnits.SI
         };
         var response = await HttpClient.PostAsJsonAsync("/api/v1/simulations", createRequest);
         var simData = await response.Content.ReadFromJsonAsync<JsonElement>();

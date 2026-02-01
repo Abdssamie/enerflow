@@ -40,3 +40,9 @@ You are an expert developer working on **Enerflow**, a distributed chemical simu
 - **Think in Flows**: Visualize the `MaterialStream` moving through `UnitOperations`.
 - **Security First**: Validate user inputs before they reach the DWSIM solver to prevent injection or crashes.
 - **Fail Gracefully**: If DWSIM crashes, the Worker must survive. Wrap solver calls in try-catch blocks and return a `Failed` status with a descriptive error.
+
+
+## Handling Issues and Blocks
+
+- **Report Constraints**: If you face an issue with some design constraints, incomplete service to use, missing essential features to implement a feature then report back to the user.
+- **Make TODOs instead of leaving incorrect code**: If you can implment some logic due to heavy constrains then, at least put a `// TODO:` comment block on it

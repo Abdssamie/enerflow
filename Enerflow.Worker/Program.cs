@@ -59,6 +59,9 @@ builder.Services.AddScoped<Enerflow.Worker.Convergence.IConvergenceAccelerator, 
 builder.Services.AddScoped<Enerflow.Worker.Solvers.IResultCollector, Enerflow.Worker.Solvers.ResultCollector>();
 builder.Services.AddScoped<Enerflow.Worker.Solvers.ISimulationSolver, Enerflow.Worker.Solvers.DWSIMSolver>();
 
+// Register Validation
+builder.Services.AddScoped<Enerflow.Worker.Validation.IFlowsheetValidator, Enerflow.Worker.Validation.FlowsheetValidator>();
+
 builder.Services.AddMassTransit(x =>
 {
     // Register the consumer with its definition to enforce concurrency limits

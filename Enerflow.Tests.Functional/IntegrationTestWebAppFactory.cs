@@ -17,7 +17,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Testcontainers.PostgreSql;
+using Testcontainers.Redis;
 using Npgsql;
+using Enerflow.Worker.Convergence;
+using Enerflow.Worker.Solvers;
+using Enerflow.Worker.Mappers;
+using Enerflow.Worker.Builders;
+using Enerflow.Worker.Validation;
 
 namespace Enerflow.Tests.Functional;
 
@@ -25,15 +31,25 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
 {
     private readonly PostgreSqlContainer _dbContainer = new PostgreSqlBuilder("postgres:18-bookworm")
         .Build();
+    
+    private readonly RedisContainer _redisContainer = new RedisBuilder("redis:alpine")
+        .Build();
 
     public async Task InitializeAsync()
     {
-        await _dbContainer.StartAsync();
-
-        // Ensure database is created and migrated
+        // Start both containers in parallel
+        await Task.WhenAll(
+            _dbContainer.StartAsync(),
+            _redisContainer.StartAsync());
+        
+        // Now create the database schema using raw SQL
+        // This bypasses EnsureCreatedAsync which doesn't work when other tables exist
         using var scope = Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<EnerflowDbContext>();
-        await dbContext.Database.MigrateAsync();
+        
+        // Generate the creation script from the model and execute it
+        var script = dbContext.Database.GenerateCreateScript();
+        await dbContext.Database.ExecuteSqlRawAsync(script);
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -45,7 +61,7 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
             logging.SetMinimumLevel(LogLevel.Debug);
         });
 
-        builder.UseSetting("RedisConfiguration", "localhost:6379,abortConnect=false");
+        builder.UseSetting("RedisConfiguration", _redisContainer.GetConnectionString());
         builder.UseSetting("ConnectionStrings:DefaultConnection", _dbContainer.GetConnectionString());
         builder.UseSetting("RateLimit:MaxRequests", "1000");
         builder.ConfigureTestServices(services =>
@@ -55,12 +71,16 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
             if (descriptor != null) services.Remove(descriptor);
 
             // Add DbContext pointing to the container with Dynamic JSON enabled
+            // Use 'public' schema to avoid conflicts with MassTransit's 'transport' schema
             services.AddDbContext<EnerflowDbContext>(options =>
             {
                 var dataSourceBuilder = new NpgsqlDataSourceBuilder(_dbContainer.GetConnectionString());
                 dataSourceBuilder.EnableDynamicJson();
                 var dataSource = dataSourceBuilder.Build();
-                options.UseNpgsql(dataSource);
+                options.UseNpgsql(dataSource, npgsqlOptions => 
+                {
+                    npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "public");
+                });
             });
 
             // Re-configure MassTransit to use the container and include Worker consumers
@@ -108,11 +128,36 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
             services.TryAddSingleton<IUnitOperationFactory, UnitOperationFactory>();
             services.TryAddSingleton<IFlashAlgorithmManager, FlashAlgorithmManager>();
             services.TryAddScoped<ISimulationService, SimulationService>();
+            
+            // Register DWSIM Automation (Singleton due to initialization overhead)
+            // Register as concrete type since DWSIMFlowsheetBuilder expects the concrete class
+            services.TryAddSingleton<DWSIM.Automation.Automation3>();
+            
+            // Register Builders
+            services.TryAddScoped<IFlowsheetBuilder, DWSIMFlowsheetBuilder>();
+            
+            // Register Mappers
+            services.TryAddScoped<IStreamMapper, StreamMapper>();
+            services.TryAddScoped<IUnitOperationMapper, UnitOperationMapper>();
+            services.TryAddScoped<IConnectionMapper, ConnectionMapper>();
+            services.TryAddScoped<IPostConnectionConfigurator, PostConnectionConfigurator>();
+            
+            // Register Convergence & Solvers
+            services.TryAddScoped<ErrorCalculator>();
+            services.TryAddScoped<IConvergenceAccelerator, WegsteinAccelerator>();
+            services.TryAddScoped<IResultCollector, ResultCollector>();
+            services.TryAddScoped<ISimulationSolver, DWSIMSolver>();
+            
+            // Register Validation
+            services.TryAddScoped<IFlowsheetValidator, FlowsheetValidator>();
         });
     }
 
     public new async Task DisposeAsync()
     {
-        await _dbContainer.StopAsync();
+        // Stop both containers in parallel
+        await Task.WhenAll(
+            _dbContainer.StopAsync(),
+            _redisContainer.StopAsync());
     }
 }

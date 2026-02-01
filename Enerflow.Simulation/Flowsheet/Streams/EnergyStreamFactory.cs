@@ -20,14 +20,26 @@ public class EnergyStreamFactory : IEnergyStreamFactory
         try
         {
             var stream = new DWSIM.UnitOperations.Streams.EnergyStream(streamDto.Name, "");
-            stream.EnergyFlow = streamDto.EnergyFlow;
-
-            _logger.LogDebug("Created energy stream: {Name}", streamDto.Name);
+            Configure(stream, streamDto);
             return stream;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create energy stream: {Name}", streamDto.Name);
+            throw;
+        }
+    }
+
+    public void Configure(DWSIM.UnitOperations.Streams.EnergyStream stream, EnergyStreamDto streamDto)
+    {
+        try
+        {
+            stream.EnergyFlow = streamDto.EnergyFlow;
+            _logger.LogDebug("Configured energy stream: {Name}", streamDto.Name);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to configure energy stream: {Name}", streamDto.Name);
             throw;
         }
     }

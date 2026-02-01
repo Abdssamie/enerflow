@@ -1,0 +1,348 @@
+---
+name: react-compiler-debugging
+description: react-compiler-debugging
+---
+
+---
+name: react-compiler-debugging
+description: Troubleshooting guide for React Compiler issues including understanding compiler behavior, fixing common problems, and debugging workflow. Use when components aren't being optimized or when encountering compiler-related bugs.
+
+---
+
+# React Compiler Debugging
+
+Guide for troubleshooting React Compiler issues and understanding compiler behavior. Learn how to identify and fix problems that prevent optimization.
+
+## When to Use
+
+- When components aren't showing the "Memo ✨" badge
+- When experiencing unexpected behavior after enabling the compiler
+- When the compiler skips certain components
+- When debugging performance issues
+- When migrating existing code to use the compiler
+
+## Understanding Compiler Behavior
+
+### The Compiler is Conservative
+
+The React Compiler is designed to be safe and conservative:
+
+- **It skips code it cannot safely optimize** rather than breaking your app
+- **It does not throw errors** for most issues - it just skips optimization
+- **It requires following the Rules of React** to work correctly
+
+This means if a component isn't optimized, the compiler found something it couldn't safely handle.
+
+### What Gets Optimized
+
+The compiler optimizes:
+
+- Function components
+- Custom Hooks
+- Code that follows all Rules of React
+
+The compiler skips:
+
+- Components with Rules of React violations
+- Code with patterns it cannot analyze
+- Components opted out with "use no memo"
+
+## Common Issues and Solutions
+
+### Issue 1: No "Memo ✨" Badge Appears
+
+**Symptoms:**
+
+- Component renders but no badge in React DevTools
+- No compiler errors in console
+
+**Possible Causes:**
+
+1. **Rules of React violation** - Most common cause
+   - Check ESLint output for react-compiler errors
+   - Look for mutations of props, state, or Hook values
+   - Check for Hooks called conditionally or in loops
+
+2. **Compiler not configured correctly**
+   - Verify babel-plugin-react-compiler is installed
+   - Check Babel plugin is FIRST in plugin chain
+   - Confirm bundler configuration is correct
+
+3. **Component opted out**
+   - Search for "use no memo" directive in component or parent
+   - Check compiler config for exclusion rules
+
+**Solution:**
+
+```javascript
+// Run ESLint to find violations
+npm run lint
+
+// Check for specific component
+eslint src/components/MyComponent.jsx
+```
+
+### Issue 2: Memoization Used for Correctness
+
+**Symptoms:**
+
+- App breaks when compiler is enabled
+- Removing useMemo/useCallback causes bugs
+
+**Problem:**
+You're using memoization to work around a bug, not for performance.
+
+**Example of the problem:**
+
+```javascript
+function MyComponent({ items }) {
+  // BAD: Using useMemo to "fix" a bug
+  const processedItems = useMemo(() => {
+    return items.map(item => ({ ...item, processed: true }));
+  }, [items]);
+  
+  useEffect(() => {
+    // This effect depends on processedItems reference staying stable
+    // This is a bug - the effect should depend on items instead
+  }, [processedItems]);
+}
+```
+
+**Solution:**
+Fix the underlying bug instead of using memoization:
+
+```javascript
+function MyComponent({ items }) {
+  // GOOD: No memoization needed
+  const processedItems = items.map(item => ({ ...item, processed: true }));
+  
+  useEffect(() => {
+    // Depend on the actual data, not the processed version
+  }, [items]);
+}
+```
+
+### Issue 3: Component Breaks After Enabling Compiler
+
+**Symptoms:**
+
+- Component works without compiler
+- Breaks or behaves differently with compiler enabled
+
+**Debugging Workflow:**
+
+1. **Isolate the problem component**
+
+   ```javascript
+   function ProblematicComponent() {
+     'use no memo'; // Temporarily opt out
+     // Component code...
+   }
+   ```
+
+2. **Check for Rules of React violations**
+
+   - Run ESLint with react-compiler plugin
+   - Look for mutations during render
+   - Check for side effects in render
+
+3. **Remove manual memoization**
+
+   - Remove useMemo, useCallback, memo
+   - Test if component still works
+   - If it breaks, you found a correctness bug
+
+4. **Fix the underlying issue**
+
+   - Fix Rules of React violations
+   - Fix bugs that memoization was hiding
+   - Ensure component is pure
+
+5. **Re-enable compiler**
+   Remove "use no memo" directive
+
+   - Verify "Memo ✨" badge appears
+   - Test component behavior
+
+### Issue 4: Mutations During Render
+
+**Symptoms:**
+
+- ESLint error: "Mutating a value during render"
+- Component not optimized
+
+**Example:**
+
+```javascript
+// BAD: Mutating props
+function MyComponent({ user }) {
+  user.lastSeen = Date.now(); // Mutation!
+  return <div>{user.name}</div>;
+}
+
+// BAD: Mutating state
+function MyComponent() {
+  const [items, setItems] = useState([]);
+  items.push(newItem); // Mutation!
+  return <div>{items.length}</div>;
+}
+```
+
+**Sol```javascript
+// GOOD: Create new objects
+function MyComponent({ user }) {
+  const updatedUser = { ...user, lastSeen: Date.now() };
+  return <div>{updatedUser.name}</div>;
+}
+
+// GOOD: Use setter function
+function MyComponent() {
+  const [items, setItems] = useState([]);
+
+  const addItem = () => {
+    setItems(prev => [...prev, newItem]);
+  };
+
+  return <div>{items.length}</div>;
+}
+
+```
+### Issue 5: Hooks Called Conditionally
+
+**Symptoms:**
+- ESLint error: "React Hook is called conditionally"
+- Component not optimized
+
+**Example:**
+```javascript
+// BAD: Conditional Hook call
+function MyComponenFetch }) {
+  if (shouldFetch) {
+    const data = useFetch('/api/data'); // Violates Rules of Hooks!
+  }
+}
+```
+
+**Solution:**
+
+```javascript
+// GOOD: Hook at top level
+function MyComponent({ shouldFetch }) {
+  const data = useFetch(shouldFetch ? '/api/data' : null);
+}
+```
+
+### Issue 6: Side Effects During Render
+
+**Symptoms:**
+
+- ESLint error: "Side effect in render"
+- Unexpected behavior
+
+**Example:**
+
+```javascript
+// BAD: Side effect during render
+function MyComponent() {
+  localStorage.setItem('rendered', 'true'); // Side effect!
+  return <div>Hello</div``
+
+**Solution:**
+```javascript
+// GOOD: Side effect in useEffect
+function MyComponent() {
+  useEffect(() => {
+    localStorage.setItem('rendered', 'true');
+  }, []);
+  
+  return <div>Hello</div>;
+}
+```
+
+## Debugging Workflow
+
+### Step-by-Step Process
+
+1. **Enable ESLint plugin**
+
+   ```bash
+   npm install -D eslint-plugin-react-compiler
+   ```
+
+2. **Run ESLint on your code**
+
+   ```bash
+   npm run lint
+   ```
+
+3. **Fix all ESLint errors**
+
+   - Address Rules of React violations
+   - Fix mutations
+   - Move side effects to proper locations
+
+4. **Check React DevTools**
+
+   - Look for "Memo ✨" badge
+   - If missing, component still has issues
+
+5. **Use "use no memo" to isolate**
+
+   - Add directive to narrow down problem
+   - Test different components
+   - Find which component causes issues
+
+6. **Remove manual memoization**
+
+   - Remove useMemo, useCallback, memo
+   - If app breaks, you found a bug
+   - Fix the bug, don't add memoization back
+
+7. **Verify optimization**
+
+   - Check for "Memo ✨" badge
+   - Test component behavior
+   - Verify performance
+
+## When to Report Bugs
+
+Report a bug to React team if:
+
+- Component follows all Rules of React
+- ESLint shows no errors
+- Component still breaks with compiler enabled
+- Behavior is clearly incorrect
+
+**Before reporting:**
+
+- Create minimal reproduction
+- Verify latest compiler version
+- Check existing issues on GitHub
+- Test in React Compiler Playground
+
+## Compiler Limitations
+
+The compiler cannot optimize:
+
+- Components that violate Rules of React
+- Code with dynamic Hook calls
+- Components using legacy patterns (class components)
+- Code that relies on memoization for correctness
+
+These are intentional limitations to ensure safety.
+
+## Questions to Ask
+
+- Is ESLint configured with react-compiler plugin?
+- What ESLint errors are you seeing?
+- Does the component follow all Rules of React?
+- Are you using memoization for correctness or performance?
+- Does the component work with "use no memo" directive?
+- Have you removed manual memoization to test?
+
+## Additional Resources
+
+- Debugging Guide: https://react.dev/learn/react-compiler#troubleshooting
+- Rules of React: https://react.dev/reference/rules
+- React Compiler Playground: https://playground.react.dev/
+- GitHub Issues: https://github.com/facebook/react/issues
