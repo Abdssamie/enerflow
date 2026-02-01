@@ -1,0 +1,435 @@
+---
+name: drizzle-orm
+description: drizzle-orm
+---
+
+---
+name: drizzle-orm-best-practices
+description: Best practices for Drizzle ORM including schema definition, queries, migrations, relations, and type safety.
+
+---
+
+# Drizzle ORM Best Practices
+
+Comprehensive guide for using Drizzle ORM, a lightweight TypeScript ORM for SQL databases.
+
+## When to Use
+
+- When defining database schemas in TypeScript
+- When performing type-safe database queries
+- When managing database migrations
+- When working with PostgreSQL, MySQL, or SQLite
+- When building serverless applications with databases
+
+## Core Principles
+
+### 1. Schema Definition
+
+Define your database schema using Drizzle's schema builders.
+
+```typescript
+import { pgTable, serial, text, integer, timestamp } from 'drizzle-orm/pg-core';
+
+export const users = pgTable('users', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  email: text('email').notNull().unique(),
+  age: integer('age'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const posts = pgTable('posts', {
+  id: serial('id').primaryKey(),
+  title: text('title').notNull(),
+  content: text('content'),
+  authorId: integer('author_id').references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+```
+
+### 2. Define Relations
+
+Use the relations API for type-safe relational queries.
+
+```typescript
+import { relations } from 'drizzle-orm';
+
+export const usersRelations = relations(users, ({ many }) => ({
+  posts: many(posts),
+}));
+
+export const postsRelations = relations(posts, ({ one }) => ({
+  author: one(users, {
+    fields: [posts.authorId],
+    references: [users.id],
+  }),
+}));
+```
+
+### 3. Type-Safe Queries
+
+Leverage TypeScript for fully typed queries.
+
+```typescript
+import { db } from './db';
+import { users, posts } from './schema';
+import { eq, and, or, gt, like } from 'drizzle-orm';
+
+// Select all users
+const allUsers = await db.select().from(users);
+
+// Select with conditions
+const activeUsers = await db
+  .select()
+  .from(users)
+  .where(gt(users.age, 18));
+
+// Select specific fields
+const userNames = await db
+  .select({ name: users.name, email: users.email })
+  .from(users);
+
+// Join queries
+const usersWithPosts = await db
+  .select()
+  .from(users)
+  .leftJoin(posts, eq(users.id, posts.authorId));
+```
+
+### 4. Relational Queries
+
+Use the relational query API for easier joins.
+
+```typescript
+// Query with relations
+const usersWithPosts = await db.query.users.findMany({
+  with: {
+    posts: true,
+  },
+});
+
+// Nested relations
+const usersWithPostsAndComments = await db.query.users.findMany({
+  with: {
+    posts: {
+      with: {
+        comments: true,
+      },
+    },
+  },
+});
+
+// Filter relations
+const usersWithRecentPosts = await db.query.users.findMany({
+  with: {
+    posts: {
+      where: (posts, { gt }) => gt(posts.createdAt, new Date('2024-01-01')),
+    },
+  },
+});
+```
+
+### 5. Insert Operations
+
+```typescript
+// Insert single record
+const newUser = await db
+  .insert(users)
+  .values({
+    name: 'John Doe',
+    email: 'john@example.com',
+    age: 30,
+  })
+  .returning();
+
+// Insert multiple records
+const newUsers = awaitert(users)
+  .values([
+    { name: 'Alice', email: 'alice@example.com' },
+    { name: 'Bob', email: 'bob@example.com' },
+  ])
+  .returning();
+```
+
+### 6. Update Operations
+
+```typescript
+// Update with conditions
+const updated = await db
+  .update(users)
+  .set({ age: 31 })
+  .where(eq(users.email, 'john@example.com'))
+  .returning();
+
+// Update multiple fields
+await db
+  .update(users)
+  .set({
+    name: 'John Smith',
+    age: 32,
+  })
+  .where(eq(users.id, 1));
+```
+
+### 7. Delete Operations
+
+```typescript
+// Delete with conditions
+await db
+  .delete(users)
+  .where(eq(users.id, 1));
+
+// Delete th multiple conditions
+await db
+  .delete(posts)
+  .where(and(
+    eq(posts.authorId, 1),
+    lt(posts.createdAt, new Date('2023-01-01'))
+  ));
+```
+
+### 8. Transactions
+
+Use transactions for atomic operations.
+
+```typescript
+// Transaction with automatic rollback on error
+await db.transaction(async (tx) => {
+  const user = await tx
+    .insert(users)
+    .values({ name: 'John', email: 'john@example.com' })
+    .returning();
+
+  await tx
+    .insert(posts)
+    .values({
+      title: 'First Post',
+      authorId: user[0].id,
+    });
+});
+
+// Transaction with relational queriesdb.transaction(async (tx) => {
+  const user = await tx.query.users.findFirst({
+    where: eq(users.id, 1),
+    with: { posts: true },
+  });
+  
+  // Perform operations with user data
+});
+```
+
+### 9. Prepared Statements
+
+Use prepared statements for better performance.
+
+```typescript
+// Prepare a query
+const preparedQuery = db
+  .select()
+  .from(users)
+  .where(eq(users.id, placeholder('id')))
+  .prepare('get_user_by_id');
+
+// Execute prepared query
+const user = await preparedQuery.execute({ id: 1 });
+```
+
+### 10. Migrations
+
+Manage database schema changes with migrations.
+
+```typescript
+// Generate migration
+// Run: drizzle-kit generate:pg
+
+// Apply migration
+// Run: drizzle-kit push:pg
+
+// Migration file example
+import { sql } from 'drizzle-orm';
+
+export async function up(db) {
+  await db.execute(sql`
+    CREATE TABLE users (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      email TEXT NOT NULL UNIQUE
+    )
+  `);
+}
+
+export async function down(db) {
+  await db.execute(sql`DROP TABLE users`);
+}
+```
+
+## Common Patterns
+
+### Repository Pattern
+
+```typescript
+export class UserRepository {
+  constructor(private db: Database) {}
+
+  async findById(id: number) {
+    return this.db.query.users.findFirst({
+      where: eq(users.id, id),
+    });
+  }
+
+  async findByEmail(email: string) {
+    return this.db.query.users.findFirst({
+      where: eq(users.email, email),
+    });
+  }
+
+  async create(data: NewUser) {
+    return this.db
+      .insert(users)
+      .values(data)
+      .returning();
+  }
+
+  async update(id: number, data: Partial<User>) {
+    return this.db
+      .update(users)
+      .set(data)
+      .where(eq(users.id, id))
+      .returning();
+  }
+}
+```
+
+### Pagination
+
+```typescript
+async function getPaginatedUsers(page: number, pageSize: number) {
+  const offset = (page - 1) * pageSize;
+  
+  const results = await db
+    .select()
+    .from(users)
+    .limit(pageSize)
+    .offset(offset);
+  
+  const [{ count }] = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(users);
+  
+  return {
+    data: results,
+    total: count,
+    page,
+    pageSize,
+    totalPages: Math.ceil(count / pageSize),
+  };
+}
+```
+
+### Soft Deletes
+
+```typescript
+export const users = pgTable('users', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  deletedAt: timestamp('deleted_at'),
+});
+
+// Soft delete
+await db
+  .update(users)
+  .set({ deletedAt: new Date() })
+  .where(eq(users.id, 1));
+
+// Query only non-deleted
+const activeUsers = await db
+  .select()
+  .from(users)
+  .where(isNull(users.deletedAt));
+```
+
+## Best Practices
+
+### 1. Use Type Inference
+
+```typescript
+// Good: Infer types from schema
+type User = typeof users.$inferSelect;
+type NewUser = typeof users.$inferInsert;
+
+// Bad: Manually defining types
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+```
+
+### 2. Organize Schema Files
+
+```
+src/
+  db/
+    schema/
+      users.ts
+      posts.ts
+      comments.ts
+      index.ts
+    migrations/
+    index.ts
+```
+
+### 3. Use Indexes for Performance
+
+```typescript
+export const users = pgTable('users', {
+  id: serial('id').primaryKey(),
+  email: text('email').notNull(),
+}, (table) => ({
+  emailIdx: index('email_idx').on(table.email),
+}));
+```
+
+### 4. Handle Errors Properly
+
+```typescript
+try {
+  await db.insert(users).values(newUser);
+} catch (error) {
+  if (error.code === '23505') {
+    // Unique constraint violation
+    throw new Error('Email already exists');
+  }
+  throw error;
+}
+```
+
+### 5. Use Connection Pooling
+
+```typescript
+import { drizzle } from le-orm/node-postgres';
+import { Pool } from 'pg';
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  max: 20,
+});
+
+export const db = drizzle(pool);
+```
+
+## Anti-Patterns to Avoid
+
+1. Not using transactions for related operations
+2. N+1 query problems - use relations instead
+3. Not using prepared statements for repeated queries
+4. Ignoring database indexes
+5. Not handling unique constraint violations
+
+## Questions to Ask
+
+- What database are you using (PostgreSQL, MySQL, SQLite)?
+- Do you need migrations or schema push?
+- Should we implement soft deletes?
+- What's your pagination strategy?
+- Do you need connection pooling configuration?

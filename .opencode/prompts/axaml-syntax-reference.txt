@@ -1,0 +1,146 @@
+# AXAML Syntax Reference
+
+Complete reference for Avalonia XAML (AXAML) syntax.
+
+## Basic Structure
+
+### Root Element
+
+```xml
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="Namespace.Views.ViewName"
+             x:DataType="vm:ViewModelName">
+    <!-- Content -->
+</UserControl>
+```
+
+**Attributes:**
+
+- `x:Class`: Code-behind class (required).
+- `x:DataType`: ViewModel type for compiled bindings (required).
+
+## Namespace Declarations
+
+**Standard:**
+
+```xml
+xmlns="https://github.com/avaloniaui"
+xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+```
+
+**SukiUI (Critical):**
+Always use the URL-based namespace.
+
+```xml
+xmlns:suki="https://github.com/kikipoulet/SukiUI"
+```
+
+**Custom:**
+
+```xml
+xmlns:vm="using:YourApp.ViewModels"
+xmlns:local="clr-namespace:YourApp"
+```
+
+## Property Syntax
+
+**Attribute (Simple):**
+
+```xml
+<Button Content="Click" Width="100" />
+```
+
+**Element (Complex):**
+
+```xml
+<Button>
+    <Button.Content>
+        <StackPanel><TextBlock Text="A" /><TextBlock Text="B" /></StackPanel>
+    </Button.Content>
+</Button>
+```
+
+## Data Binding
+
+**Modes:** `OneWay` (default), `TwoWay` (input), `OneTime`, `OneWayToSource`.
+
+**Syntax:**
+
+```xml
+<!-- Property -->
+<TextBlock Text="{Binding Name}" />
+
+<!-- TwoWay (Input) -->
+<TextBox Text="{Binding Name, Mode=TwoWay}" />
+
+<!-- StringFormat -->
+<TextBlock Text="{Binding Price, StringFormat='${0:F2}'}" />
+
+<!-- Relative -->
+<TextBlock Text="{Binding $parent[Window].Title}" />
+
+<!-- Element -->
+<TextBox Name="Input" />
+<TextBlock Text="{Binding #Input.Text}" />
+```
+
+## Styles
+
+**Selector Syntax:**
+
+```xml
+<!-- Type -->
+<Style Selector="Button">
+    <Setter Property="Background" Value="Blue" />
+</Style>
+
+<!-- Class -->
+<Style Selector="Button.Primary">
+    <Setter Property="Background" Value="Red" />
+</Style>
+
+<!-- Pseudo-class -->
+<Style Selector="Button:pointerover">
+    <Setter Property="Opacity" Value="0.8" />
+</Style>
+```
+
+**Usage:**
+
+```xml
+<Button Classes="Primary" Content="Red Button" />
+```
+
+## Markup Extensions
+
+- `{StaticResource Key}`: Fixed resource.
+- `{DynamicResource Key}`: Dynamic resource (themes).
+- `{x:Static Class.Member}`: Static member.
+- `{x:Null}`: Null value.
+
+## Best Practices
+
+1. **x:DataType:** Always use for compiled bindings.
+
+2. **SukiWindow:** Use `SukiWindow` as root for main windows.
+
+   ```xml
+   <suki:SukiWindow xmlns:suki="https://github.com/kikipoulet/SukiUI" ...>
+   ```
+
+3. **Explicit Sizes:** Set explicit `Width` and `Height` for windows.
+
+4. **BulletDecorator:** Deprecated. Use `StackPanel` (Horizontal).
+
+## Common Mistakes
+
+| Mistake                  | Correction                                |
+| ------------------------ | ----------------------------------------- |
+| Missing `x:DataType`     | Add `x:DataType="vm:MyVM"`                |
+| `xmlns:suki="using:..."` | Use `xmlns:suki="https://github.com/..."` |
+| `<Window>` with Suki     | Use `<suki:SukiWindow>`                   |
+| Default Binding on Input | Use `Mode=TwoWay`                         |

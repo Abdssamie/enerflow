@@ -50,8 +50,8 @@ public class IdGenerationTests
     public void Entity_ShouldInitializeWithSequentialId()
     {
         // Act
-        var simulation1 = new SimulationEntity { Name = "Test 1", ThermoPackage = PropertyPackageType.PengRobinson, SystemOfUnits = SystemOfUnits.SI, FlashAlgorithm = FlashAlgorithm.NestedLoops };
-        var simulation2 = new SimulationEntity { Name = "Test 2", ThermoPackage = PropertyPackageType.PengRobinson, SystemOfUnits = SystemOfUnits.SI, FlashAlgorithm = FlashAlgorithm.NestedLoops };
+        var simulation1 = new SimulationEntity { Name = "Test 1", PropertyPackage = PropertyPackageType.PengRobinson, SystemOfUnits = SystemOfUnits.SI, FlashAlgorithm = FlashAlgorithm.NestedLoops };
+        var simulation2 = new SimulationEntity { Name = "Test 2", PropertyPackage = PropertyPackageType.PengRobinson, SystemOfUnits = SystemOfUnits.SI, FlashAlgorithm = FlashAlgorithm.NestedLoops };
 
         // Assert
         Assert.NotEqual(Guid.Empty, simulation1.Id);

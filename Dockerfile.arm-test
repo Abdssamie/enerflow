@@ -1,0 +1,88 @@
+# Dockerfile for testing DWSIM headless on ARM64 architecture
+# This uses ARM64 base image to emulate ARM-based Linux VPS containers
+# 
+# IMPORTANT NOTE: DWSIM includes x86-64 native libraries (libSkiaSharp.so, libCoolProp.so, etc.)
+# These will need ARM64 versions or QEMU user-mode emulation to work on ARM
+
+FROM --platform=linux/arm64 mcr.microsoft.com/dotnet/sdk:10.0-noble AS build
+
+# Install required dependencies including QEMU for x86-64 emulation
+RUN apt-get update && apt-get install -y \
+    libgdiplus \
+    libc6-dev \
+    libx11-dev \
+    qemu-user-static \
+    binfmt-support \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy solution and project files
+COPY *.sln ./
+COPY Enerflow.Tests.DWSIM/*.csproj ./Enerflow.Tests.DWSIM/
+COPY Enerflow.Domain/*.csproj ./Enerflow.Domain/
+COPY Enerflow.Infrastructure/*.csproj ./Enerflow.Infrastructure/
+COPY Enerflow.Simulation/*.csproj ./Enerflow.Simulation/
+COPY Enerflow.Worker/*.csproj ./Enerflow.Worker/
+COPY Enerflow.API/*.csproj ./Enerflow.API/
+COPY Enerflow.Tests.Unit/*.csproj ./Enerflow.Tests.Unit/
+COPY Enerflow.Tests.Integration/*.csproj ./Enerflow.Tests.Integration/
+COPY Enerflow.Tests.Functional/*.csproj ./Enerflow.Tests.Functional/
+
+# Copy DWSIM libraries (required for build)
+COPY libs/ ./libs/
+
+# Restore dependencies
+RUN dotnet restore Enerflow.Tests.DWSIM/Enerflow.Tests.DWSIM.csproj
+
+# Copy the rest of the source code
+COPY Enerflow.Tests.DWSIM/ ./Enerflow.Tests.DWSIM/
+COPY Enerflow.Domain/ ./Enerflow.Domain/
+COPY Enerflow.Infrastructure/ ./Enerflow.Infrastructure/
+COPY Enerflow.Simulation/ ./Enerflow.Simulation/
+
+# Build the test project
+RUN dotnet build Enerflow.Tests.DWSIM/Enerflow.Tests.DWSIM.csproj -c Release --no-restore
+
+# Runtime stage
+FROM --platform=linux/arm64 mcr.microsoft.com/dotnet/sdk:10.0-noble AS runtime
+
+# Install runtime dependencies for DWSIM + QEMU for x86-64 library emulation
+RUN apt-get update && apt-get install -y \
+    libgdiplus \
+    libc6-dev \
+    libx11-dev \
+    libfontconfig1 \
+    libfreetype6 \
+    libice6 \
+    libsm6 \
+    libxext6 \
+    libxrender1 \
+    qemu-user-static \
+    binfmt-support \
+    file \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy built artifacts from build stage
+COPY --from=build /app/Enerflow.Tests.DWSIM/bin/Release/net10.0/ ./
+
+# Set environment variables for headless operation
+ENV DISPLAY=:99
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
+ENV LD_LIBRARY_PATH=/app/dwsim:$LD_LIBRARY_PATH
+
+# Create TestResults directory
+RUN mkdir -p TestResults
+
+# Verify architecture and native libraries
+RUN echo "=== System Architecture ===" && \
+    uname -m && \
+    echo "=== .NET Runtime Info ===" && \
+    dotnet --info && \
+    echo "=== Checking Native Libraries ===" && \
+    find /app -name "*.so" -type f -exec file {} \; | head -20
+
+# Default command: run the specific test
+CMD ["dotnet", "test", "Enerflow.Tests.DWSIM.dll", "--filter", "FullyQualifiedName~Test05FlashAlgorithmComparison", "--logger", "console;verbosity=detailed"]

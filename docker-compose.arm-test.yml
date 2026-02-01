@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  dwsim-arm-test:
+    build:
+      context: .
+      dockerfile: Dockerfile.arm-test
+      platforms:
+        - linux/arm64
+    image: enerflow-dwsim-arm-test:latest
+    container_name: dwsim-arm-test
+    environment:
+      - DISPLAY=:99
+      - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
+      - LD_LIBRARY_PATH=/app/dwsim:$LD_LIBRARY_PATH
+    volumes:
+      # Mount TestResults to host for easy access
+      - ./TestResults:/app/TestResults
+    command: >
+      dotnet test Enerflow.Tests.DWSIM.dll 
+      --filter "FullyQualifiedName~Test05FlashAlgorithmComparison" 
+      --logger "console;verbosity=detailed"
+      --results-directory /app/TestResults

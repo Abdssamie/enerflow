@@ -1,10 +1,13 @@
 using DWSIM.Interfaces;
+using DWSIM.Interfaces.Enums.GraphicObjects;
 using DWSIM.SharedClasses.SystemsOfUnits;
 using Enerflow.Domain.DTOs;
 using Enerflow.Domain.Enums;
 using Enerflow.Simulation.Flowsheet.Compounds;
 using Enerflow.Simulation.Flowsheet.FlashAlgorithms;
 using Enerflow.Simulation.Flowsheet.PropertyPackages;
+using Enerflow.Simulation.Flowsheet.Streams;
+using Enerflow.Simulation.Flowsheet.UnitOperations;
 using Microsoft.Extensions.Logging;
 using SimulationEntity = Enerflow.Domain.Entities.Simulation;
 
@@ -12,23 +15,32 @@ namespace Enerflow.Worker.Builders;
 
 public class DWSIMFlowsheetBuilder : IFlowsheetBuilder
 {
-    private readonly DWSIM.Automation.AutomationInterface _automation;
+    private readonly DWSIM.Automation.Automation3 _automation;
     private readonly ICompoundManager _compoundManager;
     private readonly IPropertyPackageManager _propertyPackageManager;
     private readonly IFlashAlgorithmManager _flashAlgorithmManager;
+    private readonly IMaterialStreamFactory _materialStreamFactory;
+    private readonly IEnergyStreamFactory _energyStreamFactory;
+    private readonly IUnitOperationFactory _unitOperationFactory;
     private readonly ILogger<DWSIMFlowsheetBuilder> _logger;
 
     public DWSIMFlowsheetBuilder(
-        DWSIM.Automation.AutomationInterface automation,
+        DWSIM.Automation.Automation3 automation,
         ICompoundManager compoundManager,
         IPropertyPackageManager propertyPackageManager,
         IFlashAlgorithmManager flashAlgorithmManager,
+        IMaterialStreamFactory materialStreamFactory,
+        IEnergyStreamFactory energyStreamFactory,
+        IUnitOperationFactory unitOperationFactory,
         ILogger<DWSIMFlowsheetBuilder> logger)
     {
         _automation = automation;
         _compoundManager = compoundManager;
         _propertyPackageManager = propertyPackageManager;
         _flashAlgorithmManager = flashAlgorithmManager;
+        _materialStreamFactory = materialStreamFactory;
+        _energyStreamFactory = energyStreamFactory;
+        _unitOperationFactory = unitOperationFactory;
         _logger = logger;
     }
 
@@ -36,38 +48,141 @@ public class DWSIMFlowsheetBuilder : IFlowsheetBuilder
     {
         _logger.LogInformation("Building flowsheet for simulation {Id}: {Name}", simulation.Id, simulation.Name);
 
-        // 1. Initialization (redundant if using Automation3, but mandated by spec)
+        // 1. Initialization
         DWSIM.GlobalSettings.Settings.AutomationMode = true;
 
         // 2. Create Flowsheet
         var flowsheet = _automation.CreateFlowsheet();
-        
-        // 3. Configure Settings (System of Units)
+
+        // 3. Configure Settings
         SetSystemOfUnits(flowsheet, simulation.SystemOfUnits);
 
         // 4. Add Compounds
         foreach (var compound in simulation.Compounds)
         {
             var dto = new CompoundDto(compound.Id, compound.Name, compound.ConstantProperties);
-            // DWSIM API check: ensure we don't add duplicates if reusing flowsheet (though this is new flowsheet)
-            // The constraint says "Use established patterns... to avoid 'Duplicate Key' errors"
             _compoundManager.AddCompound(flowsheet, dto);
         }
 
         // 5. Property Package & Flash Algorithm
-        var propertyPackage = _propertyPackageManager.CreatePropertyPackage(simulation.ThermoPackage);
+        var propertyPackage = _propertyPackageManager.CreatePropertyPackage(simulation.PropertyPackage);
         var flashAlgorithm = _flashAlgorithmManager.CreateFlashAlgorithm(simulation.FlashAlgorithm);
-        
+
         _propertyPackageManager.SetFlashAlgorithm(propertyPackage, flashAlgorithm);
         _propertyPackageManager.AddToFlowsheet(flowsheet, propertyPackage);
 
-        // Set the added package as the default/active one for the flowsheet?
-        // Usually handled by adding it, but we might need to select it.
-        // Flowsheet usually selects the first one added by default.
-        if (flowsheet.PropertyPackages.Count > 0)
+        // Map to track Stream IDs to Names for connection
+        var streamMap = new Dictionary<Guid, string>();
+
+        // 6. Create Material Streams using flowsheet.AddObject
+        foreach (var stream in simulation.MaterialStreams)
         {
-             // Force selection if API allows, but AddPropertyPackage usually suffices for the first one.
-             // We can check if we need to set SelectedPropertyPackage equivalent.
+            // Use flowsheet.AddObject to create the stream instance
+            var dwsimObj = flowsheet.AddObject(
+                ObjectType.MaterialStream,
+                0, 0,  // x, y coordinates (not used in headless mode)
+                stream.Id.ToString(),
+                stream.Name
+            );
+
+            // Cast to MaterialStream and configure using factory
+            if (dwsimObj is DWSIM.Thermodynamics.Streams.MaterialStream ms)
+            {
+                var dto = new MaterialStreamDto
+                {
+                    Id = stream.Id,
+                    Name = stream.Name,
+                    Temperature = stream.Temperature,
+                    Pressure = stream.Pressure,
+                    MassFlow = stream.MassFlow,
+                    MolarCompositions = stream.Composition
+                };
+
+                // Use factory to configure the stream (delegates SI conversions to factory)
+                _materialStreamFactory.Configure(ms, dto, simulation.SystemOfUnits);
+            }
+
+            streamMap[stream.Id] = stream.Name;
+        }
+
+        // 7. Create Energy Streams using flowsheet.AddObject
+        foreach (var stream in simulation.EnergyStreams)
+        {
+            var dwsimObj = flowsheet.AddObject(
+                ObjectType.EnergyStream,
+                0, 0,
+                stream.Id.ToString(),
+                stream.Name
+            );
+
+            if (dwsimObj is DWSIM.UnitOperations.Streams.EnergyStream es)
+            {
+                var dto = new EnergyStreamDto
+                {
+                    Id = stream.Id,
+                    Name = stream.Name,
+                    EnergyFlow = stream.EnergyFlow
+                };
+
+                // Use factory to configure the stream
+                _energyStreamFactory.Configure(es, dto);
+            }
+
+            streamMap[stream.Id] = stream.Name;
+        }
+
+        // 8. Create Unit Operations using flowsheet.AddObject
+        foreach (var unit in simulation.UnitOperations)
+        {
+            var graphicObjectType = _unitOperationFactory.GetGraphicObjectType(unit.Type);
+
+            var dwsimObj = flowsheet.AddObject(
+                graphicObjectType,
+                0, 0,
+                unit.Id.ToString(),
+                unit.Name
+            );
+
+            // TODO: Configure unit operation parameters based on unit.Type
+            // This would require extracting config from the entity or having a separate config step
+        }
+
+        // 9. Connect Topology
+        foreach (var unit in simulation.UnitOperations)
+        {
+            var dwsimObj = flowsheet.GetObject(unit.Name);
+            if (dwsimObj != null)
+            {
+                // Connect Inputs (Stream -> Unit)
+                for (int i = 0; i < unit.InputStreamIds.Count; i++)
+                {
+                    var inId = unit.InputStreamIds[i];
+                    if (streamMap.TryGetValue(inId, out var streamName))
+                    {
+                        var streamObj = flowsheet.GetObject(streamName);
+                        if (streamObj != null)
+                        {
+                            // Stream Output (0) -> Unit Input (i)
+                            flowsheet.ConnectObjects(streamObj.GraphicObject, dwsimObj.GraphicObject, 0, i);
+                        }
+                    }
+                }
+
+                // Connect Outputs (Unit -> Stream)
+                for (int i = 0; i < unit.OutputStreamIds.Count; i++)
+                {
+                    var outId = unit.OutputStreamIds[i];
+                    if (streamMap.TryGetValue(outId, out var streamName))
+                    {
+                        var streamObj = flowsheet.GetObject(streamName);
+                        if (streamObj != null)
+                        {
+                            // Unit Output (i) -> Stream Input (0)
+                            flowsheet.ConnectObjects(dwsimObj.GraphicObject, streamObj.GraphicObject, i, 0);
+                        }
+                    }
+                }
+            }
         }
 
         return flowsheet;

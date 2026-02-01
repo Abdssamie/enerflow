@@ -1,0 +1,230 @@
+# MVVM Patterns in Avalonia
+
+Complete guide to MVVM patterns using CommunityToolkit.Mvvm in Avalonia applications.
+
+## 📋 Table of Contents
+
+1. [ViewModel Base Classes](#viewmodel-base-classes)
+2. [Observable Properties](#observable-properties)
+3. [Commands](#commands)
+4. [View-ViewModel Mapping](#view-viewmodel-mapping)
+5. [Dependency Injection](#dependency-injection)
+
+---
+
+## ViewModel Base Classes
+
+### Basic ViewModel
+
+```csharp
+using CommunityToolkit.Mvvm.ComponentModel;
+
+namespace YourApp.ViewModels;
+
+public partial class ViewModelBase : ObservableObject
+{
+}
+```
+
+### Page ViewModel Base
+
+```csharp
+using CommunityToolkit.Mvvm.ComponentModel;
+
+namespace YourApp.ViewModels;
+
+public abstract partial class PageViewModelBase : ViewModelBase
+{
+    public abstract string DisplayName { get; }
+    public abstract string Icon { get; }  // Material Design Icons path data
+}
+```
+
+---
+
+## Observable Properties
+
+### Basic Observable Property
+
+```csharp
+[ObservableProperty]
+private string _name = "";
+
+// Generates:
+// public string Name
+// {
+//     get => _name;
+//     set => SetProperty(ref _name, value);
+// }
+```
+
+### With Validation
+
+```csharp
+using System.ComponentModel.DataAnnotations;
+
+[ObservableProperty]
+[Required(ErrorMessage = "Name is required")]
+[MinLength(3, ErrorMessage = "Name must be at least 3 characters")]
+private string _name = "";
+```
+
+### With Property Changed Notification
+
+```csharp
+[ObservableProperty]
+private string _firstName = "";
+
+[ObservableProperty]
+private string _lastName = "";
+
+// Computed property that updates when dependencies change
+public string FullName => $"{FirstName} {LastName}";
+
+partial void OnFirstNameChanged(string value)
+{
+    OnPropertyChanged(nameof(FullName));
+}
+
+partial void OnLastNameChanged(string value)
+{
+    OnPropertyChanged(nameof(FullName));
+}
+```
+
+---
+
+## Commands
+
+### Basic Command
+
+```csharp
+[RelayCommand]
+private void Save()
+{
+    // Save logic
+}
+
+// Generates:
+// public IRelayCommand SaveCommand { get; }
+```
+
+### Command with Parameter
+
+When multiple controls trigger the same command, use `CommandParameter` to distinguish them.
+
+**ViewModel:**
+
+```csharp
+[RelayCommand]
+private void ButtonClick(string buttonName)
+{
+    LastButtonClicked = buttonName;
+}
+```
+
+**View:**
+
+```xml
+<Button Content="Save" 
+        Command="{Binding ButtonClickCommand}" 
+        CommandParameter="Save Button" />
+        
+<Button Content="Cancel" 
+        Command="{Binding ButtonClickCommand}" 
+        CommandParameter="Cancel Button" />
+```
+
+### Async Command
+
+```csharp
+[RelayCommand]
+private async Task LoadDataAsync()
+{
+    IsLoading = true;
+    await Task.Delay(1000);
+    IsLoading = false;
+}
+```
+
+### Command with CanExecute
+
+```csharp
+[ObservableProperty]
+private bool _isDataLoaded;
+
+[RelayCommand(CanExecute = nameof(CanSave))]
+private void Save()
+{
+    // Save logic
+}
+
+private bool CanSave() => IsDataLoaded;
+
+// Notify command to re-evaluate CanExecute
+partial void OnIsDataLoadedChanged(bool value)
+{
+    SaveCommand.NotifyCanExecuteChanged();
+}
+```
+
+---
+
+## View-ViewModel Mapping
+
+### ⚠️ Critical Pattern: DataTemplates
+
+When using navigation patterns where ViewModels are displayed in a ContentControl (like `SukiSideMenu`), you **must** define DataTemplates to map ViewModels to their corresponding Views.
+
+**In SukiWindow:**
+
+```xml
+<suki:SukiWindow.DataTemplates>
+    <DataTemplate DataType="vm:HomePageViewModel">
+        <views:HomePage />
+    </DataTemplate>
+    <DataTemplate DataType="vm:SettingsPageViewModel">
+        <views:SettingsPage />
+    </DataTemplate>
+</suki:SukiWindow.DataTemplates>
+```
+
+---
+
+## Dependency Injection
+
+### Passing Services to ViewModels
+
+**Parent ViewModel:**
+
+```csharp
+public partial class MainWindowViewModel : ViewModelBase
+{
+    private readonly ISukiToastManager _toastManager;
+
+    public MainWindowViewModel()
+    {
+        _toastManager = new SukiToastManager();
+
+        // Pass services to child ViewModels
+        Pages = new ObservableCollection<PageViewModelBase>
+        {
+            new NotificationsPageViewModel(_toastManager)
+        };
+    }
+}
+```
+
+**Child ViewModel:**
+
+```csharp
+public partial class NotificationsPageViewModel : PageViewModelBase
+{
+    private readonly ISukiToastManager _toastManager;
+
+    public NotificationsPageViewModel(ISukiToastManager toastManager)
+    {
+        _toastManager = toastManager;
+    }
+}
+```

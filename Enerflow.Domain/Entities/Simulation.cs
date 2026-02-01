@@ -10,7 +10,7 @@ public class Simulation
 {
     public Guid Id { get; set; } = Common.IdGenerator.NextGuid();
     public required string Name { get; set; }
-    public required PropertyPackageType ThermoPackage { get; set; }
+    public required PropertyPackageType PropertyPackage { get; set; }
     public required FlashAlgorithm FlashAlgorithm { get; set; }
     public required SystemOfUnits SystemOfUnits { get; set; }
 

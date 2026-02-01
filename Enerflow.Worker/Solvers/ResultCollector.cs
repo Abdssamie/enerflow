@@ -1,7 +1,6 @@
 using System.Text.Json;
 using DWSIM.Interfaces;
 using Enerflow.Domain.DTOs;
-using Enerflow.Domain.Entities;
 using Microsoft.Extensions.Logging;
 using SimulationEntity = Enerflow.Domain.Entities.Simulation;
 using DWSIMMaterialStream = DWSIM.Thermodynamics.Streams.MaterialStream;
@@ -58,10 +57,10 @@ public class ResultCollector : IResultCollector
             if (flowsheet.SimulationObjects.TryGetValue(unit.Name, out var simObj))
             {
                 var calculatedParams = new Dictionary<string, object>();
-                
+
                 // Generic extraction of common calculated properties
                 // We can extend this switch for specific unit types to get detailed results
-                
+
                 calculatedParams["Calculated"] = simObj.Calculated;
                 if (!string.IsNullOrEmpty(simObj.ErrorMessage))
                 {
@@ -71,9 +70,9 @@ public class ResultCollector : IResultCollector
                 // Example specific extraction
                 if (simObj is DWSIMEnergyStream es)
                 {
-                    calculatedParams["EnergyFlow"] = es.EnergyFlow;
+                    calculatedParams["EnergyFlow"] = es.EnergyFlow ?? 0.0;
                 }
-                
+
                 // We could iterate `simObj.GetProperties(PropertyType.RO)` but that's expensive.
                 // Just capturing status for now as per requirements "Extract specific calculated values".
                 // TODO: Add more specific property extraction based on Unit Types if needed.

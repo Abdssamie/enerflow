@@ -144,7 +144,7 @@ public class SimulationJobConsumer : IConsumer<SimulationJob>
         {
             Id = job.SimulationId,
             Name = def.Name,
-            ThermoPackage = def.PropertyPackageType,
+            PropertyPackage = def.PropertyPackageType,
             FlashAlgorithm = def.FlashAlgorithm,
             SystemOfUnits = def.SystemOfUnits,
             Status = SimulationStatus.Running

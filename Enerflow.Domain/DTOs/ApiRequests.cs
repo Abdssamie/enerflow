@@ -28,9 +28,9 @@ public record SubmitJobRequest
 public record CreateSimulationRequest
 {
     public required string Name { get; init; }
-    public required string ThermoPackage { get; init; }
-    public required string FlashAlgorithm { get; init; }
-    public required string SystemOfUnits { get; init; }
+    public required PropertyPackageType PropertyPackage { get; init; }
+    public required FlashAlgorithm FlashAlgorithm { get; init; }
+    public required SystemOfUnits SystemOfUnits { get; init; }
 }
 
 public record AddStreamRequest
@@ -45,5 +45,10 @@ public record AddStreamRequest
 
 public record AddCompoundRequest
 {
+    public AddCompoundRequest(string name)
+    {
+        Name = name;
+    }
+
     public required string Name { get; init; }
 }

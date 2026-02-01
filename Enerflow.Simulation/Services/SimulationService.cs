@@ -326,13 +326,13 @@ public class SimulationService : ISimulationService
         }
     }
 
-    private void SetPropertyPackage(PropertyPackageType thermoPackage, FlashAlgorithm flashAlgorithm)
+    private void SetPropertyPackage(PropertyPackageType PropertyPackage, FlashAlgorithm flashAlgorithm)
     {
         if (_flowsheet == null) return;
 
         try
         {
-            var pp = _propertyPackageManager.CreatePropertyPackage(thermoPackage);
+            var pp = _propertyPackageManager.CreatePropertyPackage(PropertyPackage);
 
             // Set flash algorithm
             var algorithm = _flashAlgorithmManager.CreateFlashAlgorithm(flashAlgorithm);
@@ -340,11 +340,11 @@ public class SimulationService : ISimulationService
 
             _propertyPackageManager.AddToFlowsheet(_flowsheet, pp);
             _logger.LogDebug("Set property package to: {Package} with flash algorithm: {Algorithm}",
-                thermoPackage, flashAlgorithm);
+                PropertyPackage, flashAlgorithm);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to set property package: {Package}", thermoPackage);
+            _logger.LogWarning(ex, "Failed to set property package: {Package}", PropertyPackage);
         }
     }
 

@@ -1,6 +1,6 @@
 using Enerflow.Domain.DTOs;
 using DWSIM.Thermodynamics.Streams;
-using Microsoft.Extensions.Logging;
+using Enerflow.Domain.Enums;
 
 namespace Enerflow.Simulation.Flowsheet.Streams;
 
@@ -12,5 +12,18 @@ public interface IMaterialStreamFactory
     /// <summary>
     /// Creates and configures a DWSIM material stream from a DTO.
     /// </summary>
-    MaterialStream CreateMaterialStream(MaterialStreamDto streamDto, Enerflow.Domain.Enums.SystemOfUnits systemOfUnits);
+    MaterialStream CreateMaterialStream(
+        MaterialStreamDto streamDto,
+        SystemOfUnits systemOfUnits
+    );
+
+    /// <summary>
+    /// Configures an existing DWSIM material stream instance.
+    /// Used when the stream is created via flowsheet.AddObject().
+    /// </summary>
+    void Configure(
+        MaterialStream stream,
+        MaterialStreamDto streamDto,
+        SystemOfUnits systemOfUnits
+    );
 }

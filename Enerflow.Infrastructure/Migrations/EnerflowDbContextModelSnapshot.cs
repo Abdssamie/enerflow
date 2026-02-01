@@ -47,7 +47,46 @@ namespace Enerflow.Infrastructure.Migrations
                     b.ToTable("Compounds");
                 });
 
-            modelBuilder.Entity("Enerflow.Domain.Entities.EnergyStream", b =>
+            modelBuilder.Entity("Enerflow.Domain.Entities.Simulation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("text");
+
+                    b.Property<int>("FlashAlgorithm")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("PropertyPackage")
+                        .HasColumnType("integer");
+
+                    b.Property<JsonDocument>("ResultJson")
+                        .HasColumnType("jsonb");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SystemOfUnits")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Simulations");
+                });
+
+            modelBuilder.Entity("Enerflow.Domain.Entities.Streams.EnergyStream", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -63,6 +102,17 @@ namespace Enerflow.Infrastructure.Migrations
                     b.Property<Guid>("SimulationId")
                         .HasColumnType("uuid");
 
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Position", "Enerflow.Domain.Entities.Streams.EnergyStream.Position#Position", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<int>("X")
+                                .HasColumnType("integer");
+
+                            b1.Property<int>("Y")
+                                .HasColumnType("integer");
+                        });
+
                     b.HasKey("Id");
 
                     b.HasIndex("SimulationId");
@@ -70,25 +120,28 @@ namespace Enerflow.Infrastructure.Migrations
                     b.ToTable("EnergyStreams");
                 });
 
-            modelBuilder.Entity("Enerflow.Domain.Entities.MaterialStream", b =>
+            modelBuilder.Entity("Enerflow.Domain.Entities.Streams.MaterialStream", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Dictionary<string, double>>("Composition")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
                     b.Property<double>("MassFlow")
                         .HasColumnType("double precision");
 
-                    b.Property<Dictionary<string, double>>("MolarCompositions")
-                        .IsRequired()
-                        .HasColumnType("jsonb");
+                    b.Property<double>("MolarFlow")
+                        .HasColumnType("double precision");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Phase")
-                        .HasColumnType("text");
+                    b.Property<int>("Phase")
+                        .HasColumnType("integer");
 
                     b.Property<double>("Pressure")
                         .HasColumnType("double precision");
@@ -99,6 +152,17 @@ namespace Enerflow.Infrastructure.Migrations
                     b.Property<double>("Temperature")
                         .HasColumnType("double precision");
 
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Position", "Enerflow.Domain.Entities.Streams.MaterialStream.Position#Position", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<int>("X")
+                                .HasColumnType("integer");
+
+                            b1.Property<int>("Y")
+                                .HasColumnType("integer");
+                        });
+
                     b.HasKey("Id");
 
                     b.HasIndex("SimulationId");
@@ -106,50 +170,7 @@ namespace Enerflow.Infrastructure.Migrations
                     b.ToTable("MaterialStreams");
                 });
 
-            modelBuilder.Entity("Enerflow.Domain.Entities.Simulation", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("ErrorMessage")
-                        .HasColumnType("text");
-
-                    b.Property<string>("FlashAlgorithm")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<JsonDocument>("ResultJson")
-                        .HasColumnType("jsonb");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("SystemOfUnits")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ThermoPackage")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Simulations");
-                });
-
-            modelBuilder.Entity("Enerflow.Domain.Entities.UnitOperation", b =>
+            modelBuilder.Entity("Enerflow.Domain.Entities.UnitOperations.UnitOperationObject", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -173,15 +194,222 @@ namespace Enerflow.Infrastructure.Migrations
                     b.Property<Guid>("SimulationId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Type")
+                    b.Property<string>("UnitType")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(21)
+                        .HasColumnType("character varying(21)");
+
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Position", "Enerflow.Domain.Entities.UnitOperations.UnitOperationObject.Position#Position", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<int>("X")
+                                .HasColumnType("integer");
+
+                            b1.Property<int>("Y")
+                                .HasColumnType("integer");
+                        });
 
                     b.HasKey("Id");
 
                     b.HasIndex("SimulationId");
 
                     b.ToTable("UnitOperations");
+
+                    b.HasDiscriminator<string>("UnitType").HasValue("UnitOperationObject");
+
+                    b.UseTphMappingStrategy();
+                });
+
+            modelBuilder.Entity("Enerflow.Domain.Entities.UnitOperations.CoolerObject", b =>
+                {
+                    b.HasBaseType("Enerflow.Domain.Entities.UnitOperations.UnitOperationObject");
+
+                    b.Property<string>("CalcMode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<double>("Efficiency")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("HeatDuty")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("OutletTemperature")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("PressureDrop")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("TemperatureChange")
+                        .HasColumnType("double precision");
+
+                    b.ToTable("UnitOperations", t =>
+                        {
+                            t.Property("CalcMode")
+                                .HasColumnName("CoolerObject_CalcMode");
+
+                            t.Property("Efficiency")
+                                .HasColumnName("CoolerObject_Efficiency");
+
+                            t.Property("HeatDuty")
+                                .HasColumnName("CoolerObject_HeatDuty");
+
+                            t.Property("OutletTemperature")
+                                .HasColumnName("CoolerObject_OutletTemperature");
+
+                            t.Property("PressureDrop")
+                                .HasColumnName("CoolerObject_PressureDrop");
+
+                            t.Property("TemperatureChange")
+                                .HasColumnName("CoolerObject_TemperatureChange");
+                        });
+
+                    b.HasDiscriminator().HasValue("Cooler");
+                });
+
+            modelBuilder.Entity("Enerflow.Domain.Entities.UnitOperations.FlashDrumObject", b =>
+                {
+                    b.HasBaseType("Enerflow.Domain.Entities.UnitOperations.UnitOperationObject");
+
+                    b.Property<string>("FlashType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<double>("OutletPressure")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("OutletTemperature")
+                        .HasColumnType("double precision");
+
+                    b.ToTable("UnitOperations", t =>
+                        {
+                            t.Property("OutletTemperature")
+                                .HasColumnName("FlashDrumObject_OutletTemperature");
+                        });
+
+                    b.HasDiscriminator().HasValue("FlashDrum");
+                });
+
+            modelBuilder.Entity("Enerflow.Domain.Entities.UnitOperations.HeaterObject", b =>
+                {
+                    b.HasBaseType("Enerflow.Domain.Entities.UnitOperations.UnitOperationObject");
+
+                    b.Property<string>("CalcMode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<double>("Efficiency")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("HeatDuty")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("OutletTemperature")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("PressureDrop")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("TemperatureChange")
+                        .HasColumnType("double precision");
+
+                    b.HasDiscriminator().HasValue("Heater");
+                });
+
+            modelBuilder.Entity("Enerflow.Domain.Entities.UnitOperations.MixerObject", b =>
+                {
+                    b.HasBaseType("Enerflow.Domain.Entities.UnitOperations.UnitOperationObject");
+
+                    b.HasDiscriminator().HasValue("Mixer");
+                });
+
+            modelBuilder.Entity("Enerflow.Domain.Entities.UnitOperations.RecycleObject", b =>
+                {
+                    b.HasBaseType("Enerflow.Domain.Entities.UnitOperations.UnitOperationObject");
+
+                    b.Property<string>("Acceleration")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("MaxIterations")
+                        .HasColumnType("integer");
+
+                    b.Property<double>("Tolerance")
+                        .HasColumnType("double precision");
+
+                    b.HasDiscriminator().HasValue("Recycle");
+                });
+
+            modelBuilder.Entity("Enerflow.Domain.Entities.UnitOperations.ShortcutColumnObject", b =>
+                {
+                    b.HasBaseType("Enerflow.Domain.Entities.UnitOperations.UnitOperationObject");
+
+                    b.Property<double>("CondenserPressure")
+                        .HasColumnType("double precision");
+
+                    b.Property<Guid>("HeavyKey")
+                        .HasColumnType("uuid");
+
+                    b.Property<double>("HeavyKeyFraction")
+                        .HasColumnType("double precision");
+
+                    b.Property<Guid>("LightKey")
+                        .HasColumnType("uuid");
+
+                    b.Property<double>("LightKeyFraction")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("ReboilerPressure")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("RefluxRatio")
+                        .HasColumnType("double precision");
+
+                    b.Property<int>("Stages")
+                        .HasColumnType("integer");
+
+                    b.HasDiscriminator().HasValue("ShortcutColumn");
+                });
+
+            modelBuilder.Entity("Enerflow.Domain.Entities.UnitOperations.SplitterObject", b =>
+                {
+                    b.HasBaseType("Enerflow.Domain.Entities.UnitOperations.UnitOperationObject");
+
+                    b.Property<Dictionary<Guid, double>>("SplitRatios")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.HasDiscriminator().HasValue("Splitter");
+                });
+
+            modelBuilder.Entity("Enerflow.Domain.Entities.UnitOperations.ValveObject", b =>
+                {
+                    b.HasBaseType("Enerflow.Domain.Entities.UnitOperations.UnitOperationObject");
+
+                    b.Property<string>("CalcMode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<double>("OutletPressure")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("PressureDrop")
+                        .HasColumnType("double precision");
+
+                    b.ToTable("UnitOperations", t =>
+                        {
+                            t.Property("CalcMode")
+                                .HasColumnName("ValveObject_CalcMode");
+
+                            t.Property("OutletPressure")
+                                .HasColumnName("ValveObject_OutletPressure");
+
+                            t.Property("PressureDrop")
+                                .HasColumnName("ValveObject_PressureDrop");
+                        });
+
+                    b.HasDiscriminator().HasValue("Valve");
                 });
 
             modelBuilder.Entity("Enerflow.Domain.Entities.Compound", b =>
@@ -193,7 +421,7 @@ namespace Enerflow.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Enerflow.Domain.Entities.EnergyStream", b =>
+            modelBuilder.Entity("Enerflow.Domain.Entities.Streams.EnergyStream", b =>
                 {
                     b.HasOne("Enerflow.Domain.Entities.Simulation", null)
                         .WithMany("EnergyStreams")
@@ -202,7 +430,7 @@ namespace Enerflow.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Enerflow.Domain.Entities.MaterialStream", b =>
+            modelBuilder.Entity("Enerflow.Domain.Entities.Streams.MaterialStream", b =>
                 {
                     b.HasOne("Enerflow.Domain.Entities.Simulation", null)
                         .WithMany("MaterialStreams")
@@ -211,7 +439,7 @@ namespace Enerflow.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Enerflow.Domain.Entities.UnitOperation", b =>
+            modelBuilder.Entity("Enerflow.Domain.Entities.UnitOperations.UnitOperationObject", b =>
                 {
                     b.HasOne("Enerflow.Domain.Entities.Simulation", null)
                         .WithMany("UnitOperations")

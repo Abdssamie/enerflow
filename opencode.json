@@ -1,0 +1,146 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "agent": {
+    "avalonia-data-binding": {
+      "mode": "primary",
+      "prompt": "{file:.opencode/prompts/avalonia-data-binding.txt}",
+      "tools": {
+        "bash": true,
+        "edit": true,
+        "glob": true,
+        "grep": true,
+        "read": true,
+        "task": true,
+        "webfetch": true,
+        "write": true
+      }
+    },
+    "avalonia-mvvm": {
+      "mode": "primary",
+      "prompt": "{file:.opencode/prompts/avalonia-mvvm.txt}",
+      "tools": {
+        "bash": true,
+        "edit": true,
+        "glob": true,
+        "grep": true,
+        "read": true,
+        "task": true,
+        "webfetch": true,
+        "write": true
+      }
+    },
+    "axaml-syntax-reference": {
+      "mode": "primary",
+      "prompt": "{file:.opencode/prompts/axaml-syntax-reference.txt}",
+      "tools": {
+        "bash": true,
+        "edit": true,
+        "glob": true,
+        "grep": true,
+        "read": true,
+        "task": true,
+        "webfetch": true,
+        "write": true
+      }
+    },
+    "benchmarking": {
+      "mode": "primary",
+      "prompt": "{file:.opencode/prompts/benchmarking.txt}",
+      "tools": {
+        "bash": true,
+        "edit": true,
+        "glob": true,
+        "grep": true,
+        "read": true,
+        "task": true,
+        "webfetch": true,
+        "write": true
+      }
+    },
+    "csharp-coding-style": {
+      "mode": "primary",
+      "prompt": "{file:.opencode/prompts/csharp-coding-style.txt}",
+      "tools": {
+        "bash": true,
+        "edit": true,
+        "glob": true,
+        "grep": true,
+        "read": true,
+        "task": true,
+        "webfetch": true,
+        "write": true
+      }
+    },
+    "csharp-testing": {
+      "mode": "primary",
+      "prompt": "{file:.opencode/prompts/csharp-testing.txt}",
+      "tools": {
+        "bash": true,
+        "edit": true,
+        "glob": true,
+        "grep": true,
+        "read": true,
+        "search": true,
+        "task": true,
+        "webfetch": true,
+        "write": true
+      }
+    },
+    "drizzle-orm": {
+      "mode": "primary",
+      "prompt": "{file:.opencode/prompts/drizzle-orm.txt}",
+      "tools": {
+        "bash": true,
+        "edit": true,
+        "glob": true,
+        "grep": true,
+        "read": true,
+        "task": true,
+        "webfetch": true,
+        "write": true
+      }
+    },
+    "frontend-expert": {
+      "mode": "primary",
+      "prompt": "{file:.opencode/prompts/frontend-expert.txt}",
+      "tools": {
+        "bash": true,
+        "edit": true,
+        "glob": true,
+        "grep": true,
+        "read": true,
+        "task": true,
+        "webfetch": true,
+        "write": true
+      }
+    },
+    "react-compiler-debugging": {
+      "mode": "primary",
+      "prompt": "{file:.opencode/prompts/react-compiler-debugging.txt}",
+      "tools": {
+        "bash": true,
+        "edit": true,
+        "glob": true,
+        "grep": true,
+        "read": true,
+        "task": true,
+        "webfetch": true,
+        "write": true
+      }
+    },
+    "react-native-development": {
+      "mode": "primary",
+      "prompt": "{file:.opencode/prompts/react-native-development.txt}",
+      "tools": {
+        "bash": true,
+        "edit": true,
+        "glob": true,
+        "grep": true,
+        "read": true,
+        "task": true,
+        "webfetch": true,
+        "write": true
+      }
+    }
+  }
+}

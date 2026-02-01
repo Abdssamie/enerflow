@@ -1,0 +1,76 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <IsPackable>false</IsPackable>
+        <DWSIMPath>../libs/dwsim_9.0.5/dwsim</DWSIMPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="coverlet.collector" Version="6.0.4" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+        <PackageReference Include="xunit" Version="2.9.3" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+        <PackageReference Include="Serilog" Version="4.3.0" />
+        <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Enerflow.Domain\Enerflow.Domain.csproj" />
+        <ProjectReference Include="..\Enerflow.Simulation\Enerflow.Simulation.csproj" />
+        <ProjectReference Include="..\Enerflow.Worker\Enerflow.Worker.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Reference Include="DWSIM.GlobalSettings">
+            <HintPath>$(DWSIMPath)/DWSIM.GlobalSettings.dll</HintPath>
+        </Reference>
+        <Reference Include="DWSIM.Automation">
+            <HintPath>$(DWSIMPath)/DWSIM.Automation.dll</HintPath>
+        </Reference>
+        <Reference Include="DWSIM.Interfaces">
+            <HintPath>$(DWSIMPath)/DWSIM.Interfaces.dll</HintPath>
+        </Reference>
+        <Reference Include="DWSIM.SharedClasses">
+            <HintPath>$(DWSIMPath)/DWSIM.SharedClasses.dll</HintPath>
+        </Reference>
+        <Reference Include="DWSIM.Thermodynamics">
+            <HintPath>$(DWSIMPath)/DWSIM.Thermodynamics.dll</HintPath>
+        </Reference>
+        <Reference Include="DWSIM.UnitOperations">
+            <HintPath>$(DWSIMPath)/DWSIM.UnitOperations.dll</HintPath>
+        </Reference>
+        <Reference Include="CapeOpen">
+            <HintPath>$(DWSIMPath)/CapeOpen.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Include="$(DWSIMPath)/libSkiaSharp.so">
+            <Link>libSkiaSharp.so</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Update="$(DWSIMPath)/**/*.dll">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="$(DWSIMPath)/**/*.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="$(DWSIMPath)/**/*.ini">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="$(DWSIMPath)/data/**/*.*">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="Xunit" />
+    </ItemGroup>
+
+</Project>
