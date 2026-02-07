@@ -53,6 +53,7 @@ public record AddStreamRequest
     [Range(0d, 1000000d)]
     public double MassFlow { get; init; } = 1.0;       // kg/s
     
+    [Length(0, 50, ErrorMessage = "Composition cannot exceed 50 components.")]
     public Dictionary<string, double> Composition { get; init; } = new();
 }
 
