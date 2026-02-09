@@ -151,41 +151,6 @@ public class DWSIMFlowsheetBuilder : IFlowsheetBuilder
             // This would require extracting config from the entity or having a separate config step
         }
 
-        // 9. Connect Topology
-        foreach (var unit in simulation.UnitOperations)
-        {
-            var dwsimObj = flowsheet.GetObject(unit.Name);
-            if (dwsimObj == null) continue;
-            
-            // Connect Inputs (Stream -> Unit)
-            for (var i = 0; i < unit.InputStreamIds.Count; i++)
-            {
-                var inId = unit.InputStreamIds[i];
-                if (!streamMap.TryGetValue(inId, out var streamName)) continue;
-                
-                var streamObj = flowsheet.GetObject(streamName);
-                if (streamObj != null)
-                {
-                    // Stream Output (0) -> Unit Input (i)
-                    flowsheet.ConnectObjects(streamObj.GraphicObject, dwsimObj.GraphicObject, 0, i);
-                }
-            }
-
-            // Connect Outputs (Unit -> Stream)
-            for (int i = 0; i < unit.OutputStreamIds.Count; i++)
-            {
-                var outId = unit.OutputStreamIds[i];
-                if (!streamMap.TryGetValue(outId, out var streamName)) continue;
-                
-                var streamObj = flowsheet.GetObject(streamName);
-                if (streamObj != null)
-                {
-                    // Unit Output (i) -> Stream Input (0)
-                    flowsheet.ConnectObjects(dwsimObj.GraphicObject, streamObj.GraphicObject, i, 0);
-                }
-            }
-        }
-
         // VALIDATE BEFORE RETURNING
         _logger.LogInformation("Validating flowsheet for simulation {Id}", simulation.Id);
         var validationResult = _validator.Validate(simulation, flowsheet);
