@@ -26,6 +26,14 @@ This directory contains completed implementation plans.
    - Simplified solver architecture
    - Commit: `14ec62a`
 
+5. **2026-02-09-cleanup-unnecessary-code.md** ✅
+   - Removed convergence infrastructure (~270 lines)
+   - Removed PostConnectionConfigurator
+   - Removed ConvergenceException
+   - Simplified DI registrations
+   - Documented new architecture
+   - Commits: `3ef5ef3`, `c2e2519`, `f58d100`, `b6f66b9`
+
 ## Active Plans
 
 See `docs/plans/` for current active plans.
