@@ -21,9 +21,11 @@ public class ConnectionMapper : IConnectionMapper
         // 1. Map Material Streams to Units
         foreach (var unit in simulation.UnitOperations)
         {
-            if (!flowsheet.SimulationObjects.TryGetValue(unit.Name, out var simObj))
+            // Builder creates objects with ID as the key
+            var unitId = unit.Id.ToString();
+            if (!flowsheet.SimulationObjects.TryGetValue(unitId, out var simObj))
             {
-                _logger.LogWarning("Unit Operation {Name} not found in flowsheet.", unit.Name);
+                _logger.LogWarning("Unit Operation {Name} (ID: {Id}) not found in flowsheet.", unit.Name, unit.Id);
                 continue;
             }
 
@@ -35,7 +37,8 @@ public class ConnectionMapper : IConnectionMapper
                 
                 if (streamEntity != null)
                 {
-                    ConnectStreamToUnit(flowsheet, streamEntity.Name, simObj, isInput: true, portIndex: i);
+                    // Use stream ID instead of name for lookup
+                    ConnectStreamToUnit(flowsheet, streamEntity.Id.ToString(), simObj, isInput: true, portIndex: i);
                 }
             }
 
@@ -47,7 +50,8 @@ public class ConnectionMapper : IConnectionMapper
                 
                 if (streamEntity != null)
                 {
-                    ConnectStreamToUnit(flowsheet, streamEntity.Name, simObj, isInput: false, portIndex: i);
+                    // Use stream ID instead of name for lookup
+                    ConnectStreamToUnit(flowsheet, streamEntity.Id.ToString(), simObj, isInput: false, portIndex: i);
                 }
             }
         }
@@ -85,7 +89,7 @@ public class ConnectionMapper : IConnectionMapper
         // unless they are critical for the solver (e.g. Recycle of Energy).
     }
 
-    private void ConnectStreamToUnit(IFlowsheet flowsheet, string streamName, ISimulationObject unit, bool isInput, int portIndex)
+    private void ConnectStreamToUnit(IFlowsheet flowsheet, string streamId, ISimulationObject unit, bool isInput, int portIndex)
     {
         // DWSIM: flowSheet.AttachStreamToPort(streamName, unitName, portName, isInput)
         // Or simObj.AttachStream(stream, portIndex, isInput) -> Not standard API.
@@ -106,7 +110,7 @@ public class ConnectionMapper : IConnectionMapper
             // `Flowsheet.AttachStreamToPort(streamName, unit.Name, portIndex, isInput)`? -> Let's check via grep if unsure.
             // Or manually:
             
-            if (flowsheet.SimulationObjects.TryGetValue(streamName, out var streamObj))
+            if (flowsheet.SimulationObjects.TryGetValue(streamId, out var streamObj))
             {
                 // Connect
                 // SimulationObject.AttachTo(port, stream)
@@ -137,13 +141,13 @@ public class ConnectionMapper : IConnectionMapper
                         flowsheet.ConnectObjects(unit.GraphicObject, streamObj.GraphicObject, portIndex, 0);
                     }
                     
-                    _logger.LogInformation("Connected {Stream} to {Unit} (Port {Port}, IsInput={IsInput})", 
-                        streamName, unit.GraphicObject.Tag, portIndex, isInput);
+                    _logger.LogInformation("Connected stream {StreamId} to unit {Unit} (Port {Port}, IsInput={IsInput})", 
+                        streamId, unit.GraphicObject.Tag, portIndex, isInput);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to connect {Stream} to {Unit} (Port {Port}, IsInput={IsInput})", 
-                        streamName, unit.GraphicObject.Tag, portIndex, isInput);
+                    _logger.LogError(ex, "Failed to connect stream {StreamId} to unit {Unit} (Port {Port}, IsInput={IsInput})", 
+                        streamId, unit.GraphicObject.Tag, portIndex, isInput);
                     throw;
                 }
             }

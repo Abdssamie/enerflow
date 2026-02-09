@@ -24,7 +24,9 @@ public class ResultCollector : IResultCollector
         // 1. Extract Material Stream Results
         foreach (var domainStream in simulation.MaterialStreams)
         {
-            if (flowsheet.SimulationObjects.TryGetValue(domainStream.Name, out var simObj) && simObj is DWSIMMaterialStream dwsimStream)
+            // Builder creates objects with ID as the key
+            var streamId = domainStream.Id.ToString();
+            if (flowsheet.SimulationObjects.TryGetValue(streamId, out var simObj) && simObj is DWSIMMaterialStream dwsimStream)
             {
                 var composition = new Dictionary<string, double>();
                 if (dwsimStream.Phases.Count > 0)
@@ -47,14 +49,16 @@ public class ResultCollector : IResultCollector
             }
             else
             {
-                _logger.LogWarning("Material Stream {Name} not found in flowsheet or invalid type.", domainStream.Name);
+                _logger.LogWarning("Material Stream {Name} (ID: {Id}) not found in flowsheet or invalid type.", domainStream.Name, domainStream.Id);
             }
         }
 
         // 2. Extract Unit Operation Results
         foreach (var unit in simulation.UnitOperations)
         {
-            if (flowsheet.SimulationObjects.TryGetValue(unit.Name, out var simObj))
+            // Builder creates objects with ID as the key
+            var unitId = unit.Id.ToString();
+            if (flowsheet.SimulationObjects.TryGetValue(unitId, out var simObj))
             {
                 var calculatedParams = new Dictionary<string, object>();
 
@@ -82,6 +86,10 @@ public class ResultCollector : IResultCollector
                     UnitId = unit.Id,
                     CalculatedParams = JsonSerializer.SerializeToDocument(calculatedParams)
                 });
+            }
+            else
+            {
+                _logger.LogWarning("Unit Operation {Name} (ID: {Id}) not found in flowsheet.", unit.Name, unit.Id);
             }
         }
     }

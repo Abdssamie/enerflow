@@ -49,31 +49,42 @@ public class DWSIMSolver : ISimulationSolver
 
         // 1. Build Flowsheet (Foundation)
         IFlowsheet flowsheet = _flowsheetBuilder.BuildFlowsheet(simulation);
+        _logger.LogInformation("Flowsheet built successfully for Job {JobId}", simulation.Id);
 
         // 2. Map Streams
+        _logger.LogInformation("Mapping {Count} material streams for Job {JobId}", simulation.MaterialStreams.Count, simulation.Id);
         foreach (var ms in simulation.MaterialStreams)
         {
             _streamMapper.MapMaterialStream(ms, flowsheet);
         }
+        _logger.LogInformation("Material streams mapped successfully for Job {JobId}", simulation.Id);
 
+        _logger.LogInformation("Mapping {Count} energy streams for Job {JobId}", simulation.EnergyStreams.Count, simulation.Id);
         foreach (var es in simulation.EnergyStreams)
         {
             _streamMapper.MapEnergyStream(es, flowsheet);
         }
+        _logger.LogInformation("Energy streams mapped successfully for Job {JobId}", simulation.Id);
 
         // 3. Map Unit Operations
         var compoundLookup = simulation.Compounds.ToDictionary(c => c.Id, c => c.Name);
 
+        _logger.LogInformation("Mapping {Count} unit operations for Job {JobId}", simulation.UnitOperations.Count, simulation.Id);
         foreach (var unit in simulation.UnitOperations)
         {
             _unitOpMapper.Map(unit, flowsheet, compoundLookup);
         }
+        _logger.LogInformation("Unit operations mapped successfully for Job {JobId}", simulation.Id);
 
         // 4. Map Connections
+        _logger.LogInformation("Mapping connections for Job {JobId}", simulation.Id);
         _connectionMapper.MapConnections(simulation, flowsheet);
+        _logger.LogInformation("Connections mapped successfully for Job {JobId}", simulation.Id);
 
         // 5. Post-Connection Configuration (Splitter Ratios, etc.)
+        _logger.LogInformation("Configuring post-connection settings for Job {JobId}", simulation.Id);
         _postConfigurator.ConfigurePostConnection(simulation, flowsheet);
+        _logger.LogInformation("Post-connection configuration completed for Job {JobId}", simulation.Id);
 
         // 6. Solver Loop
         bool converged = false;
@@ -95,6 +106,8 @@ public class DWSIMSolver : ISimulationSolver
         // Automation3 has `CalculateFlowsheet2` (void) or similar.
         // Let's use `Solver.Solve(flowsheet)` equivalent.
 
+        _logger.LogInformation("Starting DWSIM solver loop for Job {JobId}", simulation.Id);
+
         try
         {
             // DWSIM's IFlowsheet usually has RequestCalculation()
@@ -105,10 +118,13 @@ public class DWSIMSolver : ISimulationSolver
             do
             {
                 iteration++;
+                _logger.LogInformation("Starting iteration {Iteration} for Job {JobId}", iteration, simulation.Id);
 
                 // Run DWSIM Calculation
                 // RequestCalculationAndWait() returns exceptions if any.
+                _logger.LogInformation("Calling DWSIM RequestCalculationAndWait for Job {JobId}", simulation.Id);
                 var errors = flowsheet.RequestCalculationAndWait();
+                _logger.LogInformation("DWSIM RequestCalculationAndWait completed for Job {JobId}", simulation.Id);
 
                 if (errors != null && errors.Count > 0)
                 {

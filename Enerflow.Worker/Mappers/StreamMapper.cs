@@ -19,12 +19,20 @@ public class StreamMapper : IStreamMapper
 
     public void MapMaterialStream(MaterialStream domainStream, IFlowsheet flowsheet)
     {
-        _logger.LogDebug("Mapping Material Stream: {Name}", domainStream.Name);
+        _logger.LogInformation("Mapping Material Stream: {Name} (ID: {Id})", domainStream.Name, domainStream.Id);
 
-        // 1. Create Object
-        // Position defaults to 0,0 if not specified (Enerflow.Domain.Entities.SimulationObject has Position, but we can default for now)
-        // Note: AddObject returns ISimulationObject
-        var obj = flowsheet.AddObject(ObjectType.MaterialStream, 0, 0, domainStream.Name);
+        // 1. Find existing stream (created by Builder)
+        // The Builder creates streams with ID as the object ID
+        var streamId = domainStream.Id.ToString();
+        
+        if (!flowsheet.SimulationObjects.ContainsKey(streamId))
+        {
+            _logger.LogError("Material stream {Name} (ID: {Id}) not found in flowsheet. Builder should have created it.", 
+                domainStream.Name, domainStream.Id);
+            throw new InvalidOperationException($"Material stream {domainStream.Name} not found in flowsheet");
+        }
+
+        var obj = flowsheet.SimulationObjects[streamId];
         var ms = (DWSIMMaterialStream)obj;
 
         // 2. Set Properties (SI Units: K, Pa, kg/s)
@@ -75,9 +83,19 @@ public class StreamMapper : IStreamMapper
 
     public void MapEnergyStream(EnergyStream domainStream, IFlowsheet flowsheet)
     {
-        _logger.LogDebug("Mapping Energy Stream: {Name}", domainStream.Name);
+        _logger.LogInformation("Mapping Energy Stream: {Name} (ID: {Id})", domainStream.Name, domainStream.Id);
 
-        var obj = flowsheet.AddObject(ObjectType.EnergyStream, 0, 0, domainStream.Name);
+        // 1. Find existing stream (created by Builder)
+        var streamId = domainStream.Id.ToString();
+        
+        if (!flowsheet.SimulationObjects.ContainsKey(streamId))
+        {
+            _logger.LogError("Energy stream {Name} (ID: {Id}) not found in flowsheet. Builder should have created it.", 
+                domainStream.Name, domainStream.Id);
+            throw new InvalidOperationException($"Energy stream {domainStream.Name} not found in flowsheet");
+        }
+
+        var obj = flowsheet.SimulationObjects[streamId];
         var es = (DWSIMEnergyStream)obj;
 
         // Set Energy Flow (Units: kW in DWSIM SI)
