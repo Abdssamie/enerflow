@@ -2,7 +2,6 @@ using Enerflow.API.Extensions;
 using Enerflow.Infrastructure.Persistence;
 using Microsoft.Extensions.Logging;
 using Enerflow.Worker.Consumers;
-using Enerflow.Simulation.Services;
 using Enerflow.Simulation.Flowsheet.Compounds;
 using Enerflow.Simulation.Flowsheet.PropertyPackages;
 using Enerflow.Simulation.Flowsheet.Streams;
@@ -127,7 +126,6 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
             services.TryAddSingleton<IEnergyStreamFactory, EnergyStreamFactory>();
             services.TryAddSingleton<IUnitOperationFactory, UnitOperationFactory>();
             services.TryAddSingleton<IFlashAlgorithmManager, FlashAlgorithmManager>();
-            services.TryAddScoped<ISimulationService, SimulationService>();
             
             // Register DWSIM Automation (Singleton due to initialization overhead)
             // Register as concrete type since DWSIMFlowsheetBuilder expects the concrete class
