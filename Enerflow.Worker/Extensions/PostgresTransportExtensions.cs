@@ -27,13 +27,19 @@ public static class PostgresTransportExtensions
 
         services.AddOptions<SqlTransportOptions>().Configure(options =>
         {
+            // Security: Enforce password or integrated security, never fallback to default
+            if (string.IsNullOrEmpty(builder.Password) && !builder.IntegratedSecurity)
+            {
+                throw new InvalidOperationException("PostgreSQL connection string requires a Password or Integrated Security=true. Hardcoded default passwords are removed for security.");
+            }
+
             options.Host = builder.Host ?? "localhost";
             options.Port = builder.Port;
             options.Database = builder.Database ?? "enerflow_db";
             options.Schema = "transport";
             options.Role = "transport";
             options.Username = builder.Username ?? "enerflow";
-            options.Password = builder.Password ?? "enerflow_password";
+            options.Password = builder.Password;
             options.AdminUsername = builder.Username;
             options.AdminPassword = builder.Password;
         });

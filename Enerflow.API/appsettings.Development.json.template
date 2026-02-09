@@ -1,0 +1,12 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Port=5432;Database=enerflow_db;Username=enerflow;Password=YOUR_PASSWORD_HERE;"
+  },
+  "RedisConfiguration": "localhost:6379"
+}
