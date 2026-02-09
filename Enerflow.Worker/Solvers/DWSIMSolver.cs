@@ -16,7 +16,6 @@ public class DWSIMSolver : ISimulationSolver
     private readonly IStreamMapper _streamMapper;
     private readonly IUnitOperationMapper _unitOpMapper;
     private readonly IConnectionMapper _connectionMapper;
-    private readonly IPostConnectionConfigurator _postConfigurator;
     private readonly IResultCollector _resultCollector;
     private readonly ILogger<DWSIMSolver> _logger;
 
@@ -26,7 +25,6 @@ public class DWSIMSolver : ISimulationSolver
         IStreamMapper streamMapper,
         IUnitOperationMapper unitOpMapper,
         IConnectionMapper connectionMapper,
-        IPostConnectionConfigurator postConfigurator,
         IResultCollector resultCollector,
         ILogger<DWSIMSolver> logger)
     {
@@ -35,7 +33,6 @@ public class DWSIMSolver : ISimulationSolver
         _streamMapper = streamMapper;
         _unitOpMapper = unitOpMapper;
         _connectionMapper = connectionMapper;
-        _postConfigurator = postConfigurator;
         _resultCollector = resultCollector;
         _logger = logger;
     }
@@ -81,17 +78,12 @@ public class DWSIMSolver : ISimulationSolver
 
         _logger.LogInformation("Unit operations mapped successfully for Job {JobId}", simulation.Id);
 
-        // 4. Map Connections
+        // 4. Map Connections (includes post-connection configuration like splitter ratios)
         _logger.LogInformation("Mapping connections for Job {JobId}", simulation.Id);
         _connectionMapper.MapConnections(simulation, flowsheet);
         _logger.LogInformation("Connections mapped successfully for Job {JobId}", simulation.Id);
 
-        // 5. Post-Connection Configuration (Splitter Ratios, etc.)
-        _logger.LogInformation("Configuring post-connection settings for Job {JobId}", simulation.Id);
-        _postConfigurator.ConfigurePostConnection(simulation, flowsheet);
-        _logger.LogInformation("Post-connection configuration completed for Job {JobId}", simulation.Id);
-
-        // 6. Solve using DWSIM's modern CalculateFlowsheet4 API
+        // 5. Solve using DWSIM's modern CalculateFlowsheet4 API
         _logger.LogInformation("Starting DWSIM calculation for Job {JobId}", simulation.Id);
 
         try

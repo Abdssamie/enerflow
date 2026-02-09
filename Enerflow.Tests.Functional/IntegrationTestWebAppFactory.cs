@@ -137,7 +137,6 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
             services.TryAddScoped<IStreamMapper, StreamMapper>();
             services.TryAddScoped<IUnitOperationMapper, UnitOperationMapper>();
             services.TryAddScoped<IConnectionMapper, ConnectionMapper>();
-            services.TryAddScoped<IPostConnectionConfigurator, PostConnectionConfigurator>();
             
             // Register Solvers
             services.TryAddScoped<IResultCollector, ResultCollector>();

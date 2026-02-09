@@ -51,7 +51,6 @@ builder.Services.AddScoped<Enerflow.Worker.Builders.IFlowsheetBuilder, Enerflow.
 builder.Services.AddScoped<IStreamMapper, StreamMapper>();
 builder.Services.AddScoped<IUnitOperationMapper, UnitOperationMapper>();
 builder.Services.AddScoped<IConnectionMapper, ConnectionMapper>();
-builder.Services.AddScoped<IPostConnectionConfigurator, PostConnectionConfigurator>();
 
 // Register Solvers
 builder.Services.AddScoped<IResultCollector, ResultCollector>();

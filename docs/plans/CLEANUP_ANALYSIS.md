@@ -135,7 +135,7 @@ Some DWSIM unit operations need to know their outlet count before configuration:
 - Potentially others in the future
 
 ### Why Remove?
-- ✅ **Can be done in UnitOperationMapper** - Just do it after connection logic
+-    **Can be done in UnitOperationMapper** - Just do it after connection logic
 - ✅ **Extra abstraction layer** - Adds complexity without clear benefit
 - ✅ **Only used for splitters** - Not worth a separate class
 
