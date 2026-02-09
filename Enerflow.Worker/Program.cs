@@ -6,7 +6,6 @@ using Enerflow.Simulation.Flowsheet.PropertyPackages;
 using Enerflow.Simulation.Flowsheet.Streams;
 using Enerflow.Simulation.Flowsheet.FlashAlgorithms;
 using Enerflow.Simulation.Flowsheet.UnitOperations;
-using Enerflow.Worker.Convergence;
 using Enerflow.Worker.Mappers;
 using Enerflow.Worker.Solvers;
 using MassTransit;
@@ -54,9 +53,7 @@ builder.Services.AddScoped<IUnitOperationMapper, UnitOperationMapper>();
 builder.Services.AddScoped<IConnectionMapper, ConnectionMapper>();
 builder.Services.AddScoped<IPostConnectionConfigurator, PostConnectionConfigurator>();
 
-// Register Convergence & Solvers
-builder.Services.AddScoped<ErrorCalculator>();
-builder.Services.AddScoped<IConvergenceAccelerator, WegsteinAccelerator>();
+// Register Solvers
 builder.Services.AddScoped<IResultCollector, ResultCollector>();
 builder.Services.AddScoped<ISimulationSolver, DWSIMSolver>();
 

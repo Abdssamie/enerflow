@@ -56,10 +56,9 @@ public class SimulationJobConsumer : IConsumer<SimulationJob>
 
             // Step 2: Solve
             _logger.LogInformation("Starting solver for Job {JobId}", job.JobId);
-            var config = new ConvergenceConfig(); // Use defaults
 
             // Note: Solve is currently synchronous (CPU-bound)
-            var result = _solver.Solve(simulation, config);
+            var result = _solver.Solve(simulation);
 
             // Step 3: Persist Results
             var status = result.Success ? SimulationStatus.Converged : SimulationStatus.Failed;

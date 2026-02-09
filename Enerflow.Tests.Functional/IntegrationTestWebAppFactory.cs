@@ -18,7 +18,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
 using Npgsql;
-using Enerflow.Worker.Convergence;
 using Enerflow.Worker.Solvers;
 using Enerflow.Worker.Mappers;
 using Enerflow.Worker.Builders;
@@ -140,9 +139,7 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
             services.TryAddScoped<IConnectionMapper, ConnectionMapper>();
             services.TryAddScoped<IPostConnectionConfigurator, PostConnectionConfigurator>();
             
-            // Register Convergence & Solvers
-            services.TryAddScoped<ErrorCalculator>();
-            services.TryAddScoped<IConvergenceAccelerator, WegsteinAccelerator>();
+            // Register Solvers
             services.TryAddScoped<IResultCollector, ResultCollector>();
             services.TryAddScoped<ISimulationSolver, DWSIMSolver>();
             

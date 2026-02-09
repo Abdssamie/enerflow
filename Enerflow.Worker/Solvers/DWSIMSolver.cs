@@ -3,7 +3,6 @@ using DWSIM.Automation;
 using DWSIM.Interfaces;
 using Enerflow.Domain.DTOs;
 using Enerflow.Worker.Builders;
-using Enerflow.Worker.Convergence;
 using Enerflow.Worker.Mappers;
 using Microsoft.Extensions.Logging;
 using SimulationEntity = Enerflow.Domain.Entities.Simulation;
@@ -19,7 +18,6 @@ public class DWSIMSolver : ISimulationSolver
     private readonly IConnectionMapper _connectionMapper;
     private readonly IPostConnectionConfigurator _postConfigurator;
     private readonly IResultCollector _resultCollector;
-    private readonly ErrorCalculator _errorCalculator;
     private readonly ILogger<DWSIMSolver> _logger;
 
     public DWSIMSolver(
@@ -30,7 +28,6 @@ public class DWSIMSolver : ISimulationSolver
         IConnectionMapper connectionMapper,
         IPostConnectionConfigurator postConfigurator,
         IResultCollector resultCollector,
-        ErrorCalculator errorCalculator,
         ILogger<DWSIMSolver> logger)
     {
         _automation = automation;
@@ -40,13 +37,11 @@ public class DWSIMSolver : ISimulationSolver
         _connectionMapper = connectionMapper;
         _postConfigurator = postConfigurator;
         _resultCollector = resultCollector;
-        _errorCalculator = errorCalculator;
         _logger = logger;
     }
 
-    public SimulationResult Solve(SimulationEntity simulation, ConvergenceConfig? config = null)
+    public SimulationResult Solve(SimulationEntity simulation)
     {
-        config ??= new ConvergenceConfig();
         var sw = Stopwatch.StartNew();
 
         _logger.LogInformation("Starting simulation solve for Job {JobId}", simulation.Id);
