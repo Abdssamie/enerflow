@@ -148,6 +148,15 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
             
             // Register Validation
             services.TryAddScoped<IFlowsheetValidator, FlowsheetValidator>();
+            
+            // Configure MassTransit host options to ensure bus is fully started before tests run
+            services.AddOptions<MassTransitHostOptions>()
+                .Configure(options =>
+                {
+                    options.WaitUntilStarted = true;
+                    options.StartTimeout = TimeSpan.FromSeconds(30);
+                    options.StopTimeout = TimeSpan.FromSeconds(30);
+                });
         });
     }
 
