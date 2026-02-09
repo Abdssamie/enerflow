@@ -122,36 +122,30 @@ public class ConnectionMapper : IConnectionMapper
                 
                 // Let's use `Connect` if flowsheet exposes it, or use the graphic object connection logic which is standard DWSIM.
                 
-                if (isInput)
+                try
                 {
-                    // Stream -> Unit
-                    // Stream Output -> Unit Input
-                    // Stream only has 1 output usually (unless split? No, usually 1 stream 1 connection).
-                    // Actually DWSIM Stream has 1 Input and 1 Output connector.
-                    
-                    var streamOut = streamObj.GraphicObject.OutputConnectors[0];
-                    if (!streamOut.IsAttached)
+                    if (isInput)
                     {
+                        // Stream -> Unit
+                        // Stream Output -> Unit Input
                         flowsheet.ConnectObjects(streamObj.GraphicObject, unit.GraphicObject, 0, portIndex);
                     }
                     else
                     {
-                        // Already attached? Splitter?
-                        // DWSIM Streams connect 1-to-1.
-                    }
-                }
-                else
-                {
-                    // Unit -> Stream
-                    // Unit Output -> Stream Input
-                    var streamIn = streamObj.GraphicObject.InputConnectors[0];
-                    if (!streamIn.IsAttached)
-                    {
+                        // Unit -> Stream
+                        // Unit Output -> Stream Input
                         flowsheet.ConnectObjects(unit.GraphicObject, streamObj.GraphicObject, portIndex, 0);
                     }
+                    
+                    _logger.LogInformation("Connected {Stream} to {Unit} (Port {Port}, IsInput={IsInput})", 
+                        streamName, unit.GraphicObject.Tag, portIndex, isInput);
                 }
-                
-                _logger.LogTrace("Connected {Stream} to {Unit} (Port {Port}, IsInput={IsInput})", streamName, unit.GraphicObject.Tag, portIndex, isInput);
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to connect {Stream} to {Unit} (Port {Port}, IsInput={IsInput})", 
+                        streamName, unit.GraphicObject.Tag, portIndex, isInput);
+                    throw;
+                }
             }
         }
         else
