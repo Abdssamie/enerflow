@@ -83,7 +83,7 @@ public class Test09ConversionReactor : TestBase
         // Solve
         Logger.Information("========================================");
         Logger.Information("Solving flowsheet...");
-        Automation.CalculateFlowsheet2(flowsheet);
+        Automation.CalculateFlowsheet4(flowsheet);
 
         // Check convergence
         AssertConverged(flowsheet);

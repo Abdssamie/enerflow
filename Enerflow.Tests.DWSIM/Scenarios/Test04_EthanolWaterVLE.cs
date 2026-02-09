@@ -56,7 +56,7 @@ public class Test04EthanolWaterVle : TestBase
         Logger.Information("Stream Config: 1 bar, VF=0 (Bubble Point), 50/50 mol%");
 
         // Solve NRTL
-        Automation.CalculateFlowsheet2(flowsheetNRTL);
+        Automation.CalculateFlowsheet4(flowsheetNRTL);
         AssertConverged(flowsheetNRTL);
 
         // Get Bubble Point Temperature (NRTL)
@@ -93,7 +93,7 @@ public class Test04EthanolWaterVle : TestBase
         streamPR.Phases[0].Properties.molarfraction = 0.0;
 
         // Solve PR
-        Automation.CalculateFlowsheet2(flowsheetPR);
+        Automation.CalculateFlowsheet4(flowsheetPR);
         AssertConverged(flowsheetPR);
 
         double tempPR = streamPR.Phases[0].Properties.temperature ?? 0;

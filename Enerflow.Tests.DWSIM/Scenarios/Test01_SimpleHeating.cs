@@ -74,7 +74,7 @@ public class Test01SimpleHeating : TestBase
         // Act
         Logger.Information("========================================");
         Logger.Information("Solving flowsheet...");
-        Automation.CalculateFlowsheet2(flowsheet);
+        Automation.CalculateFlowsheet4(flowsheet);
 
         // Assert
         AssertConverged(flowsheet);

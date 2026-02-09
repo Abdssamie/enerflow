@@ -73,7 +73,7 @@ public class Test05FlashAlgorithmComparison : TestBase
         // Solve
         Logger.Information("Solving with NestedLoops...");
         var startNL = DateTime.Now;
-        Automation.CalculateFlowsheet2(flowsheetNL);
+        Automation.CalculateFlowsheet4(flowsheetNL);
         var timeNL = (DateTime.Now - startNL).TotalMilliseconds;
         AssertConverged(flowsheetNL);
 
@@ -145,7 +145,7 @@ public class Test05FlashAlgorithmComparison : TestBase
         // Solve
         Logger.Information("Solving with InsideOut...");
         var startIO = DateTime.Now;
-        Automation.CalculateFlowsheet2(flowsheetIO);
+        Automation.CalculateFlowsheet4(flowsheetIO);
         var timeIO = (DateTime.Now - startIO).TotalMilliseconds;
         AssertConverged(flowsheetIO);
 

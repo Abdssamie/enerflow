@@ -138,7 +138,7 @@ public class Test10RecycleLoop : TestBase
         Logger.Information("========================================");
         Logger.Information("Solving flowsheet (recycle convergence)...");
 
-        Automation.CalculateFlowsheet2(flowsheet);
+        Automation.CalculateFlowsheet4(flowsheet);
 
         // Check basic convergence
         if (!flowsheet.Solved)
@@ -146,7 +146,7 @@ public class Test10RecycleLoop : TestBase
             Logger.Warning("First solve iteration did not fully converge. Trying additional iterations...");
             for (int i = 0; i < 5; i++)
             {
-                Automation.CalculateFlowsheet2(flowsheet);
+                Automation.CalculateFlowsheet4(flowsheet);
                 if (flowsheet.Solved)
                 {
                     Logger.Information("Converged after {Iterations} additional iterations", i + 1);
