@@ -38,7 +38,13 @@ public class StreamMapper : IStreamMapper
         // 2. Set Properties (SI Units: K, Pa, kg/s)
         ms.Phases[0].Properties.temperature = domainStream.Temperature;
         ms.Phases[0].Properties.pressure = domainStream.Pressure;
-        ms.Phases[0].Properties.massflow = domainStream.MassFlow;
+        
+        // Only set mass flow if it's non-zero (inlet streams)
+        // Outlet streams (MassFlow = 0) should be calculated by DWSIM
+        if (domainStream.MassFlow > 0)
+        {
+            ms.Phases[0].Properties.massflow = domainStream.MassFlow;
+        }
 
         // Note: If MolarFlow is provided and MassFlow is 0, we might want to set MolarFlow.
         // Domain entity has both, but usually one drives the other. 

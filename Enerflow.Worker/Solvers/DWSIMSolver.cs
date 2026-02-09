@@ -52,28 +52,34 @@ public class DWSIMSolver : ISimulationSolver
         _logger.LogInformation("Flowsheet built successfully for Job {JobId}", simulation.Id);
 
         // 2. Map Streams
-        _logger.LogInformation("Mapping {Count} material streams for Job {JobId}", simulation.MaterialStreams.Count, simulation.Id);
+        _logger.LogInformation("Mapping {Count} material streams for Job {JobId}", simulation.MaterialStreams.Count,
+            simulation.Id);
         foreach (var ms in simulation.MaterialStreams)
         {
             _streamMapper.MapMaterialStream(ms, flowsheet);
         }
+
         _logger.LogInformation("Material streams mapped successfully for Job {JobId}", simulation.Id);
 
-        _logger.LogInformation("Mapping {Count} energy streams for Job {JobId}", simulation.EnergyStreams.Count, simulation.Id);
+        _logger.LogInformation("Mapping {Count} energy streams for Job {JobId}", simulation.EnergyStreams.Count,
+            simulation.Id);
         foreach (var es in simulation.EnergyStreams)
         {
             _streamMapper.MapEnergyStream(es, flowsheet);
         }
+
         _logger.LogInformation("Energy streams mapped successfully for Job {JobId}", simulation.Id);
 
         // 3. Map Unit Operations
         var compoundLookup = simulation.Compounds.ToDictionary(c => c.Id, c => c.Name);
 
-        _logger.LogInformation("Mapping {Count} unit operations for Job {JobId}", simulation.UnitOperations.Count, simulation.Id);
+        _logger.LogInformation("Mapping {Count} unit operations for Job {JobId}", simulation.UnitOperations.Count,
+            simulation.Id);
         foreach (var unit in simulation.UnitOperations)
         {
             _unitOpMapper.Map(unit, flowsheet, compoundLookup);
         }
+
         _logger.LogInformation("Unit operations mapped successfully for Job {JobId}", simulation.Id);
 
         // 4. Map Connections
@@ -126,12 +132,29 @@ public class DWSIMSolver : ISimulationSolver
                 var errors = flowsheet.RequestCalculationAndWait();
                 _logger.LogInformation("DWSIM RequestCalculationAndWait completed for Job {JobId}", simulation.Id);
 
-                if (errors != null && errors.Count > 0)
+                if (errors is { Count: > 0 })
                 {
                     _logger.LogWarning("DWSIM reported {Count} errors during calculation.", errors.Count);
                     // Log details?
                     foreach (var err in errors) _logger.LogWarning("DWSIM Error: {Msg}", err.Message);
                 }
+
+                // CRITICAL: Calculate outlet streams after unit operations complete
+                // Unit operations (like Mixer) set outlet stream properties but don't call Calculate()
+                // We need to explicitly calculate outlet streams to perform flash calculations
+                _logger.LogInformation("Calculating outlet streams for Job {JobId}", simulation.Id);
+                foreach (var unit in simulation.UnitOperations)
+                {
+                    foreach (var streamIdStr in unit.OutputStreamIds.Select(outletStreamId => outletStreamId.ToString()))
+                    {
+                        if (!flowsheet.SimulationObjects.TryGetValue(streamIdStr, out var streamObj)) continue;
+                        if (streamObj is not DWSIM.Thermodynamics.Streams.MaterialStream ms) continue;
+                        _logger.LogDebug("Calculating outlet stream {StreamId}", streamIdStr);
+                        ms.Calculate();
+                    }
+                }
+
+                _logger.LogInformation("Outlet streams calculated for Job {JobId}", simulation.Id);
 
                 // Check Convergence via our ErrorCalculator
                 error = _errorCalculator.CalculateError(flowsheet);

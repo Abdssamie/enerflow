@@ -1,5 +1,4 @@
 using DWSIM.Interfaces;
-using Enerflow.Domain.Entities;
 using Microsoft.Extensions.Logging;
 using SimulationEntity = Enerflow.Domain.Entities.Simulation;
 
@@ -30,7 +29,7 @@ public class ConnectionMapper : IConnectionMapper
             }
 
             // Input Streams
-            for (int i = 0; i < unit.InputStreamIds.Count; i++)
+            for (var i = 0; i < unit.InputStreamIds.Count; i++)
             {
                 var streamId = unit.InputStreamIds[i];
                 var streamEntity = simulation.MaterialStreams.FirstOrDefault(s => s.Id == streamId);
@@ -43,7 +42,7 @@ public class ConnectionMapper : IConnectionMapper
             }
 
             // Output Streams
-            for (int i = 0; i < unit.OutputStreamIds.Count; i++)
+            for (var i = 0; i < unit.OutputStreamIds.Count; i++)
             {
                 var streamId = unit.OutputStreamIds[i];
                 var streamEntity = simulation.MaterialStreams.FirstOrDefault(s => s.Id == streamId);
