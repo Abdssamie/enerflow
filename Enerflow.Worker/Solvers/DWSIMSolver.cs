@@ -183,10 +183,3 @@ public class DWSIMSolver : ISimulationSolver
         }
     }
 }
-
-public class ConvergenceException : Exception
-{
-    public ConvergenceException(string message) : base(message)
-    {
-    }
-}
