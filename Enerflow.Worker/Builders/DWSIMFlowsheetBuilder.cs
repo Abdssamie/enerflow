@@ -85,8 +85,8 @@ public class DWSIMFlowsheetBuilder : IFlowsheetBuilder
             var dwsimObj = flowsheet.AddObject(
                 ObjectType.MaterialStream,
                 0, 0,  // x, y coordinates (not used in headless mode)
-                stream.Id.ToString(),
-                stream.Name
+                id: stream.Id.ToString(),
+                tag: stream.Name
             );
 
             // Cast to MaterialStream and configure using factory
@@ -155,36 +155,33 @@ public class DWSIMFlowsheetBuilder : IFlowsheetBuilder
         foreach (var unit in simulation.UnitOperations)
         {
             var dwsimObj = flowsheet.GetObject(unit.Name);
-            if (dwsimObj != null)
+            if (dwsimObj == null) continue;
+            
+            // Connect Inputs (Stream -> Unit)
+            for (var i = 0; i < unit.InputStreamIds.Count; i++)
             {
-                // Connect Inputs (Stream -> Unit)
-                for (int i = 0; i < unit.InputStreamIds.Count; i++)
+                var inId = unit.InputStreamIds[i];
+                if (!streamMap.TryGetValue(inId, out var streamName)) continue;
+                
+                var streamObj = flowsheet.GetObject(streamName);
+                if (streamObj != null)
                 {
-                    var inId = unit.InputStreamIds[i];
-                    if (streamMap.TryGetValue(inId, out var streamName))
-                    {
-                        var streamObj = flowsheet.GetObject(streamName);
-                        if (streamObj != null)
-                        {
-                            // Stream Output (0) -> Unit Input (i)
-                            flowsheet.ConnectObjects(streamObj.GraphicObject, dwsimObj.GraphicObject, 0, i);
-                        }
-                    }
+                    // Stream Output (0) -> Unit Input (i)
+                    flowsheet.ConnectObjects(streamObj.GraphicObject, dwsimObj.GraphicObject, 0, i);
                 }
+            }
 
-                // Connect Outputs (Unit -> Stream)
-                for (int i = 0; i < unit.OutputStreamIds.Count; i++)
+            // Connect Outputs (Unit -> Stream)
+            for (int i = 0; i < unit.OutputStreamIds.Count; i++)
+            {
+                var outId = unit.OutputStreamIds[i];
+                if (!streamMap.TryGetValue(outId, out var streamName)) continue;
+                
+                var streamObj = flowsheet.GetObject(streamName);
+                if (streamObj != null)
                 {
-                    var outId = unit.OutputStreamIds[i];
-                    if (streamMap.TryGetValue(outId, out var streamName))
-                    {
-                        var streamObj = flowsheet.GetObject(streamName);
-                        if (streamObj != null)
-                        {
-                            // Unit Output (i) -> Stream Input (0)
-                            flowsheet.ConnectObjects(dwsimObj.GraphicObject, streamObj.GraphicObject, i, 0);
-                        }
-                    }
+                    // Unit Output (i) -> Stream Input (0)
+                    flowsheet.ConnectObjects(dwsimObj.GraphicObject, streamObj.GraphicObject, i, 0);
                 }
             }
         }

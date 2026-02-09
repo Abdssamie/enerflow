@@ -37,9 +37,9 @@ public class MaterialStreamFactory : IMaterialStreamFactory
         try
         {
             // Convert inputs to SI (Kelvin, Pascal, kg/s)
-            double tempK = ConvertTemperatureToSI(streamDto.Temperature, systemOfUnits);
-            double pressPa = ConvertPressureToSI(streamDto.Pressure, systemOfUnits);
-            double massFlowKgS = ConvertMassFlowToSI(streamDto.MassFlow, systemOfUnits);
+            var tempK = ConvertTemperatureToSI(streamDto.Temperature, systemOfUnits);
+            var pressPa = ConvertPressureToSI(streamDto.Pressure, systemOfUnits);
+            var massFlowKgS = ConvertMassFlowToSI(streamDto.MassFlow, systemOfUnits);
 
             // Set stream conditions (DWSIM always expects SI internally)
             stream.Phases[0].Properties.temperature = tempK;
@@ -47,14 +47,11 @@ public class MaterialStreamFactory : IMaterialStreamFactory
             stream.Phases[0].Properties.massflow = massFlowKgS;
 
             // Set compositions
-            if (streamDto.MolarCompositions != null)
+            foreach (var (compoundName, moleFraction) in streamDto.MolarCompositions)
             {
-                foreach (var (compoundName, moleFraction) in streamDto.MolarCompositions)
+                if (stream.Phases[0].Compounds.ContainsKey(compoundName))
                 {
-                    if (stream.Phases[0].Compounds.ContainsKey(compoundName))
-                    {
-                        stream.Phases[0].Compounds[compoundName].MoleFraction = moleFraction;
-                    }
+                    stream.Phases[0].Compounds[compoundName].MoleFraction = moleFraction;
                 }
             }
 

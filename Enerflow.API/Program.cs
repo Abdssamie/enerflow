@@ -9,7 +9,7 @@ using Enerflow.Infrastructure;
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure NewId to use Process ID for uniqueness across multiple instances on same host
-MassTransit.NewId.SetProcessIdProvider(new MassTransit.NewIdProviders.CurrentProcessIdProvider());
+NewId.SetProcessIdProvider(new MassTransit.NewIdProviders.CurrentProcessIdProvider());
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -20,7 +20,7 @@ builder.Services.AddOpenApi();
 var redisConfiguration = builder.Configuration["RedisConfiguration"]
     ?? throw new InvalidOperationException("RedisConfiguration is not set in configuration");
 
-builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
 {
     var configuration = ConfigurationOptions.Parse(redisConfiguration);
     configuration.AbortOnConnectFail = false; // Allows app to start even if Redis is temporarily unavailable
@@ -96,5 +96,3 @@ app.UseMiddleware<RateLimitingMiddleware>();
 app.MapControllers();
 
 app.Run();
-
-public partial class Program { }

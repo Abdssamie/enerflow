@@ -1,4 +1,3 @@
-using Enerflow.Domain.Entities;
 using Enerflow.Domain.DTOs;
 using SimulationEntity = Enerflow.Domain.Entities.Simulation;
 

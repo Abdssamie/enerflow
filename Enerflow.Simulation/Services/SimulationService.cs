@@ -148,7 +148,7 @@ public class SimulationService : ISimulationService
             _flowsheet.RequestCalculation();
 
             // "Always check flowsheet.Solved and flowsheet.ErrorMessage"
-            if (_flowsheet.Solved == false)
+            if (!_flowsheet.Solved)
             {
                 var flowsheetError = !string.IsNullOrEmpty(_flowsheet.ErrorMessage)
                     ? _flowsheet.ErrorMessage
@@ -163,11 +163,9 @@ public class SimulationService : ISimulationService
             var hasErrors = false;
             foreach (var obj in _flowsheet.SimulationObjects.Values)
             {
-                if (!string.IsNullOrEmpty(obj.ErrorMessage))
-                {
-                    _errorMessages.Add($"{obj.Name}: {obj.ErrorMessage}");
-                    hasErrors = true;
-                }
+                if (string.IsNullOrEmpty(obj.ErrorMessage)) continue;
+                _errorMessages.Add($"{obj.Name}: {obj.ErrorMessage}");
+                hasErrors = true;
             }
 
             if (hasErrors)
@@ -180,11 +178,10 @@ public class SimulationService : ISimulationService
                 _logger.LogInformation("Flowsheet solved successfully");
 
                 // Mass Balance Check
-                if (!CheckMassBalance())
-                {
-                    _logger.LogWarning("Mass balance mismatch detected");
-                    _errorMessages.Add("Warning: Significant mass balance mismatch detected (> 1e-3 kg/s)");
-                }
+                if (CheckMassBalance()) return !hasErrors;
+                
+                _logger.LogWarning("Mass balance mismatch detected");
+                _errorMessages.Add("Warning: Significant mass balance mismatch detected (> 1e-3 kg/s)");
             }
 
             return !hasErrors;
@@ -326,13 +323,13 @@ public class SimulationService : ISimulationService
         }
     }
 
-    private void SetPropertyPackage(PropertyPackageType PropertyPackage, FlashAlgorithm flashAlgorithm)
+    private void SetPropertyPackage(PropertyPackageType propertyPackage, FlashAlgorithm flashAlgorithm)
     {
         if (_flowsheet == null) return;
 
         try
         {
-            var pp = _propertyPackageManager.CreatePropertyPackage(PropertyPackage);
+            var pp = _propertyPackageManager.CreatePropertyPackage(propertyPackage);
 
             // Set flash algorithm
             var algorithm = _flashAlgorithmManager.CreateFlashAlgorithm(flashAlgorithm);
@@ -340,11 +337,11 @@ public class SimulationService : ISimulationService
 
             _propertyPackageManager.AddToFlowsheet(_flowsheet, pp);
             _logger.LogDebug("Set property package to: {Package} with flash algorithm: {Algorithm}",
-                PropertyPackage, flashAlgorithm);
+                propertyPackage, flashAlgorithm);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to set property package: {Package}", PropertyPackage);
+            _logger.LogWarning(ex, "Failed to set property package: {Package}", propertyPackage);
         }
     }
 
@@ -428,14 +425,16 @@ public class SimulationService : ISimulationService
 
         if (!_unitOpIdToName.TryGetValue(unitOpDto.Id, out var unitOpName))
         {
-            if (_logger.IsEnabled(LogLevel.Warning)) _logger.LogWarning("Unit operation not found for connection: {Id}", unitOpDto.Id);
+            if (_logger.IsEnabled(LogLevel.Warning))
+                _logger.LogWarning("Unit operation not found for connection: {Id}", unitOpDto.Id);
             return;
         }
 
         // Get the unit operation from the simulation objects
         if (!_flowsheet.SimulationObjects.TryGetValue(unitOpName, out var unitOpObj))
         {
-            if (_logger.IsEnabled(LogLevel.Warning)) _logger.LogWarning("Unit operation '{Name}' not found in flowsheet", unitOpName);
+            if (_logger.IsEnabled(LogLevel.Warning))
+                _logger.LogWarning("Unit operation '{Name}' not found in flowsheet", unitOpName);
             return;
         }
 
@@ -448,7 +447,8 @@ public class SimulationService : ISimulationService
                 if (!_streamIdToName.TryGetValue(streamId, out var streamName)) continue;
                 if (!_flowsheet.SimulationObjects.TryGetValue(streamName, out var streamObj)) continue;
                 _flowsheet.ConnectObjects(streamObj.GraphicObject, unitOpObj.GraphicObject, 0, i);
-                if (_logger.IsEnabled(LogLevel.Debug)) _logger.LogDebug("Connected input stream {Stream} to {UnitOp}", streamName, unitOpName);
+                if (_logger.IsEnabled(LogLevel.Debug))
+                    _logger.LogDebug("Connected input stream {Stream} to {UnitOp}", streamName, unitOpName);
             }
 
             // Connect output streams
@@ -459,7 +459,8 @@ public class SimulationService : ISimulationService
                 if (!_flowsheet.SimulationObjects.TryGetValue(streamName, out var streamObj)) continue;
                 // Connect UnitOp Output (i) to Stream Input (0)
                 _flowsheet.ConnectObjects(unitOpObj.GraphicObject, streamObj.GraphicObject, i, 0);
-                if (_logger.IsEnabled(LogLevel.Debug)) _logger.LogDebug("Connected output stream {Stream} from {UnitOp}", streamName, unitOpName);
+                if (_logger.IsEnabled(LogLevel.Debug))
+                    _logger.LogDebug("Connected output stream {Stream} from {UnitOp}", streamName, unitOpName);
             }
         }
         catch (Exception ex)
@@ -480,6 +481,8 @@ public class SimulationService : ISimulationService
         _automation.ReleaseResources();
 
         _logger.LogInformation("SimulationService disposed");
+        
+        GC.SuppressFinalize(this);
     }
 
     private bool CheckMassBalance()
@@ -488,7 +491,6 @@ public class SimulationService : ISimulationService
 
         try
         {
-
             foreach (var node in _flowsheet.SimulationObjects.Values)
             {
                 // Check if it's a material stream

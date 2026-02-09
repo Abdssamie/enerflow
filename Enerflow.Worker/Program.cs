@@ -1,13 +1,14 @@
-using Enerflow.Domain.Interfaces;
 using Enerflow.Infrastructure.Persistence;
 using Enerflow.Worker.Consumers;
 using Enerflow.Worker.Extensions;
-using Enerflow.Simulation.Services;
 using Enerflow.Simulation.Flowsheet.Compounds;
 using Enerflow.Simulation.Flowsheet.PropertyPackages;
 using Enerflow.Simulation.Flowsheet.Streams;
 using Enerflow.Simulation.Flowsheet.FlashAlgorithms;
 using Enerflow.Simulation.Flowsheet.UnitOperations;
+using Enerflow.Worker.Convergence;
+using Enerflow.Worker.Mappers;
+using Enerflow.Worker.Solvers;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -18,7 +19,7 @@ using Microsoft.Extensions.Logging;
 var builder = Host.CreateApplicationBuilder(args);
 
 // Configure NewId to use Process ID for uniqueness across multiple instances on same host
-MassTransit.NewId.SetProcessIdProvider(new MassTransit.NewIdProviders.CurrentProcessIdProvider());
+NewId.SetProcessIdProvider(new MassTransit.NewIdProviders.CurrentProcessIdProvider());
 
 // Configure PostgreSQL connection
 var dbConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")
@@ -48,16 +49,16 @@ builder.Services.AddSingleton<DWSIM.Automation.AutomationInterface, DWSIM.Automa
 builder.Services.AddScoped<Enerflow.Worker.Builders.IFlowsheetBuilder, Enerflow.Worker.Builders.DWSIMFlowsheetBuilder>();
 
 // Register Mappers
-builder.Services.AddScoped<Enerflow.Worker.Mappers.IStreamMapper, Enerflow.Worker.Mappers.StreamMapper>();
-builder.Services.AddScoped<Enerflow.Worker.Mappers.IUnitOperationMapper, Enerflow.Worker.Mappers.UnitOperationMapper>();
-builder.Services.AddScoped<Enerflow.Worker.Mappers.IConnectionMapper, Enerflow.Worker.Mappers.ConnectionMapper>();
-builder.Services.AddScoped<Enerflow.Worker.Mappers.IPostConnectionConfigurator, Enerflow.Worker.Mappers.PostConnectionConfigurator>();
+builder.Services.AddScoped<IStreamMapper, StreamMapper>();
+builder.Services.AddScoped<IUnitOperationMapper, UnitOperationMapper>();
+builder.Services.AddScoped<IConnectionMapper, ConnectionMapper>();
+builder.Services.AddScoped<IPostConnectionConfigurator, PostConnectionConfigurator>();
 
 // Register Convergence & Solvers
-builder.Services.AddScoped<Enerflow.Worker.Convergence.ErrorCalculator>();
-builder.Services.AddScoped<Enerflow.Worker.Convergence.IConvergenceAccelerator, Enerflow.Worker.Convergence.WegsteinAccelerator>();
-builder.Services.AddScoped<Enerflow.Worker.Solvers.IResultCollector, Enerflow.Worker.Solvers.ResultCollector>();
-builder.Services.AddScoped<Enerflow.Worker.Solvers.ISimulationSolver, Enerflow.Worker.Solvers.DWSIMSolver>();
+builder.Services.AddScoped<ErrorCalculator>();
+builder.Services.AddScoped<IConvergenceAccelerator, WegsteinAccelerator>();
+builder.Services.AddScoped<IResultCollector, ResultCollector>();
+builder.Services.AddScoped<ISimulationSolver, DWSIMSolver>();
 
 // Register Validation
 builder.Services.AddScoped<Enerflow.Worker.Validation.IFlowsheetValidator, Enerflow.Worker.Validation.FlowsheetValidator>();

@@ -1,5 +1,4 @@
 using DWSIM.Interfaces;
-using Enerflow.Domain.Entities;
 using Enerflow.Domain.Entities.UnitOperations;
 using Microsoft.Extensions.Logging;
 using SimulationEntity = Enerflow.Domain.Entities.Simulation;
@@ -27,8 +26,8 @@ public class PostConnectionConfigurator : IPostConnectionConfigurator
 
         foreach (var unit in simulation.UnitOperations)
         {
-            if (unit is SplitterObject splitterDomain && 
-                flowsheet.SimulationObjects.TryGetValue(splitterDomain.Name, out var simObj) && 
+            if (unit is SplitterObject splitterDomain &&
+                flowsheet.SimulationObjects.TryGetValue(splitterDomain.Name, out var simObj) &&
                 simObj is Splitter splitterDWSIM)
             {
                 ConfigureSplitterRatios(splitterDomain, splitterDWSIM, flowsheet, simulation);
@@ -36,11 +35,12 @@ public class PostConnectionConfigurator : IPostConnectionConfigurator
         }
     }
 
-    private void ConfigureSplitterRatios(SplitterObject domain, Splitter dwsim, IFlowsheet flowsheet, SimulationEntity simulation)
+    private void ConfigureSplitterRatios(SplitterObject domain, Splitter dwsim, IFlowsheet flowsheet,
+        SimulationEntity simulation)
     {
         // Splitter Ratios in Domain: Dictionary<Guid, double> (StreamId -> Ratio)
         // Splitter Ratios in DWSIM: List/Array of doubles corresponding to Output Ports (0, 1, 2...)
-        
+
         // 1. Get connected output streams from DWSIM object
         var connectedStreams = new List<DWSIM.Thermodynamics.Streams.MaterialStream?>();
         // Iterate Output Connectors
@@ -49,14 +49,14 @@ public class PostConnectionConfigurator : IPostConnectionConfigurator
             if (connector.IsAttached)
             {
                 // Safest way to get the attached object
-                if (flowsheet.SimulationObjects.TryGetValue(connector.AttachedConnector.AttachedTo.Name, out var obj) && 
+                if (flowsheet.SimulationObjects.TryGetValue(connector.AttachedConnector.AttachedTo.Name, out var obj) &&
                     obj is DWSIM.Thermodynamics.Streams.MaterialStream ms)
                 {
                     connectedStreams.Add(ms);
                 }
                 else
                 {
-                    connectedStreams.Add(null); 
+                    connectedStreams.Add(null);
                 }
             }
             else
@@ -64,10 +64,10 @@ public class PostConnectionConfigurator : IPostConnectionConfigurator
                 connectedStreams.Add(null);
             }
         }
-        
+
         // 2. Iterate ports/streams and find matching ratio
         var streamIdToRatio = domain.SplitRatios;
-        
+
         for (int i = 0; i < connectedStreams.Count; i++)
         {
             var dwsimStream = connectedStreams[i];
@@ -75,21 +75,23 @@ public class PostConnectionConfigurator : IPostConnectionConfigurator
 
             // Find this stream in Domain to get its ID
             var domainStream = simulation.MaterialStreams.FirstOrDefault(s => s.Name == dwsimStream.Name);
-            
-            if (domainStream != null && streamIdToRatio.TryGetValue(domainStream.Id, out double ratio))
+
+            if (
+                domainStream == null
+                || !streamIdToRatio.TryGetValue(domainStream.Id, out var ratio)
+               ) continue;
+
+            if (dwsim.Ratios.Count > i)
             {
-                 if (dwsim.Ratios.Count > i)
-                 {
-                     dwsim.Ratios[i] = ratio;
-                 }
-                 else
-                 {
-                     dwsim.Ratios.Add(ratio);
-                 }
-                 
-                 _logger.LogDebug("Set Splitter {Name} Port {Port} (Stream {Stream}) Ratio to {Ratio}", 
-                     domain.Name, i, domainStream.Name, ratio);
+                dwsim.Ratios[i] = ratio;
             }
+            else
+            {
+                dwsim.Ratios.Add(ratio);
+            }
+
+            _logger.LogDebug("Set Splitter {Name} Port {Port} (Stream {Stream}) Ratio to {Ratio}",
+                domain.Name, i, domainStream.Name, ratio);
         }
     }
 }

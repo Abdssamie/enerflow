@@ -52,13 +52,13 @@ public class WegsteinAccelerator : IConvergenceAccelerator
 
         for (int i = 0; i < currentValues.Length; i++)
         {
-            double x = currentValues[i];
-            double y = newValues[i];
-            double x_prev = _prevInput[i];
-            double y_prev = _prevOutput![i];
+            var x = currentValues[i];
+            var y = newValues[i];
+            var xPrev = _prevInput[i];
+            var yPrev = _prevOutput![i];
 
             // Denominator check to avoid div/0
-            if (Math.Abs(x - x_prev) < 1e-9)
+            if (Math.Abs(x - xPrev) < 1e-9)
             {
                 // No change in input? Direct substitution
                 nextValues[i] = y;
@@ -66,7 +66,7 @@ public class WegsteinAccelerator : IConvergenceAccelerator
             else
             {
                 // Calculate Slope s = (f(x) - f(x_prev)) / (x - x_prev)
-                double s = (y - y_prev) / (x - x_prev);
+                var s = (y - yPrev) / (x - xPrev);
 
                 // Calculate Wegstein Q
                 // q = s / (s - 1)

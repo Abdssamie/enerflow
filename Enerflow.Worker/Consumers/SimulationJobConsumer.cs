@@ -10,7 +10,6 @@ using Enerflow.Worker.Validation;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-
 using SimulationEntity = Enerflow.Domain.Entities.Simulation;
 
 namespace Enerflow.Worker.Consumers;
@@ -58,7 +57,7 @@ public class SimulationJobConsumer : IConsumer<SimulationJob>
             // Step 2: Solve
             _logger.LogInformation("Starting solver for Job {JobId}", job.JobId);
             var config = new ConvergenceConfig(); // Use defaults
-            
+
             // Note: Solve is currently synchronous (CPU-bound)
             var result = _solver.Solve(simulation, config);
 
@@ -71,19 +70,21 @@ public class SimulationJobConsumer : IConsumer<SimulationJob>
         catch (FlowsheetValidationException ex)
         {
             _logger.LogWarning(ex, "Flowsheet validation failed for Job {JobId}", job.JobId);
-            
+
             var errorMessage = string.Join("; ", ex.ValidationResult.Errors.Select(e => e.Message));
-            await UpdateStatusAsync(job.SimulationId, SimulationStatus.Failed, 
+            await UpdateStatusAsync(job.SimulationId, SimulationStatus.Failed,
                 $"Validation error: {errorMessage}", cancellationToken);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Critical error processing Job {JobId}", job.JobId);
-            await UpdateStatusAsync(job.SimulationId, SimulationStatus.Failed, $"Critical error: {ex.Message}", cancellationToken);
+            await UpdateStatusAsync(job.SimulationId, SimulationStatus.Failed, $"Critical error: {ex.Message}",
+                cancellationToken);
         }
     }
 
-    private async Task UpdateStatusAsync(Guid simulationId, SimulationStatus status, string? errorMessage, CancellationToken ct)
+    private async Task UpdateStatusAsync(Guid simulationId, SimulationStatus status, string? errorMessage,
+        CancellationToken ct)
     {
         try
         {
@@ -97,6 +98,7 @@ public class SimulationJobConsumer : IConsumer<SimulationJob>
                 {
                     simulation.ErrorMessage = errorMessage;
                 }
+
                 simulation.UpdatedAt = DateTime.UtcNow;
 
                 await _dbContext.SaveChangesAsync(ct);
@@ -113,9 +115,9 @@ public class SimulationJobConsumer : IConsumer<SimulationJob>
     }
 
     private async Task PersistResultAsync(
-        Guid simulationId, 
-        SimulationResult result, 
-        SimulationStatus status, 
+        Guid simulationId,
+        SimulationResult result,
+        SimulationStatus status,
         CancellationToken ct)
     {
         try
@@ -220,53 +222,53 @@ public class SimulationJobConsumer : IConsumer<SimulationJob>
         // Polymorphic creation based on Type
         return dto.Type switch
         {
-            UnitOperationType.Mixer => new MixerObject 
-            { 
-                Id = dto.Id, SimulationId = simulationId, Name = dto.Name, 
-                InputStreamIds = dto.InputStreamIds, OutputStreamIds = dto.OutputStreamIds, 
-                ConfigParams = dto.ConfigParams 
+            UnitOperationType.Mixer => new MixerObject
+            {
+                Id = dto.Id, SimulationId = simulationId, Name = dto.Name,
+                InputStreamIds = dto.InputStreamIds, OutputStreamIds = dto.OutputStreamIds,
+                ConfigParams = dto.ConfigParams
             },
-            UnitOperationType.Splitter => new SplitterObject 
-            { 
-                Id = dto.Id, SimulationId = simulationId, Name = dto.Name, 
-                InputStreamIds = dto.InputStreamIds, OutputStreamIds = dto.OutputStreamIds, 
-                ConfigParams = dto.ConfigParams 
+            UnitOperationType.Splitter => new SplitterObject
+            {
+                Id = dto.Id, SimulationId = simulationId, Name = dto.Name,
+                InputStreamIds = dto.InputStreamIds, OutputStreamIds = dto.OutputStreamIds,
+                ConfigParams = dto.ConfigParams
             },
-            UnitOperationType.Heater => new HeaterObject 
-            { 
-                Id = dto.Id, SimulationId = simulationId, Name = dto.Name, 
-                InputStreamIds = dto.InputStreamIds, OutputStreamIds = dto.OutputStreamIds, 
-                ConfigParams = dto.ConfigParams 
+            UnitOperationType.Heater => new HeaterObject
+            {
+                Id = dto.Id, SimulationId = simulationId, Name = dto.Name,
+                InputStreamIds = dto.InputStreamIds, OutputStreamIds = dto.OutputStreamIds,
+                ConfigParams = dto.ConfigParams
             },
-            UnitOperationType.Cooler => new CoolerObject 
-            { 
-                Id = dto.Id, SimulationId = simulationId, Name = dto.Name, 
-                InputStreamIds = dto.InputStreamIds, OutputStreamIds = dto.OutputStreamIds, 
-                ConfigParams = dto.ConfigParams 
+            UnitOperationType.Cooler => new CoolerObject
+            {
+                Id = dto.Id, SimulationId = simulationId, Name = dto.Name,
+                InputStreamIds = dto.InputStreamIds, OutputStreamIds = dto.OutputStreamIds,
+                ConfigParams = dto.ConfigParams
             },
-            UnitOperationType.Valve => new ValveObject 
-            { 
-                Id = dto.Id, SimulationId = simulationId, Name = dto.Name, 
-                InputStreamIds = dto.InputStreamIds, OutputStreamIds = dto.OutputStreamIds, 
-                ConfigParams = dto.ConfigParams 
+            UnitOperationType.Valve => new ValveObject
+            {
+                Id = dto.Id, SimulationId = simulationId, Name = dto.Name,
+                InputStreamIds = dto.InputStreamIds, OutputStreamIds = dto.OutputStreamIds,
+                ConfigParams = dto.ConfigParams
             },
-            UnitOperationType.FlashDrum => new FlashDrumObject 
-            { 
-                Id = dto.Id, SimulationId = simulationId, Name = dto.Name, 
-                InputStreamIds = dto.InputStreamIds, OutputStreamIds = dto.OutputStreamIds, 
-                ConfigParams = dto.ConfigParams 
+            UnitOperationType.FlashDrum => new FlashDrumObject
+            {
+                Id = dto.Id, SimulationId = simulationId, Name = dto.Name,
+                InputStreamIds = dto.InputStreamIds, OutputStreamIds = dto.OutputStreamIds,
+                ConfigParams = dto.ConfigParams
             },
-            UnitOperationType.ShortcutColumn => new ShortcutColumnObject 
-            { 
-                Id = dto.Id, SimulationId = simulationId, Name = dto.Name, 
-                InputStreamIds = dto.InputStreamIds, OutputStreamIds = dto.OutputStreamIds, 
-                ConfigParams = dto.ConfigParams 
+            UnitOperationType.ShortcutColumn => new ShortcutColumnObject
+            {
+                Id = dto.Id, SimulationId = simulationId, Name = dto.Name,
+                InputStreamIds = dto.InputStreamIds, OutputStreamIds = dto.OutputStreamIds,
+                ConfigParams = dto.ConfigParams
             },
-            UnitOperationType.Recycle => new RecycleObject 
-            { 
-                Id = dto.Id, SimulationId = simulationId, Name = dto.Name, 
-                InputStreamIds = dto.InputStreamIds, OutputStreamIds = dto.OutputStreamIds, 
-                ConfigParams = dto.ConfigParams 
+            UnitOperationType.Recycle => new RecycleObject
+            {
+                Id = dto.Id, SimulationId = simulationId, Name = dto.Name,
+                InputStreamIds = dto.InputStreamIds, OutputStreamIds = dto.OutputStreamIds,
+                ConfigParams = dto.ConfigParams
             },
             _ => null
         };

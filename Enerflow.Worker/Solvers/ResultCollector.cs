@@ -35,7 +35,7 @@ public class ResultCollector : IResultCollector
                     }
                 }
 
-                result.StreamResults!.Add(new StreamResultDto
+                result.StreamResults.Add(new StreamResultDto
                 {
                     StreamId = domainStream.Id,
                     Temperature = dwsimStream.GetTemperature(),
@@ -77,7 +77,7 @@ public class ResultCollector : IResultCollector
                 // Just capturing status for now as per requirements "Extract specific calculated values".
                 // TODO: Add more specific property extraction based on Unit Types if needed.
 
-                result.UnitResults!.Add(new UnitResultDto
+                result.UnitResults.Add(new UnitResultDto
                 {
                     UnitId = unit.Id,
                     CalculatedParams = JsonSerializer.SerializeToDocument(calculatedParams)
