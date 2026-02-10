@@ -12,8 +12,21 @@ The solver pipeline consists of six sequential steps:
    - Creates DWSIM flowsheet instance
    - Adds compounds and property package
    - Creates all simulation objects (streams, units)
-   - Validates flowsheet structure
+   - Connects flowsheet using ConnectionFactory.ConnectFlowsheet() to wire streams to unit operations
+   - Configures post-connection settings using UnitOperationFactory.ConfigurePostConnection() for unit-specific setup that depends on connection order (e.g., splitter ratios)
+   - Validates flowsheet structure using FlowsheetValidator.Validate() to ensure flowsheet is ready to solve
    - **Key Principle**: Objects are created once, in one place
+
+#### Post-Connection Configuration Pattern
+
+Some unit operations require configuration that depends on connection order:
+
+- **Splitter ratios**: DWSIM uses port-indexed arrays, but users specify ratios by stream ID
+- **Future examples**: Distillation column feed tray location, reactor inlet specifications
+
+The ConfigurePostConnection() method in UnitOperationFactory handles these cases after ConnectionFactory establishes all connections.
+
+**Design principle**: Each factory owns its domain. ConnectionFactory only connects; UnitOperationFactory owns all unit operation configuration.
 
 ### 2. **Map Streams** (`StreamMapper`)
    - Configures material stream properties (temperature, pressure, flow rate, composition)
