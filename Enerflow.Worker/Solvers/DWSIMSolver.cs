@@ -1,9 +1,7 @@
 using System.Diagnostics;
 using DWSIM.Automation;
 using DWSIM.Interfaces;
-using Enerflow.Domain.DTOs;
 using Enerflow.Worker.Builders;
-using Enerflow.Worker.Mappers;
 using Microsoft.Extensions.Logging;
 using SimulationEntity = Enerflow.Domain.Entities.Simulation;
 
@@ -13,7 +11,6 @@ public class DWSIMSolver : ISimulationSolver
 {
     private readonly Automation3 _automation;
     private readonly IFlowsheetBuilder _flowsheetBuilder;
-    private readonly IStreamMapper _streamMapper;
     private readonly IUnitOperationMapper _unitOpMapper;
     private readonly IConnectionMapper _connectionMapper;
     private readonly IResultCollector _resultCollector;
@@ -22,7 +19,6 @@ public class DWSIMSolver : ISimulationSolver
     public DWSIMSolver(
         Automation3 automation,
         IFlowsheetBuilder flowsheetBuilder,
-        IStreamMapper streamMapper,
         IUnitOperationMapper unitOpMapper,
         IConnectionMapper connectionMapper,
         IResultCollector resultCollector,
@@ -30,7 +26,6 @@ public class DWSIMSolver : ISimulationSolver
     {
         _automation = automation;
         _flowsheetBuilder = flowsheetBuilder;
-        _streamMapper = streamMapper;
         _unitOpMapper = unitOpMapper;
         _connectionMapper = connectionMapper;
         _resultCollector = resultCollector;
@@ -47,26 +42,7 @@ public class DWSIMSolver : ISimulationSolver
         IFlowsheet flowsheet = _flowsheetBuilder.BuildFlowsheet(simulation);
         _logger.LogInformation("Flowsheet built successfully for Job {JobId}", simulation.Id);
 
-        // 2. Map Streams
-        _logger.LogInformation("Mapping {Count} material streams for Job {JobId}", simulation.MaterialStreams.Count,
-            simulation.Id);
-        foreach (var ms in simulation.MaterialStreams)
-        {
-            _streamMapper.MapMaterialStream(ms, flowsheet);
-        }
-
-        _logger.LogInformation("Material streams mapped successfully for Job {JobId}", simulation.Id);
-
-        _logger.LogInformation("Mapping {Count} energy streams for Job {JobId}", simulation.EnergyStreams.Count,
-            simulation.Id);
-        foreach (var es in simulation.EnergyStreams)
-        {
-            _streamMapper.MapEnergyStream(es, flowsheet);
-        }
-
-        _logger.LogInformation("Energy streams mapped successfully for Job {JobId}", simulation.Id);
-
-        // 3. Map Unit Operations
+        // 2. Map Unit Operations
         var compoundLookup = simulation.Compounds.ToDictionary(c => c.Id, c => c.Name);
 
         _logger.LogInformation("Mapping {Count} unit operations for Job {JobId}", simulation.UnitOperations.Count,
@@ -78,12 +54,12 @@ public class DWSIMSolver : ISimulationSolver
 
         _logger.LogInformation("Unit operations mapped successfully for Job {JobId}", simulation.Id);
 
-        // 4. Map Connections (includes post-connection configuration like splitter ratios)
+        // 3. Map Connections (includes post-connection configuration like splitter ratios)
         _logger.LogInformation("Mapping connections for Job {JobId}", simulation.Id);
         _connectionMapper.MapConnections(simulation, flowsheet);
         _logger.LogInformation("Connections mapped successfully for Job {JobId}", simulation.Id);
 
-        // 5. Solve using DWSIM's modern CalculateFlowsheet4 API
+        // 4. Solve using DWSIM's modern CalculateFlowsheet4 API
         _logger.LogInformation("Starting DWSIM calculation for Job {JobId}", simulation.Id);
 
         try

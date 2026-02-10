@@ -1,7 +1,6 @@
 using DWSIM.Interfaces;
 using DWSIM.Interfaces.Enums.GraphicObjects;
 using DWSIM.SharedClasses.SystemsOfUnits;
-using Enerflow.Domain.DTOs;
 using Enerflow.Domain.Enums;
 using Enerflow.Simulation.Flowsheet.Compounds;
 using Enerflow.Simulation.Flowsheet.FlashAlgorithms;
@@ -92,18 +91,8 @@ public class DWSIMFlowsheetBuilder : IFlowsheetBuilder
             // Cast to MaterialStream and configure using factory
             if (dwsimObj is DWSIM.Thermodynamics.Streams.MaterialStream ms)
             {
-                var dto = new MaterialStreamDto
-                {
-                    Id = stream.Id,
-                    Name = stream.Name,
-                    Temperature = stream.Temperature,
-                    Pressure = stream.Pressure,
-                    MassFlow = stream.MassFlow,
-                    MolarCompositions = stream.Composition
-                };
-
                 // Use factory to configure the stream (delegates SI conversions to factory)
-                _materialStreamFactory.Configure(ms, dto, simulation.SystemOfUnits);
+                _materialStreamFactory.Configure(ms, stream, simulation.SystemOfUnits);
             }
 
             streamMap[stream.Id] = stream.Name;
@@ -121,15 +110,8 @@ public class DWSIMFlowsheetBuilder : IFlowsheetBuilder
 
             if (dwsimObj is DWSIM.UnitOperations.Streams.EnergyStream es)
             {
-                var dto = new EnergyStreamDto
-                {
-                    Id = stream.Id,
-                    Name = stream.Name,
-                    EnergyFlow = stream.EnergyFlow
-                };
-
                 // Use factory to configure the stream
-                _energyStreamFactory.Configure(es, dto);
+                _energyStreamFactory.Configure(es, stream);
             }
 
             streamMap[stream.Id] = stream.Name;

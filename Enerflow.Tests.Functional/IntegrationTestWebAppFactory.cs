@@ -19,7 +19,6 @@ using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
 using Npgsql;
 using Enerflow.Worker.Solvers;
-using Enerflow.Worker.Mappers;
 using Enerflow.Worker.Builders;
 using Enerflow.Worker.Validation;
 
@@ -134,7 +133,6 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
             services.TryAddScoped<IFlowsheetBuilder, DWSIMFlowsheetBuilder>();
             
             // Register Mappers
-            services.TryAddScoped<IStreamMapper, StreamMapper>();
             services.TryAddScoped<IUnitOperationMapper, UnitOperationMapper>();
             services.TryAddScoped<IConnectionMapper, ConnectionMapper>();
             
