@@ -7,6 +7,7 @@ using Enerflow.Simulation.Flowsheet.PropertyPackages;
 using Enerflow.Simulation.Flowsheet.Streams;
 using Enerflow.Simulation.Flowsheet.FlashAlgorithms;
 using Enerflow.Simulation.Flowsheet.UnitOperations;
+using Enerflow.Simulation.Flowsheet.Connections;
 using Enerflow.Domain.Interfaces;
 using MassTransit;
 using Microsoft.AspNetCore.Hosting;
@@ -21,7 +22,6 @@ using Npgsql;
 using Enerflow.Worker.Solvers;
 using Enerflow.Worker.Builders;
 using Enerflow.Worker.Validation;
-using Enerflow.Worker.Mappers;
 
 namespace Enerflow.Tests.Functional;
 
@@ -133,9 +133,9 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
             // Register Builders
             services.TryAddScoped<IFlowsheetBuilder, DWSIMFlowsheetBuilder>();
             
-            // Register Mappers
-            services.TryAddScoped<IUnitOperationMapper, UnitOperationMapper>();
-            services.TryAddScoped<IConnectionMapper, ConnectionMapper>();
+            // Register Simulation Layer Configurators
+            services.TryAddScoped<IUnitOperationConfigurator, UnitOperationConfigurator>();
+            services.TryAddScoped<IConnectionFactory, ConnectionFactory>();
             
             // Register Solvers
             services.TryAddScoped<IResultCollector, ResultCollector>();

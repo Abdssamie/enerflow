@@ -6,7 +6,7 @@ using Enerflow.Simulation.Flowsheet.PropertyPackages;
 using Enerflow.Simulation.Flowsheet.Streams;
 using Enerflow.Simulation.Flowsheet.FlashAlgorithms;
 using Enerflow.Simulation.Flowsheet.UnitOperations;
-using Enerflow.Worker.Mappers;
+using Enerflow.Simulation.Flowsheet.Connections;
 using Enerflow.Worker.Solvers;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -47,9 +47,9 @@ builder.Services.AddSingleton<DWSIM.Automation.AutomationInterface, DWSIM.Automa
 // Register Builders
 builder.Services.AddScoped<Enerflow.Worker.Builders.IFlowsheetBuilder, Enerflow.Worker.Builders.DWSIMFlowsheetBuilder>();
 
-// Register Mappers
-builder.Services.AddScoped<IUnitOperationMapper, UnitOperationMapper>();
-builder.Services.AddScoped<IConnectionMapper, ConnectionMapper>();
+// Register Simulation Layer Configurators
+builder.Services.AddScoped<IUnitOperationConfigurator, UnitOperationConfigurator>();
+builder.Services.AddScoped<IConnectionFactory, ConnectionFactory>();
 
 // Register Solvers
 builder.Services.AddScoped<IResultCollector, ResultCollector>();
