@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 using Enerflow.Domain.Common;
 using Enerflow.Domain.DTOs;
@@ -590,19 +591,32 @@ public class SimulationsController : ControllerBase
 // Export DTOs (matching import format for reversibility)
 public record SimulationExportDto
 {
+    [Required]
+    [StringLength(100, MinimumLength = 1)]
     public required string Name { get; init; }
     public required PropertyPackageType PropertyPackage { get; init; }
     public required FlashAlgorithm FlashAlgorithm { get; init; }
     public required SystemOfUnits SystemOfUnits { get; init; }
+
+    [MaxLength(100)]
     public List<CompoundExportDto> Compounds { get; init; } = new();
+
+    [MaxLength(1000)]
     public List<MaterialStreamExportDto> MaterialStreams { get; init; } = new();
+
+    [MaxLength(1000)]
     public List<EnergyStreamExportDto> EnergyStreams { get; init; } = new();
+
+    [MaxLength(1000)]
     public List<UnitOperationExportDto> UnitOperations { get; init; } = new();
 }
 
 public record CompoundExportDto
 {
     public Guid Id { get; init; }
+
+    [Required]
+    [StringLength(100, MinimumLength = 1)]
     public required string Name { get; init; }
     public JsonDocument? ConstantProperties { get; init; }
 }
@@ -610,27 +624,50 @@ public record CompoundExportDto
 public record MaterialStreamExportDto
 {
     public Guid Id { get; init; }
+
+    [Required]
+    [StringLength(100, MinimumLength = 1)]
     public required string Name { get; init; }
+
+    [Range(0d, 10000d)]
     public double Temperature { get; init; }
+
+    [Range(0d, 100000000d)]
     public double Pressure { get; init; }
+
+    [Range(0d, 1000000d)]
     public double MassFlow { get; init; }
+
     public Dictionary<string, double>? Composition { get; init; }
 }
 
 public record EnergyStreamExportDto
 {
     public Guid Id { get; init; }
+
+    [Required]
+    [StringLength(100, MinimumLength = 1)]
     public required string Name { get; init; }
+
+    [Range(0d, 1000000000d)]
     public double EnergyFlow { get; init; }
 }
 
 public record UnitOperationExportDto
 {
     public Guid Id { get; init; }
+
+    [Required]
+    [StringLength(100, MinimumLength = 1)]
     public required string Name { get; init; }
     public required UnitOperationType Type { get; init; }
+
+    [MaxLength(50)]
     public List<Guid> InputStreamIds { get; init; } = new();
+
+    [MaxLength(50)]
     public List<Guid> OutputStreamIds { get; init; } = new();
+
     public Guid SimulationId { get; set; } = IdGenerator.NextGuid();
     public JsonDocument? ConfigParams { get; init; }
 }
