@@ -5,6 +5,8 @@ using Microsoft.Extensions.Logging;
 using SimulationEntity = Enerflow.Domain.Entities.Simulation;
 using DWSIMMaterialStream = DWSIM.Thermodynamics.Streams.MaterialStream;
 using DWSIMEnergyStream = DWSIM.UnitOperations.Streams.EnergyStream;
+using DWSIM.UnitOperations.UnitOperations;
+using DWSIM.UnitOperations.SpecialOps;
 
 namespace Enerflow.Worker.Solvers;
 
@@ -60,26 +62,56 @@ public class ResultCollector : IResultCollector
             var unitId = unit.Id.ToString();
             if (flowsheet.SimulationObjects.TryGetValue(unitId, out var simObj))
             {
-                var calculatedParams = new Dictionary<string, object>();
+                var calculatedParams = new Dictionary<string, object>
+                {
+                    ["Calculated"] = simObj.Calculated
+                };
 
-                // Generic extraction of common calculated properties
-                // We can extend this switch for specific unit types to get detailed results
-
-                calculatedParams["Calculated"] = simObj.Calculated;
                 if (!string.IsNullOrEmpty(simObj.ErrorMessage))
                 {
                     calculatedParams["Error"] = simObj.ErrorMessage;
                 }
 
-                // Example specific extraction
-                if (simObj is DWSIMEnergyStream es)
+                // Type-specific extraction
+                switch (simObj)
                 {
-                    calculatedParams["EnergyFlow"] = es.EnergyFlow ?? 0.0;
+                    case Heater heater:
+                        calculatedParams["DeltaQ"] = heater.DeltaQ.GetValueOrDefault();
+                        calculatedParams["DeltaT"] = heater.DeltaT.GetValueOrDefault();
+                        calculatedParams["OutletTemperature"] = heater.OutletTemperature.GetValueOrDefault();
+                        calculatedParams["Efficiency"] = heater.Efficiency;
+                        break;
+                    
+                    case Cooler cooler:
+                        calculatedParams["DeltaQ"] = cooler.DeltaQ.GetValueOrDefault();
+                        calculatedParams["DeltaT"] = cooler.DeltaT.GetValueOrDefault();
+                        calculatedParams["OutletTemperature"] = cooler.OutletTemperature.GetValueOrDefault();
+                        calculatedParams["Efficiency"] = cooler.Efficiency;
+                        break;
+                    
+                    case Valve valve:
+                        calculatedParams["DeltaP"] = valve.DeltaP.GetValueOrDefault();
+                        calculatedParams["OutletPressure"] = valve.OutletPressure.GetValueOrDefault();
+                        calculatedParams["DeltaT"] = valve.DeltaT.GetValueOrDefault();
+                        break;
+                    
+                    case Splitter splitter:
+                        var ratios = new List<double>();
+                        foreach (double ratio in splitter.Ratios)
+                        {
+                            ratios.Add(ratio);
+                        }
+                        calculatedParams["Ratios"] = ratios;
+                        break;
+                    
+                    case Vessel vessel:
+                        calculatedParams["DeltaQ"] = vessel.DeltaQ.GetValueOrDefault();
+                        break;
+                    
+                    case DWSIMEnergyStream es:
+                        calculatedParams["EnergyFlow"] = es.EnergyFlow.GetValueOrDefault();
+                        break;
                 }
-
-                // We could iterate `simObj.GetProperties(PropertyType.RO)` but that's expensive.
-                // Just capturing status for now as per requirements "Extract specific calculated values".
-                // TODO: Add more specific property extraction based on Unit Types if needed.
 
                 result.UnitResults.Add(new UnitResultDto
                 {
