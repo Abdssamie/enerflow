@@ -5,6 +5,7 @@ using DWSIM.Interfaces.Enums.GraphicObjects;
 using DWSIM.UnitOperations.SpecialOps;
 using DWSIM.UnitOperations.UnitOperations;
 using Microsoft.Extensions.Logging;
+using SimulationEntity = Enerflow.Domain.Entities.Simulation;
 
 namespace Enerflow.Simulation.Flowsheet.UnitOperations;
 
@@ -354,6 +355,68 @@ public class UnitOperationFactory : IUnitOperationFactory
         }
 
         _logger.LogInformation("Created and configured {Count} unit operations", unitOperationsList.Count);
+    }
+
+    public void ConfigurePostConnection(IFlowsheet flowsheet, SimulationEntity simulation)
+    {
+        _logger.LogDebug("Configuring unit operations after connections...");
+
+        foreach (var unit in simulation.UnitOperations)
+        {
+            switch (unit)
+            {
+                case SplitterObject splitter:
+                    ConfigureSplitterRatios(splitter, flowsheet);
+                    break;
+                // Future: Add other unit types that need post-connection configuration
+                // case DistillationColumnObject column:
+                //     ConfigureDistillationColumn(column, flowsheet);
+                //     break;
+            }
+        }
+    }
+
+    private void ConfigureSplitterRatios(SplitterObject domainSplitter, IFlowsheet flowsheet)
+    {
+        _logger.LogDebug("Configuring splitter ratios for {Name}...", domainSplitter.Name);
+
+        // Get the DWSIM splitter object
+        var splitterId = domainSplitter.Id.ToString();
+        if (!flowsheet.SimulationObjects.TryGetValue(splitterId, out var obj))
+        {
+            _logger.LogWarning("Splitter {Name} (ID: {Id}) not found in flowsheet during post-connection config.",
+                domainSplitter.Name, domainSplitter.Id);
+            return;
+        }
+
+        var dwsimSplitter = (Splitter)obj;
+
+        // Set ratios based on OutputStreamIds order
+        // ConnectionFactory connects streams in the order they appear in OutputStreamIds
+        // So OutputStreamIds[i] is connected to port i
+        for (int i = 0; i < domainSplitter.OutputStreamIds.Count; i++)
+        {
+            var streamId = domainSplitter.OutputStreamIds[i];
+            
+            if (domainSplitter.SplitRatios.TryGetValue(streamId, out var ratio))
+            {
+                // Ensure Ratios list has enough capacity
+                while (dwsimSplitter.Ratios.Count <= i)
+                {
+                    dwsimSplitter.Ratios.Add(0.0);
+                }
+                
+                dwsimSplitter.Ratios[i] = ratio;
+                
+                _logger.LogDebug("Set Splitter {Name} Port {Port} (Stream {StreamId}) Ratio to {Ratio}",
+                    domainSplitter.Name, i, streamId, ratio);
+            }
+            else
+            {
+                _logger.LogWarning("No split ratio defined for stream {StreamId} in splitter {Name}",
+                    streamId, domainSplitter.Name);
+            }
+        }
     }
 
     /// <summary>
