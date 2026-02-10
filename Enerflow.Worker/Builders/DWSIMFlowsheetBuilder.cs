@@ -128,7 +128,7 @@ public class DWSIMFlowsheetBuilder : IFlowsheetBuilder
              unit.Name
          );
 
-         // Note: Unit operation parameters are configured by UnitOperationMapper after creation
+         // Note: Unit operation parameters are configured by IUnitOperationConfigurator after creation
       }
 
       // VALIDATE BEFORE RETURNING
