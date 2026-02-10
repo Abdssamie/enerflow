@@ -1,7 +1,7 @@
 using DWSIM.Interfaces;
 using SimulationEntity = Enerflow.Domain.Entities.Simulation;
 
-namespace Enerflow.Worker.Builders;
+namespace Enerflow.Simulation.Flowsheet.Builders;
 
 /// <summary>
 /// Responsible for building DWSIM Flowsheets from Enerflow Simulation entities.

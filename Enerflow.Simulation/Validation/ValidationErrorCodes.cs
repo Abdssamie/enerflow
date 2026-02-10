@@ -1,4 +1,4 @@
-namespace Enerflow.Worker.Validation;
+namespace Enerflow.Simulation.Validation;
 
 /// <summary>
 /// Centralized validation error codes to avoid magic strings.

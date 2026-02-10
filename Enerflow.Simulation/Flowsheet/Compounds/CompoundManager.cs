@@ -1,5 +1,5 @@
-using Enerflow.Domain.DTOs;
 using DWSIM.Interfaces;
+using Enerflow.Domain.Entities;
 using Microsoft.Extensions.Logging;
 
 namespace Enerflow.Simulation.Flowsheet.Compounds;
@@ -16,7 +16,7 @@ public class CompoundManager : ICompoundManager
         _logger = logger;
     }
 
-    public void AddCompound(IFlowsheet flowsheet, CompoundDto compound)
+    public void AddCompound(IFlowsheet flowsheet, Compound compound)
     {
         try
         {
@@ -28,6 +28,19 @@ public class CompoundManager : ICompoundManager
             _logger.LogWarning(ex, "Failed to add compound: {Name}", compound.Name);
             throw;
         }
+    }
+
+    public void AddCompounds(IFlowsheet flowsheet, IEnumerable<Compound> compounds)
+    {
+        var compoundList = compounds.ToList();
+        _logger.LogInformation("Adding {Count} compounds to flowsheet", compoundList.Count);
+
+        foreach (var compound in compoundList)
+        {
+            AddCompound(flowsheet, compound);
+        }
+
+        _logger.LogInformation("Successfully added {Count} compounds", compoundList.Count);
     }
 
     public bool ValidateCompound(string compoundName)

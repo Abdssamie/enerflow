@@ -6,7 +6,7 @@ using Enerflow.Domain.Entities.UnitOperations;
 using Enerflow.Domain.Enums;
 using Enerflow.Infrastructure.Persistence;
 using Enerflow.Worker.Solvers;
-using Enerflow.Worker.Validation;
+using Enerflow.Simulation.Validation;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

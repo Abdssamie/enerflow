@@ -20,8 +20,8 @@ using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
 using Npgsql;
 using Enerflow.Worker.Solvers;
-using Enerflow.Worker.Builders;
-using Enerflow.Worker.Validation;
+using Enerflow.Simulation.Flowsheet.Builders;
+using Enerflow.Simulation.Validation;
 
 namespace Enerflow.Tests.Functional;
 
@@ -133,8 +133,7 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
             // Register Builders
             services.TryAddScoped<IFlowsheetBuilder, DWSIMFlowsheetBuilder>();
             
-            // Register Simulation Layer Configurators
-            services.TryAddScoped<IUnitOperationConfigurator, UnitOperationConfigurator>();
+            // Register Simulation Layer Factories
             services.TryAddScoped<IConnectionFactory, ConnectionFactory>();
             
             // Register Solvers

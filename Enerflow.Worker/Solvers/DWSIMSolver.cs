@@ -1,9 +1,7 @@
 using System.Diagnostics;
 using DWSIM.Automation;
 using DWSIM.Interfaces;
-using Enerflow.Worker.Builders;
-using Enerflow.Simulation.Flowsheet.UnitOperations;
-using Enerflow.Simulation.Flowsheet.Connections;
+using Enerflow.Simulation.Flowsheet.Builders;
 using Enerflow.Domain.DTOs;
 using Microsoft.Extensions.Logging;
 using SimulationEntity = Enerflow.Domain.Entities.Simulation;
@@ -14,23 +12,17 @@ public class DWSIMSolver : ISimulationSolver
 {
     private readonly Automation3 _automation;
     private readonly IFlowsheetBuilder _flowsheetBuilder;
-    private readonly IUnitOperationConfigurator _unitOpConfigurator;
-    private readonly IConnectionFactory _connectionFactory;
     private readonly IResultCollector _resultCollector;
     private readonly ILogger<DWSIMSolver> _logger;
 
     public DWSIMSolver(
         Automation3 automation,
         IFlowsheetBuilder flowsheetBuilder,
-        IUnitOperationConfigurator unitOpConfigurator,
-        IConnectionFactory connectionFactory,
         IResultCollector resultCollector,
         ILogger<DWSIMSolver> logger)
     {
         _automation = automation;
         _flowsheetBuilder = flowsheetBuilder;
-        _unitOpConfigurator = unitOpConfigurator;
-        _connectionFactory = connectionFactory;
         _resultCollector = resultCollector;
         _logger = logger;
     }
@@ -41,28 +33,11 @@ public class DWSIMSolver : ISimulationSolver
 
         _logger.LogInformation("Starting simulation solve for Job {JobId}", simulation.Id);
 
-        // 1. Build Flowsheet (Foundation)
+        // 1. Build Complete Flowsheet (includes creation, configuration, and connections)
         IFlowsheet flowsheet = _flowsheetBuilder.BuildFlowsheet(simulation);
-        _logger.LogInformation("Flowsheet built successfully for Job {JobId}", simulation.Id);
+        _logger.LogInformation("Flowsheet built and connected successfully for Job {JobId}", simulation.Id);
 
-        // 2. Configure Unit Operations
-        var compoundLookup = simulation.Compounds.ToDictionary(c => c.Id, c => c.Name);
-
-        _logger.LogInformation("Configuring {Count} unit operations for Job {JobId}", simulation.UnitOperations.Count,
-            simulation.Id);
-        foreach (var unit in simulation.UnitOperations)
-        {
-            _unitOpConfigurator.Configure(unit, flowsheet, compoundLookup);
-        }
-
-        _logger.LogInformation("Unit operations configured successfully for Job {JobId}", simulation.Id);
-
-        // 3. Connect Flowsheet (includes post-connection configuration like splitter ratios)
-        _logger.LogInformation("Connecting flowsheet for Job {JobId}", simulation.Id);
-        _connectionFactory.ConnectFlowsheet(simulation, flowsheet);
-        _logger.LogInformation("Flowsheet connected successfully for Job {JobId}", simulation.Id);
-
-        // 4. Solve using DWSIM's modern CalculateFlowsheet4 API
+        // 2. Solve using DWSIM's modern CalculateFlowsheet4 API
         _logger.LogInformation("Starting DWSIM calculation for Job {JobId}", simulation.Id);
 
         try

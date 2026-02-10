@@ -1,16 +1,15 @@
-using System.Text.Json;
+using Enerflow.Domain.Entities.UnitOperations;
 using Enerflow.Domain.Enums;
 using DWSIM.Interfaces;
 using DWSIM.Interfaces.Enums.GraphicObjects;
+using DWSIM.UnitOperations.SpecialOps;
 using DWSIM.UnitOperations.UnitOperations;
 using Microsoft.Extensions.Logging;
-using DWSIM.UnitOperations.SpecialOps;
-using DWSIM.UnitOperations.Reactors;
 
 namespace Enerflow.Simulation.Flowsheet.UnitOperations;
 
 /// <summary>
-/// Factory for creating DWSIM unit operation objects from the UnitOperation enum.
+/// Factory for creating and configuring DWSIM unit operation objects.
 /// </summary>
 public class UnitOperationFactory : IUnitOperationFactory
 {
@@ -21,200 +20,340 @@ public class UnitOperationFactory : IUnitOperationFactory
         _logger = logger;
     }
 
-    /// <summary>
-    /// Creates a DWSIM unit operation based on the UnitOperation enum type.
-    /// </summary>
-    /// <param name="type">The unit operation type enum</param>
-    /// <param name="name">The name for the unit operation</param>
-    /// <param name="configParams">Optional configuration parameters as JSON</param>
-    /// <returns>The created unit operation, or null if type is not supported</returns>
-    public ISimulationObject? CreateUnitOperation(UnitOperationType type, string name, JsonDocument? configParams = null)
+    public void Configure(UnitOperationObject domainObject, IFlowsheet flowsheet, IReadOnlyDictionary<Guid, string> compoundNames)
     {
-        _logger.LogDebug("Creating unit operation: {Type} named {Name}", type, name);
+        _logger.LogDebug("Configuring Unit Operation: {Name} ({Type})", domainObject.Name, domainObject.Type);
 
-        try
+        switch (domainObject)
         {
-            ISimulationObject? unitOp = type switch
-            {
-                // MVP Unit Operations
-                UnitOperationType.Mixer => new Mixer { Name = name },
-                UnitOperationType.Splitter => new Splitter { Name = name },
-                UnitOperationType.Separator => new Vessel { Name = name },
-                UnitOperationType.Tank => new Tank { Name = name },
-                UnitOperationType.Pipe => new Pipe { Name = name },
-                UnitOperationType.Valve => new Valve { Name = name },
-                UnitOperationType.Pump => new Pump { Name = name },
-                UnitOperationType.Compressor => new Compressor { Name = name },
-                UnitOperationType.Expander => new Expander { Name = name },
-                UnitOperationType.Heater => new Heater { Name = name },
-                UnitOperationType.Cooler => new Cooler { Name = name },
-                UnitOperationType.HeatExchanger => new HeatExchanger { Name = name },
-
-                // Phase 2 Unit Operations
-                UnitOperationType.ReactorConversion => new Reactor_Conversion { Name = name },
-                UnitOperationType.ReactorEquilibrium => new Reactor_Equilibrium { Name = name },
-                UnitOperationType.ReactorGibbs => new Reactor_Gibbs { Name = name },
-                UnitOperationType.ReactorCSTR => new Reactor_CSTR { Name = name },
-                UnitOperationType.ReactorPFR => new Reactor_PFR { Name = name },
-                UnitOperationType.DistillationColumn => new DistillationColumn { Name = name },
-                UnitOperationType.AbsorptionColumn => new AbsorptionColumn { Name = name },
-                UnitOperationType.ComponentSeparator => new ComponentSeparator { Name = name },
-                UnitOperationType.OrificePlate => new OrificePlate { Name = name },
-                UnitOperationType.Recycle => new Recycle { Name = name },
-                UnitOperationType.Adjust => new Adjust { Name = name },
-                UnitOperationType.Spec => new Spec { Name = name },
-
-                _ => null
-            };
-
-            if (unitOp == null)
-            {
-                _logger.LogWarning("Unsupported unit operation type: {Type}", type);
-                return null;
-            }
-
-            // Apply configuration parameters if provided
-            if (configParams != null)
-            {
-                ApplyConfigParams(unitOp, type, configParams);
-            }
-
-            _logger.LogDebug("Successfully created unit operation: {Type} named {Name}", type, name);
-            return unitOp;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to create unit operation: {Type} named {Name}", type, name);
-            return null;
+            case HeaterObject heater:
+                MapHeater(heater, flowsheet);
+                break;
+            case CoolerObject cooler:
+                MapCooler(cooler, flowsheet);
+                break;
+            case ValveObject valve:
+                MapValve(valve, flowsheet);
+                break;
+            case MixerObject mixer:
+                MapMixer(mixer, flowsheet);
+                break;
+            case SplitterObject splitter:
+                MapSplitter(splitter, flowsheet);
+                break;
+            case FlashDrumObject flash:
+                MapFlashDrum(flash, flowsheet);
+                break;
+            case ShortcutColumnObject column:
+                MapShortcutColumn(column, flowsheet, compoundNames);
+                break;
+            case RecycleObject recycle:
+                MapRecycle(recycle, flowsheet);
+                break;
+            default:
+                _logger.LogWarning("Unit Operation type {Type} not yet supported.", domainObject.Type);
+                break;
         }
     }
 
-    /// <summary>
-    /// Applies configuration parameters from JSON to the unit operation.
-    /// </summary>
-    private void ApplyConfigParams(ISimulationObject unitOp, UnitOperationType type, JsonDocument configParams)
+    private void MapHeater(HeaterObject domainHeater, IFlowsheet flowsheet)
     {
-        try
+        // Find existing heater (created by Builder)
+        var heaterId = domainHeater.Id.ToString();
+        if (!flowsheet.SimulationObjects.TryGetValue(heaterId, out var obj))
         {
-            var root = configParams.RootElement;
-
-            switch (type)
-            {
-                case UnitOperationType.Pump when unitOp is Pump pump:
-                    if (root.TryGetProperty("deltaP", out var deltaP))
-                    {
-                        pump.CalcMode = Pump.CalculationMode.Delta_P;
-                        pump.DeltaP = deltaP.GetDouble();
-                    }
-                    else if (root.TryGetProperty("efficiency", out var pumpEff))
-                    {
-                        // Outlet Pressure based calculation
-                        if (root.TryGetProperty("outletPressure", out var pumpP))
-                        {
-                            pump.CalcMode = Pump.CalculationMode.OutletPressure;
-                            pump.Pout = pumpP.GetDouble(); // Pout casing for Pump
-                        }
-                        pump.Eficiencia = pumpEff.GetDouble();
-                    }
-                    break;
-
-                case UnitOperationType.Compressor when unitOp is Compressor comp:
-                    if (root.TryGetProperty("efficiency", out var compEff))
-                        comp.AdiabaticEfficiency = compEff.GetDouble();
-
-                    if (root.TryGetProperty("outletPressure", out var compP))
-                    {
-                        comp.CalcMode = Compressor.CalculationMode.OutletPressure;
-                        comp.POut = compP.GetDouble(); // POut casing for Compressor
-                    }
-                    else if (root.TryGetProperty("power", out var compPower))
-                    {
-                        comp.CalcMode = Compressor.CalculationMode.PowerRequired;
-                        // Compressor PowerRequired is typically set via Energy Stream or implicitly via DeltaQ?
-                        // grep didn't show PowerRequired property, only the Enum. 
-                        // "DeltaQ" usually represents energy added/removed.
-                        comp.DeltaQ = compPower.GetDouble();
-                    }
-                    break;
-
-                case UnitOperationType.Expander when unitOp is Expander exp:
-                    if (root.TryGetProperty("efficiency", out var expEff))
-                        exp.AdiabaticEfficiency = expEff.GetDouble();
-
-                    if (root.TryGetProperty("outletPressure", out var expP))
-                    {
-                        exp.CalcMode = Expander.CalculationMode.OutletPressure;
-                        exp.POut = expP.GetDouble(); // POut for Expander
-                    }
-                    else if (root.TryGetProperty("power", out var expPower))
-                    {
-                        // Assuming Expander has similar mode
-                        exp.CalcMode = Expander.CalculationMode.PowerGenerated;
-                        exp.DeltaQ = expPower.GetDouble();
-                    }
-                    break;
-
-                case UnitOperationType.Heater when unitOp is Heater heater:
-                    if (root.TryGetProperty("outletTemperature", out var heaterT))
-                    {
-                        heater.CalcMode = Heater.CalculationMode.OutletTemperature;
-                        heater.OutletTemperature = heaterT.GetDouble();
-                    }
-                    else if (root.TryGetProperty("heatDuty", out var heaterQ))
-                    {
-                        heater.CalcMode = Heater.CalculationMode.HeatAdded;
-                        heater.DeltaQ = heaterQ.GetDouble();
-                    }
-
-                    // Fallback for efficiency/pressure drop?
-                    if (root.TryGetProperty("pressureDrop", out var heaterDP))
-                        heater.DeltaP = heaterDP.GetDouble();
-                    break;
-
-                case UnitOperationType.Cooler when unitOp is Cooler cooler:
-                    if (root.TryGetProperty("outletTemperature", out var coolerT))
-                    {
-                        cooler.CalcMode = Cooler.CalculationMode.OutletTemperature;
-                        cooler.OutletTemperature = coolerT.GetDouble();
-                    }
-                    else if (root.TryGetProperty("heatDuty", out var coolerQ))
-                    {
-                        cooler.CalcMode = Cooler.CalculationMode.HeatRemoved;
-                        cooler.DeltaQ = coolerQ.GetDouble();
-                    }
-
-                    if (root.TryGetProperty("pressureDrop", out var coolerDP))
-                        cooler.DeltaP = coolerDP.GetDouble();
-                    break;
-
-                case UnitOperationType.Valve when unitOp is Valve valve:
-                    if (root.TryGetProperty("outletPressure", out var valveP))
-                    {
-                        valve.OutletPressure = valveP.GetDouble();
-                    }
-                    break;
-
-                case UnitOperationType.HeatExchanger when unitOp is HeatExchanger hx:
-                    if (root.TryGetProperty("hotSideOutletTemperature", out var hxHotT))
-                        hx.HotSideOutletTemperature = hxHotT.GetDouble();
-                    if (root.TryGetProperty("coldSideOutletTemperature", out var hxColdT))
-                        hx.ColdSideOutletTemperature = hxColdT.GetDouble();
-                    break;
-
-                case UnitOperationType.Separator when unitOp is Vessel vessel:
-                    if (root.TryGetProperty("pressure", out var vesselP))
-                        vessel.FlashPressure = vesselP.GetDouble();
-                    if (root.TryGetProperty("temperature", out var vesselT))
-                        vessel.FlashTemperature = vesselT.GetDouble();
-                    break;
-            }
-
-            _logger.LogDebug("Applied configuration parameters to {Name}", unitOp.Name);
+            _logger.LogError("Heater {Name} (ID: {Id}) not found in flowsheet. Builder should have created it.", 
+                domainHeater.Name, domainHeater.Id);
+            throw new InvalidOperationException($"Heater {domainHeater.Name} not found in flowsheet");
         }
-        catch (Exception ex)
+        
+        var heater = (Heater)obj;
+
+        // CRITICAL: Set CalcMode FIRST
+        heater.CalcMode = MapHeaterCalcMode(domainHeater.CalcMode);
+
+        // Set Properties
+        heater.Efficiency = domainHeater.Efficiency * 100.0; // %
+        heater.PressureDrop = domainHeater.PressureDrop; // Pa
+
+        switch (domainHeater.CalcMode)
         {
-            _logger.LogWarning(ex, "Failed to apply some configuration parameters to {Name}", unitOp.Name);
+            case HeaterCalculationMode.OutletTemperature:
+                heater.OutletTemperature = domainHeater.OutletTemperature; // K
+                break;
+            case HeaterCalculationMode.HeatDuty:
+                heater.HeatDuty = domainHeater.HeatDuty; // kW
+                break;
+            case HeaterCalculationMode.TemperatureDrop:
+                heater.TemperatureChange = domainHeater.TemperatureChange; // K
+                break;
+            case HeaterCalculationMode.EnergyStream:
+                break;
         }
+    }
+
+    private void MapCooler(CoolerObject domainCooler, IFlowsheet flowsheet)
+    {
+        // Find existing cooler (created by Builder)
+        var coolerId = domainCooler.Id.ToString();
+        if (!flowsheet.SimulationObjects.TryGetValue(coolerId, out var obj))
+        {
+            _logger.LogError("Cooler {Name} (ID: {Id}) not found in flowsheet. Builder should have created it.", 
+                domainCooler.Name, domainCooler.Id);
+            throw new InvalidOperationException($"Cooler {domainCooler.Name} not found in flowsheet");
+        }
+        
+        var cooler = (Cooler)obj;
+
+        // CRITICAL: Set CalcMode FIRST
+        cooler.CalcMode = MapCoolerCalcMode(domainCooler.CalcMode);
+
+        // Set Properties
+        cooler.Efficiency = domainCooler.Efficiency * 100.0; // %
+        cooler.PressureDrop = domainCooler.PressureDrop; // Pa
+
+        switch (domainCooler.CalcMode)
+        {
+            case HeaterCalculationMode.OutletTemperature:
+                cooler.OutletTemperature = domainCooler.OutletTemperature; // K
+                break;
+            case HeaterCalculationMode.HeatDuty:
+                cooler.HeatDuty = domainCooler.HeatDuty; // kW
+                break;
+            case HeaterCalculationMode.TemperatureDrop:
+                cooler.TemperatureChange = domainCooler.TemperatureChange; // K
+                break;
+            case HeaterCalculationMode.EnergyStream:
+                break;
+        }
+    }
+
+    private void MapValve(ValveObject domainValve, IFlowsheet flowsheet)
+    {
+        // Find existing valve (created by Builder)
+        var valveId = domainValve.Id.ToString();
+        if (!flowsheet.SimulationObjects.TryGetValue(valveId, out var obj))
+        {
+            _logger.LogError("Valve {Name} (ID: {Id}) not found in flowsheet. Builder should have created it.", 
+                domainValve.Name, domainValve.Id);
+            throw new InvalidOperationException($"Valve {domainValve.Name} not found in flowsheet");
+        }
+        
+        var valve = (Valve)obj;
+
+        // CRITICAL: Set CalcMode FIRST
+        valve.CalcMode = domainValve.CalcMode switch
+        {
+            ValveCalculationMode.OutletPressure => Valve.CalculationMode.OutletPressure,
+            ValveCalculationMode.PressureDrop => Valve.CalculationMode.DeltaP,
+            _ => Valve.CalculationMode.OutletPressure
+        };
+
+        if (domainValve.CalcMode == ValveCalculationMode.OutletPressure)
+        {
+            valve.OutletPressure = domainValve.OutletPressure;
+        }
+        else
+        {
+            valve.DeltaP = domainValve.PressureDrop;
+        }
+    }
+
+    private void MapMixer(MixerObject domainMixer, IFlowsheet flowsheet)
+    {
+        // Mixer has no specific properties to configure
+        // The Builder already created the mixer object, so we just verify it exists
+        var mixerId = domainMixer.Id.ToString();
+        if (!flowsheet.SimulationObjects.ContainsKey(mixerId))
+        {
+            _logger.LogError("Mixer {Name} (ID: {Id}) not found in flowsheet. Builder should have created it.", 
+                domainMixer.Name, domainMixer.Id);
+            throw new InvalidOperationException($"Mixer {domainMixer.Name} not found in flowsheet");
+        }
+        
+        _logger.LogDebug("Mixer {Name} found and ready (no additional configuration needed)", domainMixer.Name);
+    }
+
+    private void MapSplitter(SplitterObject domainSplitter, IFlowsheet flowsheet)
+    {
+        // Find existing splitter (created by Builder)
+        var splitterId = domainSplitter.Id.ToString();
+        if (!flowsheet.SimulationObjects.TryGetValue(splitterId, out var obj))
+        {
+            _logger.LogError("Splitter {Name} (ID: {Id}) not found in flowsheet. Builder should have created it.", 
+                domainSplitter.Name, domainSplitter.Id);
+            throw new InvalidOperationException($"Splitter {domainSplitter.Name} not found in flowsheet");
+        }
+        
+        var splitter = (Splitter)obj;
+
+        // Ensure we are in SplitRatios mode
+        splitter.OperationMode = Splitter.OpMode.SplitRatios;
+
+        // Note: Split ratios depend on connection order. 
+        // We cannot reliably set them here without knowing which port connects to which stream.
+        // The ConnectionFactory or a post-connection step should handle ratio assignment 
+        // by matching OutputStreamIds to the ports.
+        _logger.LogDebug("Created Splitter {Name}. Ratios must be set after connections.", domainSplitter.Name);
+    }
+
+    private void MapFlashDrum(FlashDrumObject domainFlash, IFlowsheet flowsheet)
+    {
+        // Find existing flash drum (created by Builder)
+        var flashId = domainFlash.Id.ToString();
+        if (!flowsheet.SimulationObjects.TryGetValue(flashId, out var obj))
+        {
+            _logger.LogError("FlashDrum {Name} (ID: {Id}) not found in flowsheet. Builder should have created it.", 
+                domainFlash.Name, domainFlash.Id);
+            throw new InvalidOperationException($"FlashDrum {domainFlash.Name} not found in flowsheet");
+        }
+        
+        var vessel = (Vessel)obj;
+
+        // Map Flash Calculation Type
+        switch (domainFlash.FlashType)
+        {
+            case FlashCalculationType.PressureTemperature:
+                vessel.CalculationMode = Vessel.CalculationModes.Legacy;
+                vessel.OverrideP = true;
+                vessel.OverrideT = true;
+                vessel.FlashPressure = domainFlash.OutletPressure;
+                vessel.FlashTemperature = domainFlash.OutletTemperature;
+                break;
+            case FlashCalculationType.PressureEnthalpy:
+                // Adiabatic flash (Heat Duty = 0)
+                vessel.CalculationMode = Vessel.CalculationModes.Adiabatic;
+                vessel.OverrideP = false;
+                vessel.OverrideT = false;
+                break;
+            default:
+                _logger.LogWarning("Flash Type {Type} not fully supported for FlashDrum {Name}. Defaulting to Adiabatic.", domainFlash.FlashType, domainFlash.Name);
+                vessel.CalculationMode = Vessel.CalculationModes.Adiabatic;
+                break;
+        }
+    }
+
+    private void MapShortcutColumn(ShortcutColumnObject domainColumn, IFlowsheet flowsheet, IReadOnlyDictionary<Guid, string> compoundNames)
+    {
+        // Find existing shortcut column (created by Builder)
+        var columnId = domainColumn.Id.ToString();
+        if (!flowsheet.SimulationObjects.TryGetValue(columnId, out var obj))
+        {
+            _logger.LogError("ShortcutColumn {Name} (ID: {Id}) not found in flowsheet. Builder should have created it.", 
+                domainColumn.Name, domainColumn.Id);
+            throw new InvalidOperationException($"ShortcutColumn {domainColumn.Name} not found in flowsheet");
+        }
+        
+        var column = (ShortcutColumn)obj;
+
+        column.m_refluxratio = domainColumn.RefluxRatio;
+        column.m_condenserpressure = domainColumn.CondenserPressure;
+        column.m_boilerpressure = domainColumn.ReboilerPressure;
+        
+        // Map Keys
+        if (compoundNames.TryGetValue(domainColumn.LightKey, out var lkName))
+        {
+            column.m_lightkey = lkName;
+        }
+        else
+        {
+            _logger.LogError("Light Key compound {Id} not found in lookup.", domainColumn.LightKey);
+        }
+
+        if (compoundNames.TryGetValue(domainColumn.HeavyKey, out var hkName))
+        {
+            column.m_heavykey = hkName;
+        }
+        else
+        {
+            _logger.LogError("Heavy Key compound {Id} not found in lookup.", domainColumn.HeavyKey);
+        }
+
+        column.m_lightkeymolarfrac = domainColumn.LightKeyFraction;
+        column.m_heavykeymolarfrac = domainColumn.HeavyKeyFraction;
+        
+        // Condenser Type? Domain doesn't have it yet. Defaulting to Total.
+        column.condtype = ShortcutColumn.CondenserType.TotalCond;
+    }
+
+    private void MapRecycle(RecycleObject domainRecycle, IFlowsheet flowsheet)
+    {
+        // Find existing recycle (created by Builder)
+        var recycleId = domainRecycle.Id.ToString();
+        if (!flowsheet.SimulationObjects.TryGetValue(recycleId, out var obj))
+        {
+            _logger.LogError("Recycle {Name} (ID: {Id}) not found in flowsheet. Builder should have created it.", 
+                domainRecycle.Name, domainRecycle.Id);
+            throw new InvalidOperationException($"Recycle {domainRecycle.Name} not found in flowsheet");
+        }
+        
+        var recycle = (Recycle)obj;
+
+        recycle.MaximumIterations = domainRecycle.MaxIterations;
+        
+        // Map Tolerance (assuming Mass Flow tolerance is the primary one, or set all)
+        recycle.ConvergenceParameters.VazaoMassica = domainRecycle.Tolerance;
+        recycle.ConvergenceParameters.Temperatura = domainRecycle.Tolerance * 100; // Just a heuristic scaling
+        recycle.ConvergenceParameters.Pressao = domainRecycle.Tolerance * 1000;
+
+        recycle.AccelerationMethod = domainRecycle.Acceleration switch
+        {
+            RecycleAccelerationMethod.Wegstein => DWSIM.Interfaces.Enums.AccelMethod.Wegstein,
+            RecycleAccelerationMethod.Direct => DWSIM.Interfaces.Enums.AccelMethod.None,
+            RecycleAccelerationMethod.DominantEigenvalue => DWSIM.Interfaces.Enums.AccelMethod.Dominant_Eigenvalue,
+            _ => DWSIM.Interfaces.Enums.AccelMethod.Wegstein
+        };
+    }
+
+    private static Heater.CalculationMode MapHeaterCalcMode(HeaterCalculationMode mode)
+    {
+        return mode switch
+        {
+            HeaterCalculationMode.OutletTemperature => Heater.CalculationMode.OutletTemperature,
+            HeaterCalculationMode.HeatDuty => Heater.CalculationMode.HeatAdded,
+            HeaterCalculationMode.EnergyStream => Heater.CalculationMode.EnergyStream,
+            HeaterCalculationMode.TemperatureDrop => Heater.CalculationMode.TemperatureChange,
+            _ => Heater.CalculationMode.OutletTemperature
+        };
+    }
+
+    private static Cooler.CalculationMode MapCoolerCalcMode(HeaterCalculationMode mode)
+    {
+        return mode switch
+        {
+            HeaterCalculationMode.OutletTemperature => Cooler.CalculationMode.OutletTemperature,
+            HeaterCalculationMode.HeatDuty => Cooler.CalculationMode.HeatRemoved,
+            HeaterCalculationMode.EnergyStream => Cooler.CalculationMode.EnergyStream,
+            HeaterCalculationMode.TemperatureDrop => Cooler.CalculationMode.TemperatureChange,
+            _ => Cooler.CalculationMode.OutletTemperature
+        };
+    }
+
+    /// <summary>
+    /// Creates and configures multiple unit operations in the flowsheet.
+    /// This is a two-step process: first create all objects, then configure them.
+    /// </summary>
+    public void CreateAndConfigureUnitOperations(
+        IFlowsheet flowsheet,
+        IEnumerable<UnitOperationObject> unitOperations,
+        IReadOnlyDictionary<Guid, string> compoundNames)
+    {
+        var unitOperationsList = unitOperations.ToList();
+
+        // Loop 1: Create all unit operations
+        foreach (var unit in unitOperationsList)
+        {
+            var graphicObjectType = GetGraphicObjectType(unit.Type);
+            flowsheet.AddObject(graphicObjectType, 0, 0, unit.Id.ToString(), unit.Name);
+        }
+
+        // Loop 2: Configure all unit operations
+        foreach (var unit in unitOperationsList)
+        {
+            Configure(unit, flowsheet, compoundNames);
+        }
+
+        _logger.LogInformation("Created and configured {Count} unit operations", unitOperationsList.Count);
     }
 
     /// <summary>

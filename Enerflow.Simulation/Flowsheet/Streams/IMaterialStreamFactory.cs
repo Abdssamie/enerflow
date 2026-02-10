@@ -1,4 +1,5 @@
 using Enerflow.Domain.Enums;
+using DWSIM.Interfaces;
 using DomainMaterialStream = Enerflow.Domain.Entities.Streams.MaterialStream;
 using DwsimMaterialStream = DWSIM.Thermodynamics.Streams.MaterialStream;
 
@@ -18,4 +19,12 @@ public interface IMaterialStreamFactory
         DomainMaterialStream streamEntity,
         SystemOfUnits systemOfUnits
     );
+
+    /// <summary>
+    /// Creates and configures multiple material streams in the flowsheet.
+    /// </summary>
+    void CreateAndConfigureStreams(
+        IFlowsheet flowsheet,
+        IEnumerable<DomainMaterialStream> streams,
+        SystemOfUnits systemOfUnits);
 }

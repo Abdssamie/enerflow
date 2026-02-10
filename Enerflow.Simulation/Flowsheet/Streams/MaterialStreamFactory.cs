@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Enerflow.Domain.Enums;
+using DWSIM.Interfaces;
+using DWSIM.Interfaces.Enums.GraphicObjects;
 using DomainMaterialStream = Enerflow.Domain.Entities.Streams.MaterialStream;
 using DwsimMaterialStream = DWSIM.Thermodynamics.Streams.MaterialStream;
 using DwsimStreamSpec = DWSIM.Interfaces.Enums.StreamSpec;
@@ -69,5 +71,34 @@ public class MaterialStreamFactory : IMaterialStreamFactory
          _logger.LogError(ex, "Failed to configure material stream: {Name}", streamEntity.Name);
          throw;
       }
+   }
+
+   public void CreateAndConfigureStreams(
+       IFlowsheet flowsheet,
+       IEnumerable<DomainMaterialStream> streams,
+       SystemOfUnits systemOfUnits)
+   {
+      var streamList = streams.ToList();
+      
+      foreach (var streamEntity in streamList)
+      {
+         var dwsimStream = flowsheet.AddObject(
+             ObjectType.MaterialStream,
+             0,
+             0,
+             streamEntity.Id.ToString(),
+             streamEntity.Name
+         ) as DwsimMaterialStream;
+
+         if (dwsimStream == null)
+         {
+            _logger.LogError("Failed to create DWSIM material stream for {Name}", streamEntity.Name);
+            throw new InvalidOperationException($"Failed to create DWSIM material stream for {streamEntity.Name}");
+         }
+
+         Configure(dwsimStream, streamEntity, systemOfUnits);
+      }
+
+      _logger.LogInformation("Created and configured {Count} material streams", streamList.Count);
    }
 }

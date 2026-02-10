@@ -1,7 +1,7 @@
 using DWSIM.Interfaces;
 using SimulationEntity = Enerflow.Domain.Entities.Simulation;
 
-namespace Enerflow.Worker.Validation;
+namespace Enerflow.Simulation.Validation;
 
 public interface IFlowsheetValidator
 {

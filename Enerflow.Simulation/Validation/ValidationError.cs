@@ -1,4 +1,4 @@
-namespace Enerflow.Worker.Validation;
+namespace Enerflow.Simulation.Validation;
 
 public class ValidationError
 {

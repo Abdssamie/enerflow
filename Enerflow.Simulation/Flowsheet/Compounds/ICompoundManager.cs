@@ -1,5 +1,5 @@
-using Enerflow.Domain.DTOs;
 using DWSIM.Interfaces;
+using Enerflow.Domain.Entities;
 
 namespace Enerflow.Simulation.Flowsheet.Compounds;
 
@@ -9,9 +9,14 @@ namespace Enerflow.Simulation.Flowsheet.Compounds;
 public interface ICompoundManager
 {
     /// <summary>
-    /// Adds a compound to the flowsheet.
+    /// Adds a single compound to the flowsheet.
     /// </summary>
-    void AddCompound(IFlowsheet flowsheet, CompoundDto compound);
+    void AddCompound(IFlowsheet flowsheet, Compound compound);
+
+    /// <summary>
+    /// Adds multiple compounds to the flowsheet.
+    /// </summary>
+    void AddCompounds(IFlowsheet flowsheet, IEnumerable<Compound> compounds);
 
     /// <summary>
     /// Validates that a compound exists in the DWSIM compound database.

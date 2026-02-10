@@ -2,7 +2,7 @@ using Enerflow.Domain.Entities;
 using Enerflow.Domain.Entities.Streams;
 using Enerflow.Domain.Entities.UnitOperations;
 using Enerflow.Domain.Enums;
-using Enerflow.Worker.Validation;
+using Enerflow.Simulation.Validation;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
 using SimulationEntity = Enerflow.Domain.Entities.Simulation;

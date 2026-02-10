@@ -3,7 +3,7 @@ using Enerflow.Domain.Entities.UnitOperations;
 using Microsoft.Extensions.Logging;
 using SimulationEntity = Enerflow.Domain.Entities.Simulation;
 
-namespace Enerflow.Worker.Validation;
+namespace Enerflow.Simulation.Validation;
 
 /// <summary>
 /// Validates flowsheet configurations before execution.

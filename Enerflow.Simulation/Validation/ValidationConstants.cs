@@ -1,4 +1,4 @@
-namespace Enerflow.Worker.Validation;
+namespace Enerflow.Simulation.Validation;
 
 /// <summary>
 /// Centralized validation constants to avoid magic numbers and improve maintainability.

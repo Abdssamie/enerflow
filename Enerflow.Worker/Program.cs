@@ -42,21 +42,20 @@ builder.Services.AddSingleton<IUnitOperationFactory, UnitOperationFactory>();
 builder.Services.AddSingleton<IFlashAlgorithmManager, FlashAlgorithmManager>();
 
 // Register DWSIM Automation (Singleton due to initialization overhead)
-builder.Services.AddSingleton<DWSIM.Automation.AutomationInterface, DWSIM.Automation.Automation3>();
+builder.Services.AddSingleton<DWSIM.Automation.Automation3>();
 
-// Register Builders
-builder.Services.AddScoped<Enerflow.Worker.Builders.IFlowsheetBuilder, Enerflow.Worker.Builders.DWSIMFlowsheetBuilder>();
+// Register Simulation Layer Factories (used by Builder)
+builder.Services.AddSingleton<IConnectionFactory, ConnectionFactory>();
 
-// Register Simulation Layer Configurators
-builder.Services.AddScoped<IUnitOperationConfigurator, UnitOperationConfigurator>();
-builder.Services.AddScoped<IConnectionFactory, ConnectionFactory>();
+// Register Builders (Builder now handles complete flowsheet assembly including connections)
+builder.Services.AddScoped<Enerflow.Simulation.Flowsheet.Builders.IFlowsheetBuilder, Enerflow.Simulation.Flowsheet.Builders.DWSIMFlowsheetBuilder>();
 
-// Register Solvers
+// Register Solvers (Solver is now pure - only builds and solves)
 builder.Services.AddScoped<IResultCollector, ResultCollector>();
 builder.Services.AddScoped<ISimulationSolver, DWSIMSolver>();
 
 // Register Validation
-builder.Services.AddScoped<Enerflow.Worker.Validation.IFlowsheetValidator, Enerflow.Worker.Validation.FlowsheetValidator>();
+builder.Services.AddScoped<Enerflow.Simulation.Validation.IFlowsheetValidator, Enerflow.Simulation.Validation.FlowsheetValidator>();
 
 builder.Services.AddMassTransit(x =>
 {

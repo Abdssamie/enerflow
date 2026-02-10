@@ -1,18 +1,17 @@
 using DWSIM.Interfaces;
-using DWSIM.Interfaces.Enums.GraphicObjects;
 using DWSIM.SharedClasses.SystemsOfUnits;
-using Enerflow.Domain.DTOs;
 using Enerflow.Domain.Enums;
 using Enerflow.Simulation.Flowsheet.Compounds;
+using Enerflow.Simulation.Flowsheet.Connections;
 using Enerflow.Simulation.Flowsheet.FlashAlgorithms;
 using Enerflow.Simulation.Flowsheet.PropertyPackages;
 using Enerflow.Simulation.Flowsheet.Streams;
 using Enerflow.Simulation.Flowsheet.UnitOperations;
-using Enerflow.Worker.Validation;
+using Enerflow.Simulation.Validation;
 using Microsoft.Extensions.Logging;
 using SimulationEntity = Enerflow.Domain.Entities.Simulation;
 
-namespace Enerflow.Worker.Builders;
+namespace Enerflow.Simulation.Flowsheet.Builders;
 
 public class DWSIMFlowsheetBuilder : IFlowsheetBuilder
 {
@@ -23,6 +22,7 @@ public class DWSIMFlowsheetBuilder : IFlowsheetBuilder
    private readonly IMaterialStreamFactory _materialStreamFactory;
    private readonly IEnergyStreamFactory _energyStreamFactory;
    private readonly IUnitOperationFactory _unitOperationFactory;
+   private readonly IConnectionFactory _connectionFactory;
    private readonly IFlowsheetValidator _validator;
    private readonly ILogger<DWSIMFlowsheetBuilder> _logger;
 
@@ -34,6 +34,7 @@ public class DWSIMFlowsheetBuilder : IFlowsheetBuilder
        IMaterialStreamFactory materialStreamFactory,
        IEnergyStreamFactory energyStreamFactory,
        IUnitOperationFactory unitOperationFactory,
+       IConnectionFactory connectionFactory,
        IFlowsheetValidator validator,
        ILogger<DWSIMFlowsheetBuilder> logger)
    {
@@ -44,6 +45,7 @@ public class DWSIMFlowsheetBuilder : IFlowsheetBuilder
       _materialStreamFactory = materialStreamFactory;
       _energyStreamFactory = energyStreamFactory;
       _unitOperationFactory = unitOperationFactory;
+      _connectionFactory = connectionFactory;
       _validator = validator;
       _logger = logger;
    }
@@ -61,77 +63,31 @@ public class DWSIMFlowsheetBuilder : IFlowsheetBuilder
       // 3. Configure Settings
       SetSystemOfUnits(flowsheet, simulation.SystemOfUnits);
 
-      // 4. Add Compounds
-      foreach (var compound in simulation.Compounds)
-      {
-         var dto = new CompoundDto(compound.Id, compound.Name, compound.ConstantProperties);
-         _compoundManager.AddCompound(flowsheet, dto);
-      }
+      // 4. Add Compounds (batch - no loop)
+      _compoundManager.AddCompounds(flowsheet, simulation.Compounds);
 
       // 5. Property Package & Flash Algorithm
       var propertyPackage = _propertyPackageManager.CreatePropertyPackage(simulation.PropertyPackage);
       var flashAlgorithm = _flashAlgorithmManager.CreateFlashAlgorithm(simulation.FlashAlgorithm);
-
       _propertyPackageManager.SetFlashAlgorithm(propertyPackage, flashAlgorithm);
       _propertyPackageManager.AddToFlowsheet(flowsheet, propertyPackage);
 
-      // Map to track Stream IDs to Names for connection
-      var streamMap = new Dictionary<Guid, string>();
+      // 6. Create and Configure Material Streams (batch - no loop)
+      _materialStreamFactory.CreateAndConfigureStreams(flowsheet, simulation.MaterialStreams, simulation.SystemOfUnits);
 
-      // 6. Create Material Streams using flowsheet.AddObject
-      foreach (var stream in simulation.MaterialStreams)
-      {
-         // Use flowsheet.AddObject to create the stream instance
-         var dwsimObj = flowsheet.AddObject(
-             ObjectType.MaterialStream,
-             0, 0,  // x, y coordinates (not used in headless mode)
-             id: stream.Id.ToString(),
-             tag: stream.Name
-         );
+      // 7. Create and Configure Energy Streams (batch - no loop)
+      _energyStreamFactory.CreateAndConfigureStreams(flowsheet, simulation.EnergyStreams);
 
-         // Cast to MaterialStream and configure using factory
-         if (dwsimObj is DWSIM.Thermodynamics.Streams.MaterialStream ms)
-         {
-            _materialStreamFactory.Configure(ms, stream, simulation.SystemOfUnits);
-         }
+      // 8. Create and Configure Unit Operations (batch - no loop)
+      var compoundLookup = simulation.Compounds.ToDictionary(c => c.Id, c => c.Name);
+      _unitOperationFactory.CreateAndConfigureUnitOperations(flowsheet, simulation.UnitOperations, compoundLookup);
 
-         streamMap[stream.Id] = stream.Name;
-      }
+      // 9. Connect Flowsheet (batch - ConnectionFactory handles loops internally)
+      _logger.LogInformation("Connecting flowsheet for simulation {Id}", simulation.Id);
+      _connectionFactory.ConnectFlowsheet(simulation, flowsheet);
+      _logger.LogInformation("Flowsheet connected successfully for simulation {Id}", simulation.Id);
 
-      // 7. Create Energy Streams using flowsheet.AddObject
-      foreach (var stream in simulation.EnergyStreams)
-      {
-         var dwsimObj = flowsheet.AddObject(
-             ObjectType.EnergyStream,
-             0, 0,
-             stream.Id.ToString(),
-             stream.Name
-         );
-
-         if (dwsimObj is DWSIM.UnitOperations.Streams.EnergyStream es)
-         {
-            _energyStreamFactory.Configure(es, stream);
-         }
-
-         streamMap[stream.Id] = stream.Name;
-      }
-
-      // 8. Create Unit Operations using flowsheet.AddObject
-      foreach (var unit in simulation.UnitOperations)
-      {
-         var graphicObjectType = _unitOperationFactory.GetGraphicObjectType(unit.Type);
-
-         var dwsimObj = flowsheet.AddObject(
-             graphicObjectType,
-             0, 0,
-             unit.Id.ToString(),
-             unit.Name
-         );
-
-         // Note: Unit operation parameters are configured by IUnitOperationConfigurator after creation
-      }
-
-      // VALIDATE BEFORE RETURNING
+      // 10. Validate
       _logger.LogInformation("Validating flowsheet for simulation {Id}", simulation.Id);
       var validationResult = _validator.Validate(simulation, flowsheet);
 
