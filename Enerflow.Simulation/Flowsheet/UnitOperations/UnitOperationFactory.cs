@@ -357,6 +357,24 @@ public class UnitOperationFactory : IUnitOperationFactory
         _logger.LogInformation("Created and configured {Count} unit operations", unitOperationsList.Count);
     }
 
+    /// <summary>
+    /// Configures unit operations after connections are established.
+    /// 
+    /// WHY THIS EXISTS:
+    /// Some unit operations have configuration that depends on connection order.
+    /// For example, DWSIM splitters use port-indexed ratio arrays [0.8, 0.2],
+    /// but users specify ratios by stream ID {streamA: 0.8, streamB: 0.2}.
+    /// We can only map stream IDs to port indices after connections are made.
+    /// 
+    /// WHEN TO ADD NEW CASES:
+    /// - Distillation columns (feed tray location depends on which port the feed connects to)
+    /// - Reactors (inlet specifications depend on connection order)
+    /// - Any unit where DWSIM uses port indices but users specify by stream/component ID
+    /// 
+    /// ARCHITECTURE:
+    /// This maintains Single Responsibility - ConnectionFactory only connects,
+    /// UnitOperationFactory owns ALL unit operation configuration concerns.
+    /// </summary>
     public void ConfigurePostConnection(IFlowsheet flowsheet, SimulationEntity simulation)
     {
         _logger.LogDebug("Configuring unit operations after connections...");
