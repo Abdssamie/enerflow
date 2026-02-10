@@ -11,7 +11,7 @@ public class MaterialStream : SimulationObject
     
     public PhaseType Phase { get; init; } = PhaseType.Mixed;
     
-    public Dictionary<string, double> Composition { get; init; } = new();
+    public Dictionary<string, double> Composition { get; init; } = [];
 
     public override void Validate()
     {

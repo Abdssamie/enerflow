@@ -6,6 +6,7 @@ namespace Enerflow.Domain.Entities.UnitOperations;
 public abstract class UnitOperationObject : SimulationObject
 {
     public abstract UnitOperationType Type { get; }
+    
     public List<Guid> InputStreamIds { get; set; } = [];
     public List<Guid> OutputStreamIds { get; set; } = [];
     

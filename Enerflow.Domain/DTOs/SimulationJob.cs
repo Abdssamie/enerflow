@@ -21,12 +21,16 @@ public record SimulationDefinitionDto
     public required FlashAlgorithm FlashAlgorithm { get; init; }
     public required SystemOfUnits SystemOfUnits { get; init; }
 
-    public List<CompoundDto> Compounds { get; init; } = new();
-    public List<MaterialStreamDto> MaterialStreams { get; init; } = new();
-    public List<EnergyStreamDto> EnergyStreams { get; init; } = new();
-    public List<UnitOperationDto> UnitOperations { get; init; } = new();
+    public List<CompoundDto> Compounds { get; init; } = [];
+    public List<MaterialStreamDto> MaterialStreams { get; init; } = [];
+    public List<EnergyStreamDto> EnergyStreams { get; init; } = [];
+    public List<UnitOperationDto> UnitOperations { get; init; } = [];
 }
 
+/// <summary>
+/// DTO representing a chemical compound in the simulation.
+/// Name must match name expect by the DWSIM compound database for correct property retrieval.
+/// </summary>
 public record CompoundDto(Guid Id, string Name, JsonDocument? ConstantProperties);
 
 public record MaterialStreamDto
@@ -36,7 +40,7 @@ public record MaterialStreamDto
     public double Temperature { get; init; }
     public double Pressure { get; init; }
     public double MassFlow { get; init; }
-    public Dictionary<string, double> MolarCompositions { get; init; } = new();
+    public Dictionary<string, double> MolarCompositions { get; init; } = [];
 }
 
 public record EnergyStreamDto
@@ -51,7 +55,7 @@ public record UnitOperationDto
     public required Guid Id { get; init; }
     public required string Name { get; init; }
     public required UnitOperationType Type { get; init; }
-    public List<Guid> InputStreamIds { get; init; } = new();
-    public List<Guid> OutputStreamIds { get; init; } = new();
+    public List<Guid> InputStreamIds { get; init; } = [];
+    public List<Guid> OutputStreamIds { get; init; } = [];
     public JsonDocument? ConfigParams { get; init; }
 }
