@@ -155,7 +155,6 @@ public class DWSIMFlowsheetBuilder : IFlowsheetBuilder
          SystemOfUnits.English => new English(),
          _ => new SI()
       };
-
       flowsheet.FlowsheetOptions.SelectedUnitSystem = unitSystem;
       _logger.LogDebug("Set system of units to {System}", systemOfUnits);
    }

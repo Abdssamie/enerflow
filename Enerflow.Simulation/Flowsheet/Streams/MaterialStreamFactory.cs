@@ -23,7 +23,7 @@ public class MaterialStreamFactory : IMaterialStreamFactory
    {
       try
       {
-      var stream = new DwsimMaterialStream(streamDto.Name, "");
+         var stream = new DwsimMaterialStream(streamDto.Name, "");
          Configure(stream, streamDto, systemOfUnits);
          return stream;
       }
@@ -149,7 +149,6 @@ public class MaterialStreamFactory : IMaterialStreamFactory
          _ => value
       };
    }
-
    private double ConvertMassFlowToSI(double value, SystemOfUnits units)
    {
       return units switch
