@@ -12,6 +12,11 @@ public class CoolerObject : UnitOperationObject
     public double PressureDrop { get; set; } // Pa
     
     public HeaterCalculationMode CalcMode { get; set; } = HeaterCalculationMode.OutletTemperature;
+    
+    /// <summary>
+    /// Optional Energy Stream connection for energy removal (connects to port 1 or Energy Port)
+    /// </summary>
+    public Guid? EnergyInputId { get; set; }
 
     public override void Validate()
     {
