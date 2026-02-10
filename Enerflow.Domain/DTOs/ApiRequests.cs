@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Enerflow.Domain.Enums;
+using Enerflow.Domain.ValueObjects;
 
 namespace Enerflow.Domain.DTOs;
 
@@ -11,8 +12,8 @@ public record AddUnitRequest
     [StringLength(100, MinimumLength = 1)]
     public required string Name { get; init; }
     public required UnitOperationType UnitOperation { get; init; }
-    public double PositionX { get; init; } = 0;
-    public double PositionY { get; init; } = 0;
+
+    public Position Position { get; set; } = new (0, 0);
 }
 
 public record ConnectStreamRequest

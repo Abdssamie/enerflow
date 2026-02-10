@@ -24,13 +24,13 @@ public class EnerflowDbContext(DbContextOptions<EnerflowDbContext> options) : Db
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).HasValueGenerator<SequentialGuidValueGenerator>();
             entity.Property(e => e.Name).IsRequired();
-            
+
             entity.Property(e => e.PropertyPackage)
                 .IsRequired();
-            
+
             entity.Property(e => e.FlashAlgorithm)
                 .IsRequired();
-                
+
             entity.Property(e => e.SystemOfUnits)
                 .IsRequired();
 
@@ -42,10 +42,14 @@ public class EnerflowDbContext(DbContextOptions<EnerflowDbContext> options) : Db
             entity.Property(e => e.ResultJson).HasColumnType("jsonb");
 
             // Cascade delete behavior
-            entity.HasMany(e => e.Compounds).WithOne().HasForeignKey(c => c.SimulationId).OnDelete(DeleteBehavior.Cascade);
-            entity.HasMany(e => e.MaterialStreams).WithOne().HasForeignKey(s => s.SimulationId).OnDelete(DeleteBehavior.Cascade);
-            entity.HasMany(e => e.EnergyStreams).WithOne().HasForeignKey(s => s.SimulationId).OnDelete(DeleteBehavior.Cascade);
-            entity.HasMany(e => e.UnitOperations).WithOne().HasForeignKey(u => u.SimulationId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasMany(e => e.Compounds).WithOne().HasForeignKey(c => c.SimulationId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasMany(e => e.MaterialStreams).WithOne().HasForeignKey(s => s.SimulationId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasMany(e => e.EnergyStreams).WithOne().HasForeignKey(s => s.SimulationId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasMany(e => e.UnitOperations).WithOne().HasForeignKey(u => u.SimulationId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // Compound
@@ -65,13 +69,12 @@ public class EnerflowDbContext(DbContextOptions<EnerflowDbContext> options) : Db
             entity.Property(e => e.Id).HasValueGenerator<SequentialGuidValueGenerator>();
             entity.Property(e => e.Name).IsRequired();
             entity.Property(e => e.SimulationId).IsRequired();
-            
+
             // Map Position as Complex Property (Value Type)
             entity.ComplexProperty(e => e.Position);
 
             // Map Composition to JSONB
             entity.Property(e => e.Composition).HasColumnType("jsonb");
-            
         });
 
         // EnergyStream
@@ -81,7 +84,7 @@ public class EnerflowDbContext(DbContextOptions<EnerflowDbContext> options) : Db
             entity.Property(e => e.Id).HasValueGenerator<SequentialGuidValueGenerator>();
             entity.Property(e => e.Name).IsRequired();
             entity.Property(e => e.SimulationId).IsRequired();
-            
+
             // Map Position as Complex Property
             entity.ComplexProperty(e => e.Position);
         });
@@ -94,7 +97,7 @@ public class EnerflowDbContext(DbContextOptions<EnerflowDbContext> options) : Db
             entity.Property(e => e.Name).IsRequired();
             entity.Property(e => e.SimulationId).IsRequired();
             entity.Property(e => e.ConfigParams).HasColumnType("jsonb");
-            
+
             // Map Position as Complex Property
             entity.ComplexProperty(e => e.Position);
 
@@ -108,47 +111,29 @@ public class EnerflowDbContext(DbContextOptions<EnerflowDbContext> options) : Db
                 .HasValue<ValveObject>(nameof(UnitOperationType.Valve))
                 .HasValue<FlashDrumObject>(nameof(UnitOperationType.FlashDrum))
                 .HasValue<ShortcutColumnObject>(nameof(UnitOperationType.ShortcutColumn));
-                
+
             // Ignore the abstract Type property as it's computed from class
             entity.Ignore(e => e.Type);
 
             // Npgsql maps List<Guid> to uuid[] automatically
         });
-        
+
         // Heater
-        modelBuilder.Entity<HeaterObject>(entity =>
-        {
-            entity.Property(e => e.CalcMode).HasConversion<string>();
-        });
+        modelBuilder.Entity<HeaterObject>(entity => { entity.Property(e => e.CalcMode).HasConversion<string>(); });
 
         // Cooler
-        modelBuilder.Entity<CoolerObject>(entity =>
-        {
-            entity.Property(e => e.CalcMode).HasConversion<string>();
-        });
+        modelBuilder.Entity<CoolerObject>(entity => { entity.Property(e => e.CalcMode).HasConversion<string>(); });
 
         // Recycle
-        modelBuilder.Entity<RecycleObject>(entity =>
-        {
-            entity.Property(e => e.Acceleration).HasConversion<string>();
-        });
+        modelBuilder.Entity<RecycleObject>(entity => { entity.Property(e => e.Acceleration).HasConversion<string>(); });
 
         // Valve
-        modelBuilder.Entity<ValveObject>(entity =>
-        {
-            entity.Property(e => e.CalcMode).HasConversion<string>();
-        });
-        
+        modelBuilder.Entity<ValveObject>(entity => { entity.Property(e => e.CalcMode).HasConversion<string>(); });
+
         // FlashDrum
-        modelBuilder.Entity<FlashDrumObject>(entity =>
-        {
-            entity.Property(e => e.FlashType).HasConversion<string>();
-        });
+        modelBuilder.Entity<FlashDrumObject>(entity => { entity.Property(e => e.FlashType).HasConversion<string>(); });
 
         // Splitter
-        modelBuilder.Entity<SplitterObject>(entity =>
-        {
-            entity.Property(e => e.SplitRatios).HasColumnType("jsonb");
-        });
+        modelBuilder.Entity<SplitterObject>(entity => { entity.Property(e => e.SplitRatios).HasColumnType("jsonb"); });
     }
 }

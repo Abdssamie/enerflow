@@ -54,7 +54,15 @@ public class UnitOperationMapper : IUnitOperationMapper
 
     private void MapHeater(HeaterObject domainHeater, IFlowsheet flowsheet)
     {
-        var obj = flowsheet.AddObject(ObjectType.Heater, 0, 0, domainHeater.Name);
+        // Find existing heater (created by Builder)
+        var heaterId = domainHeater.Id.ToString();
+        if (!flowsheet.SimulationObjects.TryGetValue(heaterId, out var obj))
+        {
+            _logger.LogError("Heater {Name} (ID: {Id}) not found in flowsheet. Builder should have created it.", 
+                domainHeater.Name, domainHeater.Id);
+            throw new InvalidOperationException($"Heater {domainHeater.Name} not found in flowsheet");
+        }
+        
         var heater = (Heater)obj;
 
         // CRITICAL: Set CalcMode FIRST
@@ -82,7 +90,15 @@ public class UnitOperationMapper : IUnitOperationMapper
 
     private void MapCooler(CoolerObject domainCooler, IFlowsheet flowsheet)
     {
-        var obj = flowsheet.AddObject(ObjectType.Cooler, 0, 0, domainCooler.Name);
+        // Find existing cooler (created by Builder)
+        var coolerId = domainCooler.Id.ToString();
+        if (!flowsheet.SimulationObjects.TryGetValue(coolerId, out var obj))
+        {
+            _logger.LogError("Cooler {Name} (ID: {Id}) not found in flowsheet. Builder should have created it.", 
+                domainCooler.Name, domainCooler.Id);
+            throw new InvalidOperationException($"Cooler {domainCooler.Name} not found in flowsheet");
+        }
+        
         var cooler = (Cooler)obj;
 
         // CRITICAL: Set CalcMode FIRST
@@ -110,7 +126,15 @@ public class UnitOperationMapper : IUnitOperationMapper
 
     private void MapValve(ValveObject domainValve, IFlowsheet flowsheet)
     {
-        var obj = flowsheet.AddObject(ObjectType.Valve, 0, 0, domainValve.Name);
+        // Find existing valve (created by Builder)
+        var valveId = domainValve.Id.ToString();
+        if (!flowsheet.SimulationObjects.TryGetValue(valveId, out var obj))
+        {
+            _logger.LogError("Valve {Name} (ID: {Id}) not found in flowsheet. Builder should have created it.", 
+                domainValve.Name, domainValve.Id);
+            throw new InvalidOperationException($"Valve {domainValve.Name} not found in flowsheet");
+        }
+        
         var valve = (Valve)obj;
 
         // CRITICAL: Set CalcMode FIRST
@@ -133,13 +157,30 @@ public class UnitOperationMapper : IUnitOperationMapper
 
     private void MapMixer(MixerObject domainMixer, IFlowsheet flowsheet)
     {
-        // Mixer has no specific properties to map beyond creation
-        flowsheet.AddObject(ObjectType.Mixer, 0, 0, domainMixer.Name);
+        // Mixer has no specific properties to configure
+        // The Builder already created the mixer object, so we just verify it exists
+        var mixerId = domainMixer.Id.ToString();
+        if (!flowsheet.SimulationObjects.ContainsKey(mixerId))
+        {
+            _logger.LogError("Mixer {Name} (ID: {Id}) not found in flowsheet. Builder should have created it.", 
+                domainMixer.Name, domainMixer.Id);
+            throw new InvalidOperationException($"Mixer {domainMixer.Name} not found in flowsheet");
+        }
+        
+        _logger.LogDebug("Mixer {Name} found and ready (no additional configuration needed)", domainMixer.Name);
     }
 
     private void MapSplitter(SplitterObject domainSplitter, IFlowsheet flowsheet)
     {
-        var obj = flowsheet.AddObject(ObjectType.Splitter, 0, 0, domainSplitter.Name);
+        // Find existing splitter (created by Builder)
+        var splitterId = domainSplitter.Id.ToString();
+        if (!flowsheet.SimulationObjects.TryGetValue(splitterId, out var obj))
+        {
+            _logger.LogError("Splitter {Name} (ID: {Id}) not found in flowsheet. Builder should have created it.", 
+                domainSplitter.Name, domainSplitter.Id);
+            throw new InvalidOperationException($"Splitter {domainSplitter.Name} not found in flowsheet");
+        }
+        
         var splitter = (Splitter)obj;
 
         // Ensure we are in SplitRatios mode
@@ -154,7 +195,15 @@ public class UnitOperationMapper : IUnitOperationMapper
 
     private void MapFlashDrum(FlashDrumObject domainFlash, IFlowsheet flowsheet)
     {
-        var obj = flowsheet.AddObject(ObjectType.Vessel, 0, 0, domainFlash.Name);
+        // Find existing flash drum (created by Builder)
+        var flashId = domainFlash.Id.ToString();
+        if (!flowsheet.SimulationObjects.TryGetValue(flashId, out var obj))
+        {
+            _logger.LogError("FlashDrum {Name} (ID: {Id}) not found in flowsheet. Builder should have created it.", 
+                domainFlash.Name, domainFlash.Id);
+            throw new InvalidOperationException($"FlashDrum {domainFlash.Name} not found in flowsheet");
+        }
+        
         var vessel = (Vessel)obj;
 
         // Map Flash Calculation Type
@@ -182,7 +231,15 @@ public class UnitOperationMapper : IUnitOperationMapper
 
     private void MapShortcutColumn(ShortcutColumnObject domainColumn, IFlowsheet flowsheet, IReadOnlyDictionary<Guid, string> compoundNames)
     {
-        var obj = flowsheet.AddObject(ObjectType.ShortcutColumn, 0, 0, domainColumn.Name);
+        // Find existing shortcut column (created by Builder)
+        var columnId = domainColumn.Id.ToString();
+        if (!flowsheet.SimulationObjects.TryGetValue(columnId, out var obj))
+        {
+            _logger.LogError("ShortcutColumn {Name} (ID: {Id}) not found in flowsheet. Builder should have created it.", 
+                domainColumn.Name, domainColumn.Id);
+            throw new InvalidOperationException($"ShortcutColumn {domainColumn.Name} not found in flowsheet");
+        }
+        
         var column = (ShortcutColumn)obj;
 
         column.m_refluxratio = domainColumn.RefluxRatio;
@@ -217,7 +274,15 @@ public class UnitOperationMapper : IUnitOperationMapper
 
     private void MapRecycle(RecycleObject domainRecycle, IFlowsheet flowsheet)
     {
-        var obj = flowsheet.AddObject(ObjectType.OT_Recycle, 0, 0, domainRecycle.Name);
+        // Find existing recycle (created by Builder)
+        var recycleId = domainRecycle.Id.ToString();
+        if (!flowsheet.SimulationObjects.TryGetValue(recycleId, out var obj))
+        {
+            _logger.LogError("Recycle {Name} (ID: {Id}) not found in flowsheet. Builder should have created it.", 
+                domainRecycle.Name, domainRecycle.Id);
+            throw new InvalidOperationException($"Recycle {domainRecycle.Name} not found in flowsheet");
+        }
+        
         var recycle = (Recycle)obj;
 
         recycle.MaximumIterations = domainRecycle.MaxIterations;

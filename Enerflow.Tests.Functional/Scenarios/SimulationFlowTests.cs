@@ -159,8 +159,24 @@ public class SimulationFlowTests : BaseIntegrationTest
         resultRes.StatusCode.Should().Be(HttpStatusCode.OK);
         var resultData = await resultRes.Content.ReadFromJsonAsync<JsonElement>();
         
+        // Debug: Print all stream results
+        var results = resultData.GetProperty("results");
+        var streamResults = results.GetProperty("StreamResults");
+        Console.WriteLine($"Stream results count: {streamResults.GetArrayLength()}");
+        foreach (var stream in streamResults.EnumerateArray())
+        {
+            var streamId = stream.GetProperty("StreamId").GetGuid();
+            var massFlow = stream.GetProperty("MassFlow").GetDouble();
+            Console.WriteLine($"Stream {streamId}: MassFlow = {massFlow}");
+        }
+        
         // Assert mass flow: 1.0 + 2.0 = 3.0
-        double outletMassFlow = resultData.GetProperty("results").GetProperty("materialStreams").GetProperty("Outlet").GetProperty("massFlow").GetDouble();
+        var outletStreamResult = streamResults.EnumerateArray()
+            .FirstOrDefault(s => s.GetProperty("StreamId").GetGuid() == outletId);
+        
+        outletStreamResult.ValueKind.Should().NotBe(JsonValueKind.Undefined, "outlet stream should be in results");
+        double outletMassFlow = outletStreamResult.GetProperty("MassFlow").GetDouble();
+        Console.WriteLine($"Outlet ID: {outletId}, Outlet MassFlow: {outletMassFlow}");
         outletMassFlow.Should().BeApproximately(3.0, 0.001);
     }
 

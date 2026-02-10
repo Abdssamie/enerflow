@@ -56,7 +56,7 @@ public sealed class UnitOperationValidationTests
     [Fact]
     public void Validate_SplitterWithInvalidSplitRatios_ReturnsSplitterInvalidRatiosError()
     {
-        var simulation = CreateSimulationWithSplitter(splitRatios: new[] { 0.4, 0.4 });
+        var simulation = CreateSimulationWithSplitter(splitRatios: [0.4, 0.4]);
         var result = _validator.Validate(simulation, null!);
         result.IsValid.Should().BeFalse();
         result.Errors.Should().Contain(e => e.Code == ValidationErrorCodes.SplitterInvalidRatios);
@@ -65,7 +65,7 @@ public sealed class UnitOperationValidationTests
     [Fact]
     public void Validate_SplitterWithValidConfiguration_PassesValidation()
     {
-        var simulation = CreateSimulationWithSplitter(splitRatios: new[] { 0.6, 0.4 });
+        var simulation = CreateSimulationWithSplitter(splitRatios: [0.6, 0.4]);
         var result = _validator.Validate(simulation, null!);
         result.IsValid.Should().BeTrue();
     }
@@ -180,7 +180,7 @@ public sealed class UnitOperationValidationTests
             Id = Guid.NewGuid(),
             Name = "Heater1",
             SimulationId = simulation.Id,
-            InputStreamIds = new List<Guid> { inputStreamId },
+            InputStreamIds = [inputStreamId],
             OutputStreamIds = new List<Guid> { outputStreamId },
             Efficiency = efficiency,
             OutletTemperature = outletTemperature,
@@ -240,7 +240,7 @@ public sealed class UnitOperationValidationTests
         return simulation;
     }
     
-    private SimulationEntity CreateSimulationWithSplitter(double[] splitRatios = null, int outputCount = 2)
+    private SimulationEntity CreateSimulationWithSplitter(double[] splitRatios, int outputCount = 2)
     {
         var simulation = CreateBaseSimulation();
         var inputStreamId = Guid.NewGuid();
@@ -258,7 +258,7 @@ public sealed class UnitOperationValidationTests
         
         var outputStreamIds = new List<Guid>();
         var ratioDict = new Dictionary<Guid, double>();
-        splitRatios = splitRatios ?? new[] { 0.5, 0.5 };
+        splitRatios ??= [0.5, 0.5];
         
         for (int i = 0; i < outputCount; i++)
         {
@@ -286,7 +286,7 @@ public sealed class UnitOperationValidationTests
             Id = Guid.NewGuid(),
             Name = "Splitter1",
             SimulationId = simulation.Id,
-            InputStreamIds = new List<Guid> { inputStreamId },
+            InputStreamIds = [inputStreamId],
             OutputStreamIds = outputStreamIds,
             SplitRatios = ratioDict
         });
@@ -327,8 +327,8 @@ public sealed class UnitOperationValidationTests
             Id = Guid.NewGuid(),
             Name = "Valve1",
             SimulationId = simulation.Id,
-            InputStreamIds = new List<Guid> { inputStreamId },
-            OutputStreamIds = new List<Guid> { outputStreamId },
+            InputStreamIds = [inputStreamId],
+            OutputStreamIds = [outputStreamId],
             OutletPressure = outletPressure
         });
         
@@ -390,8 +390,8 @@ public sealed class UnitOperationValidationTests
             Id = Guid.NewGuid(),
             Name = "Column1",
             SimulationId = simulation.Id,
-            InputStreamIds = new List<Guid> { inputStreamId },
-            OutputStreamIds = new List<Guid> { outputStream1Id, outputStream2Id },
+            InputStreamIds = [inputStreamId],
+            OutputStreamIds = [outputStream1Id, outputStream2Id],
             RefluxRatio = refluxRatio,
             Stages = stages,
             LightKey = ethanolCompoundId,
@@ -436,8 +436,8 @@ public sealed class UnitOperationValidationTests
             Id = Guid.NewGuid(),
             Name = "Recycle1",
             SimulationId = simulation.Id,
-            InputStreamIds = new List<Guid> { inputStreamId },
-            OutputStreamIds = new List<Guid> { outputStreamId },
+            InputStreamIds = [inputStreamId],
+            OutputStreamIds = [outputStreamId],
             Tolerance = tolerance,
             MaxIterations = maxIterations
         });

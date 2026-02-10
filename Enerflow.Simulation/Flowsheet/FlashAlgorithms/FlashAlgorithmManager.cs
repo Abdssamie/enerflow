@@ -1,4 +1,3 @@
-using Enerflow.Domain.Enums;
 using DWSIM.Interfaces;
 using DWSIM.Thermodynamics.PropertyPackages.Auxiliary.FlashAlgorithms;
 using Microsoft.Extensions.Logging;

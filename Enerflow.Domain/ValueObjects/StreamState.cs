@@ -20,7 +20,7 @@ public record StreamState
         MassFlow = massFlow;
         MolarFlow = molarFlow;
         Enthalpy = enthalpy;
-        MoleFractions = moleFractions ?? Array.Empty<double>();
+        MoleFractions = moleFractions ?? [];
     }
 
     public static StreamState Create(double temperature, double pressure, double massFlow, double molarFlow, double enthalpy, double[] moleFractions)

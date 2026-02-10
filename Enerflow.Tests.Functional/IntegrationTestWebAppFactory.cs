@@ -2,7 +2,6 @@ using Enerflow.API.Extensions;
 using Enerflow.Infrastructure.Persistence;
 using Microsoft.Extensions.Logging;
 using Enerflow.Worker.Consumers;
-using Enerflow.Simulation.Services;
 using Enerflow.Simulation.Flowsheet.Compounds;
 using Enerflow.Simulation.Flowsheet.PropertyPackages;
 using Enerflow.Simulation.Flowsheet.Streams;
@@ -19,11 +18,10 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
 using Npgsql;
-using Enerflow.Worker.Convergence;
 using Enerflow.Worker.Solvers;
-using Enerflow.Worker.Mappers;
 using Enerflow.Worker.Builders;
 using Enerflow.Worker.Validation;
+using Enerflow.Worker.Mappers;
 
 namespace Enerflow.Tests.Functional;
 
@@ -127,7 +125,6 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
             services.TryAddSingleton<IEnergyStreamFactory, EnergyStreamFactory>();
             services.TryAddSingleton<IUnitOperationFactory, UnitOperationFactory>();
             services.TryAddSingleton<IFlashAlgorithmManager, FlashAlgorithmManager>();
-            services.TryAddScoped<ISimulationService, SimulationService>();
             
             // Register DWSIM Automation (Singleton due to initialization overhead)
             // Register as concrete type since DWSIMFlowsheetBuilder expects the concrete class
@@ -137,19 +134,24 @@ public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsy
             services.TryAddScoped<IFlowsheetBuilder, DWSIMFlowsheetBuilder>();
             
             // Register Mappers
-            services.TryAddScoped<IStreamMapper, StreamMapper>();
             services.TryAddScoped<IUnitOperationMapper, UnitOperationMapper>();
             services.TryAddScoped<IConnectionMapper, ConnectionMapper>();
-            services.TryAddScoped<IPostConnectionConfigurator, PostConnectionConfigurator>();
             
-            // Register Convergence & Solvers
-            services.TryAddScoped<ErrorCalculator>();
-            services.TryAddScoped<IConvergenceAccelerator, WegsteinAccelerator>();
+            // Register Solvers
             services.TryAddScoped<IResultCollector, ResultCollector>();
             services.TryAddScoped<ISimulationSolver, DWSIMSolver>();
             
             // Register Validation
             services.TryAddScoped<IFlowsheetValidator, FlowsheetValidator>();
+            
+            // Configure MassTransit host options to ensure bus is fully started before tests run
+            services.AddOptions<MassTransitHostOptions>()
+                .Configure(options =>
+                {
+                    options.WaitUntilStarted = true;
+                    options.StartTimeout = TimeSpan.FromSeconds(30);
+                    options.StopTimeout = TimeSpan.FromSeconds(30);
+                });
         });
     }
 

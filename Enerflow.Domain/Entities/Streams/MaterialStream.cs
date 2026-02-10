@@ -4,14 +4,14 @@ namespace Enerflow.Domain.Entities.Streams;
 
 public class MaterialStream : SimulationObject
 {
-    public double Temperature { get; set; } = 298.15; // K
-    public double Pressure { get; set; } = 101325.0; // Pa
-    public double MassFlow { get; set; } // kg/s
-    public double MolarFlow { get; set; } // mol/s
+    public double Temperature { get; init; } = 298.15; // K
+    public double Pressure { get; init; } = 101325.0; // Pa
+    public double MassFlow { get; init; } // kg/s
+    public double MolarFlow { get; init; } // mol/s
     
-    public PhaseType Phase { get; set; } = PhaseType.Mixed;
+    public PhaseType Phase { get; init; } = PhaseType.Mixed;
     
-    public Dictionary<string, double> Composition { get; set; } = new();
+    public Dictionary<string, double> Composition { get; init; } = [];
 
     public override void Validate()
     {

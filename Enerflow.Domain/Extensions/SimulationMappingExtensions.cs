@@ -19,20 +19,17 @@ public static class SimulationMappingExtensions
         };
     }
 
-    public static SimulationDefinitionDto ToSimulationDefinitionDto(this Simulation simulation)
+    public static SimulationDefinitionDto ToSimulationDefinitionDto(this Simulation simulation) => new SimulationDefinitionDto
     {
-        return new SimulationDefinitionDto
-        {
-            Name = simulation.Name,
-            PropertyPackageType = simulation.PropertyPackage,
-            FlashAlgorithm = simulation.FlashAlgorithm,
-            SystemOfUnits = simulation.SystemOfUnits,
-            Compounds = simulation.Compounds.Select(c => c.ToCompoundDto()).ToList(),
-            MaterialStreams = simulation.MaterialStreams.Select(s => s.ToMaterialStreamDto()).ToList(),
-            EnergyStreams = simulation.EnergyStreams.Select(s => s.ToEnergyStreamDto()).ToList(),
-            UnitOperations = simulation.UnitOperations.Select(u => u.ToUnitOperationDto()).ToList()
-        };
-    }
+        Name = simulation.Name,
+        PropertyPackageType = simulation.PropertyPackage,
+        FlashAlgorithm = simulation.FlashAlgorithm,
+        SystemOfUnits = simulation.SystemOfUnits,
+        Compounds = [.. simulation.Compounds.Select(c => c.ToCompoundDto())],
+        MaterialStreams = [.. simulation.MaterialStreams.Select(s => s.ToMaterialStreamDto())],
+        EnergyStreams = [.. simulation.EnergyStreams.Select(s => s.ToEnergyStreamDto())],
+        UnitOperations = [.. simulation.UnitOperations.Select(u => u.ToUnitOperationDto())]
+    };
 
     public static CompoundDto ToCompoundDto(this Compound compound)
     {

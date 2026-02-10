@@ -5,7 +5,6 @@ using Enerflow.Domain.Enums;
 using Enerflow.Worker.Validation;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
-using Xunit;
 using SimulationEntity = Enerflow.Domain.Entities.Simulation;
 
 namespace Enerflow.Tests.Unit.Worker.Validation;

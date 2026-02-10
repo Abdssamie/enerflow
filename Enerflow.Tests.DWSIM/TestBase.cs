@@ -36,7 +36,8 @@ public abstract class TestBase : IDisposable
             .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
             .WriteTo.File(
                 _logFilePath,
-                outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u3}] {Message:lj}{NewLine}{Exception}",
+                outputTemplate:
+                "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u3}] {Message:lj}{NewLine}{Exception}",
                 rollingInterval: RollingInterval.Infinite)
             .CreateLogger();
 
@@ -88,6 +89,7 @@ public abstract class TestBase : IDisposable
             {
                 Logger.Error("  - {Error}", error);
             }
+
             Assert.Fail($"Flowsheet solved but {errors.Count} object(s) have errors:\n" + string.Join("\n", errors));
         }
 
@@ -114,7 +116,8 @@ public abstract class TestBase : IDisposable
             }
             else if (obj is EnergyStream es)
             {
-                Logger.Information("  [ENERGY STREAM] {Name} - Energy Flow: {Energy:F2} kW", es.Name, es.EnergyFlow ?? 0);
+                Logger.Information("  [ENERGY STREAM] {Name} - Energy Flow: {Energy:F2} kW", es.Name,
+                    es.EnergyFlow ?? 0);
             }
             else
             {
@@ -124,6 +127,7 @@ public abstract class TestBase : IDisposable
                     obj.Calculated);
             }
         }
+
         Logger.Information("========================================");
     }
 

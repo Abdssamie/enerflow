@@ -9,7 +9,6 @@ echo "Running TODO check..."
 # git grep returns 0 if matches are found, 1 otherwise.
 if git grep -Ei "//\s*TODO:|TODO:" -- ':(exclude).githooks/*' ':(exclude).github/workflows/*' ':(exclude)*.md' ':(exclude)*.json' > /dev/null; then
     echo "------------------------------------------------------------"
-    echo "Error: TODO comments found in the codebase:"
     git grep -Ei -n "//\s*TODO:|TODO:" -- ':(exclude).githooks/*' ':(exclude).github/workflows/*' ':(exclude)*.md' ':(exclude)*.json'
     echo "------------------------------------------------------------"
     echo "Please resolve these TODOs before pushing."

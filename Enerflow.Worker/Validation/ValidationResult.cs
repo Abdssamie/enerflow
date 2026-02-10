@@ -14,7 +14,7 @@ public class ValidationResult
     
     public ValidationResult(List<ValidationError> errors, List<ValidationWarning>? warnings = null)
     {
-        Errors = errors ?? new List<ValidationError>();
+        Errors = errors ?? [];
         Warnings = warnings ?? new List<ValidationWarning>();
     }
 }

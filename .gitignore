@@ -1,6 +1,7 @@
 ## Ignore Visual Studio temporary files, build results, and
 
 .qodo/
+.worktrees/
 
 libs/
 libs/dwsim_9.0.5

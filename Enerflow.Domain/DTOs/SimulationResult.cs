@@ -11,8 +11,8 @@ public record SimulationResult
     public string? ErrorMessage { get; init; }
     public TimeSpan ExecutionTime { get; init; }
 
-    public List<StreamResultDto> StreamResults { get; init; } = new();
-    public List<UnitResultDto> UnitResults { get; init; } = new();
+    public List<StreamResultDto> StreamResults { get; init; } = [];
+    public List<UnitResultDto> UnitResults { get; init; } = [];
 }
 
 public record StreamResultDto
@@ -28,6 +28,7 @@ public record StreamResultDto
 public record UnitResultDto
 {
     public required Guid UnitId { get; init; }
+    
     // Polymorphic results (e.g., Calculated Duty, Efficiency, etc.)
     public JsonDocument? CalculatedParams { get; init; }
 }
