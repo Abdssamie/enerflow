@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Text.Json;
 using DWSIM.Interfaces;
 using Enerflow.Domain.DTOs;
@@ -79,14 +80,14 @@ public class ResultCollector : IResultCollector
                         calculatedParams["DeltaQ"] = heater.DeltaQ.GetValueOrDefault();
                         calculatedParams["DeltaT"] = heater.DeltaT.GetValueOrDefault();
                         calculatedParams["OutletTemperature"] = heater.OutletTemperature.GetValueOrDefault();
-                        calculatedParams["Efficiency"] = heater.Efficiency;
+                        calculatedParams["Efficiency"] = double.IsNaN(heater.Efficiency) ? 0.0 : heater.Efficiency;
                         break;
                     
                     case Cooler cooler:
                         calculatedParams["DeltaQ"] = cooler.DeltaQ.GetValueOrDefault();
                         calculatedParams["DeltaT"] = cooler.DeltaT.GetValueOrDefault();
                         calculatedParams["OutletTemperature"] = cooler.OutletTemperature.GetValueOrDefault();
-                        calculatedParams["Efficiency"] = cooler.Efficiency;
+                        calculatedParams["Efficiency"] = double.IsNaN(cooler.Efficiency) ? 0.0 : cooler.Efficiency;
                         break;
                     
                     case Valve valve:
@@ -96,12 +97,11 @@ public class ResultCollector : IResultCollector
                         break;
                     
                     case Splitter splitter:
-                        var ratios = new List<double>();
-                        foreach (double ratio in splitter.Ratios)
+                        if (splitter.Ratios != null)
                         {
-                            ratios.Add(ratio);
+                            var ratios = splitter.Ratios.Cast<double>().ToList();
+                            calculatedParams["Ratios"] = ratios;
                         }
-                        calculatedParams["Ratios"] = ratios;
                         break;
                     
                     case Vessel vessel:
