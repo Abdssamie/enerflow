@@ -6,6 +6,7 @@ using Enerflow.Simulation.Flowsheet.PropertyPackages;
 using Enerflow.Simulation.Flowsheet.Streams;
 using Enerflow.Simulation.Flowsheet.FlashAlgorithms;
 using Enerflow.Simulation.Flowsheet.UnitOperations;
+using Enerflow.Worker.Mappers;
 using Enerflow.Worker.Solvers;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;

@@ -21,6 +21,7 @@ using Npgsql;
 using Enerflow.Worker.Solvers;
 using Enerflow.Worker.Builders;
 using Enerflow.Worker.Validation;
+using Enerflow.Worker.Mappers;
 
 namespace Enerflow.Tests.Functional;
 

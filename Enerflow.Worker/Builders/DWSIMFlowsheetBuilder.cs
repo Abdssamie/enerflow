@@ -1,6 +1,7 @@
 using DWSIM.Interfaces;
 using DWSIM.Interfaces.Enums.GraphicObjects;
 using DWSIM.SharedClasses.SystemsOfUnits;
+using Enerflow.Domain.DTOs;
 using Enerflow.Domain.Enums;
 using Enerflow.Simulation.Flowsheet.Compounds;
 using Enerflow.Simulation.Flowsheet.FlashAlgorithms;

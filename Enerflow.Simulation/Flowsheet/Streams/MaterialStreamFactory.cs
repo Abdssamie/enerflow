@@ -3,7 +3,7 @@ using Enerflow.Domain.DTOs;
 using Enerflow.Domain.Enums;
 using DomainMaterialStream = Enerflow.Domain.Entities.Streams.MaterialStream;
 using DwsimMaterialStream = DWSIM.Thermodynamics.Streams.MaterialStream;
-using DwsimStreamSpec = DWSIM.Thermodynamics.Streams.StreamSpec;
+using DwsimStreamSpec = DWSIM.Interfaces.Enums.StreamSpec;
 
 namespace Enerflow.Simulation.Flowsheet.Streams;
 
@@ -19,11 +19,11 @@ public class MaterialStreamFactory : IMaterialStreamFactory
       _logger = logger;
    }
 
-   public MaterialStream CreateMaterialStream(MaterialStreamDto streamDto, SystemOfUnits systemOfUnits)
+   public DwsimMaterialStream CreateMaterialStream(MaterialStreamDto streamDto, SystemOfUnits systemOfUnits)
    {
       try
       {
-         var stream = new MaterialStream(streamDto.Name, "");
+      var stream = new DwsimMaterialStream(streamDto.Name, "");
          Configure(stream, streamDto, systemOfUnits);
          return stream;
       }
@@ -34,7 +34,7 @@ public class MaterialStreamFactory : IMaterialStreamFactory
       }
    }
 
-   public void Configure(MaterialStream stream, MaterialStreamDto streamDto, SystemOfUnits systemOfUnits)
+   public void Configure(DwsimMaterialStream stream, MaterialStreamDto streamDto, SystemOfUnits systemOfUnits)
    {
       try
       {

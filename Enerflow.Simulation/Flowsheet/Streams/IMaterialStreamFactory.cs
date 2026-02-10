@@ -1,6 +1,6 @@
 using Enerflow.Domain.DTOs;
 using Enerflow.Domain.Enums;
-using DomainMaterialStream = Enerflow.Domain.Entities.MaterialStream;
+using DomainMaterialStream = Enerflow.Domain.Entities.Streams.MaterialStream;
 using DwsimMaterialStream = DWSIM.Thermodynamics.Streams.MaterialStream;
 
 namespace Enerflow.Simulation.Flowsheet.Streams;

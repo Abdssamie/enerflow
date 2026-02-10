@@ -1,4 +1,4 @@
-using DomainEnergyStream = Enerflow.Domain.Entities.EnergyStream;
+using DomainEnergyStream = Enerflow.Domain.Entities.Streams.EnergyStream;
 using DwsimEnergyStream = DWSIM.UnitOperations.Streams.EnergyStream;
 using Enerflow.Domain.DTOs;
 

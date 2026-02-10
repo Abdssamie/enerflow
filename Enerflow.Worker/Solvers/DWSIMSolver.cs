@@ -2,6 +2,8 @@ using System.Diagnostics;
 using DWSIM.Automation;
 using DWSIM.Interfaces;
 using Enerflow.Worker.Builders;
+using Enerflow.Worker.Mappers;
+using Enerflow.Domain.DTOs;
 using Microsoft.Extensions.Logging;
 using SimulationEntity = Enerflow.Domain.Entities.Simulation;
 

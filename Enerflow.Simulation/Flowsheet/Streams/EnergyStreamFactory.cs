@@ -1,5 +1,5 @@
 using Enerflow.Domain.DTOs;
-using DomainEnergyStream = Enerflow.Domain.Entities.EnergyStream;
+using DomainEnergyStream = Enerflow.Domain.Entities.Streams.EnergyStream;
 using DwsimEnergyStream = DWSIM.UnitOperations.Streams.EnergyStream;
 using Microsoft.Extensions.Logging;
 
