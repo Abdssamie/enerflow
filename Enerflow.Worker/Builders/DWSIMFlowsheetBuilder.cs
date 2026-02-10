@@ -147,8 +147,7 @@ public class DWSIMFlowsheetBuilder : IFlowsheetBuilder
                 unit.Name
             );
 
-            // TODO: Configure unit operation parameters based on unit.Type
-            // This would require extracting config from the entity or having a separate config step
+            // Note: Unit operation parameters are configured by UnitOperationMapper after creation
         }
 
         // VALIDATE BEFORE RETURNING
