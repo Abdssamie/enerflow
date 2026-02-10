@@ -1,4 +1,6 @@
 using Enerflow.Domain.DTOs;
+using DomainEnergyStream = Enerflow.Domain.Entities.EnergyStream;
+using DwsimEnergyStream = DWSIM.UnitOperations.Streams.EnergyStream;
 using Microsoft.Extensions.Logging;
 
 namespace Enerflow.Simulation.Flowsheet.Streams;
@@ -15,7 +17,7 @@ public class EnergyStreamFactory : IEnergyStreamFactory
         _logger = logger;
     }
 
-    public DWSIM.UnitOperations.Streams.EnergyStream CreateEnergyStream(EnergyStreamDto streamDto)
+    public DwsimEnergyStream CreateEnergyStream(EnergyStreamDto streamDto)
     {
         try
         {
@@ -30,7 +32,7 @@ public class EnergyStreamFactory : IEnergyStreamFactory
         }
     }
 
-    public void Configure(DWSIM.UnitOperations.Streams.EnergyStream stream, EnergyStreamDto streamDto)
+    public void Configure(DwsimEnergyStream stream, EnergyStreamDto streamDto)
     {
         try
         {
@@ -40,6 +42,20 @@ public class EnergyStreamFactory : IEnergyStreamFactory
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to configure energy stream: {Name}", streamDto.Name);
+            throw;
+        }
+    }
+
+    public void Configure(DwsimEnergyStream stream, DomainEnergyStream streamEntity)
+    {
+        try
+        {
+            stream.EnergyFlow = streamEntity.EnergyFlow;
+            _logger.LogDebug("Configured energy stream: {Name}", streamEntity.Name);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to configure energy stream: {Name}", streamEntity.Name);
             throw;
         }
     }
