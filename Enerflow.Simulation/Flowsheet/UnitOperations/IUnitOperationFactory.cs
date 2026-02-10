@@ -31,4 +31,12 @@ public interface IUnitOperationFactory
         IFlowsheet flowsheet,
         IEnumerable<UnitOperationObject> unitOperations,
         IReadOnlyDictionary<Guid, string> compoundNames);
+
+    /// <summary>
+    /// Configures unit operations that require post-connection setup.
+    /// This includes operations like setting splitter ratios that depend on connection order.
+    /// </summary>
+    /// <param name="flowsheet">The DWSIM flowsheet containing the unit operations.</param>
+    /// <param name="simulation">The domain simulation entity with configuration data.</param>
+    void ConfigurePostConnection(IFlowsheet flowsheet, Enerflow.Domain.Entities.Simulation simulation);
 }
