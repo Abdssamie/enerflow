@@ -86,15 +86,15 @@ public class DWSIMFlowsheetBuilder : IFlowsheetBuilder
       #pragma warning disable CA1873 
       _logger.LogInformation("Connecting flowsheet for simulation {Id}", simulation.Id);
       
-      _connectionFactory.ConnectFlowsheet(simulation, flowsheet);
-       _logger.LogInformation("Flowsheet connected successfully for simulation {Id}", simulation.Id);
-       
-       // 10. Post-Connection Configuration (e.g., splitter ratios)
-       _logger.LogInformation("Configuring post-connection settings for simulation {Id}", simulation.Id);
-       _unitOperationFactory.ConfigurePostConnection(flowsheet, simulation);
-       _logger.LogInformation("Post-connection configuration completed for simulation {Id}", simulation.Id);
+       _connectionFactory.ConnectFlowsheet(simulation, flowsheet);
+	_logger.LogInformation("Flowsheet connected successfully for simulation {Id}", simulation.Id);
+	
+	// 10. Post-Connection Configuration (e.g., splitter ratios)
+	_logger.LogInformation("Configuring post-connection settings for simulation {Id}", simulation.Id);
+	_unitOperationFactory.ConfigurePostConnection(flowsheet, simulation);
+	_logger.LogInformation("Post-connection configuration completed for simulation {Id}", simulation.Id);
 
-       // 11. Validate
+	// 11. Validate
       _logger.LogInformation("Validating flowsheet for simulation {Id}", simulation.Id);
       var validationResult = _validator.Validate(simulation, flowsheet);
 
