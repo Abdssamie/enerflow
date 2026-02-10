@@ -2,7 +2,7 @@ using Enerflow.Domain.Enums;
 
 namespace Enerflow.Domain.Entities.UnitOperations;
 
-public class HeaterObject : UnitOperationObject
+public class HeaterObject : UnitOperationObject, IEnergyConsumer
 {
     public override UnitOperationType Type => UnitOperationType.Heater;
     public double Efficiency { get; set; } = 1.0; // 0-1
@@ -12,9 +12,9 @@ public class HeaterObject : UnitOperationObject
     public double PressureDrop { get; set; } // Pa
     
     public HeaterCalculationMode CalcMode { get; set; } = HeaterCalculationMode.OutletTemperature;
-    
+
     /// <summary>
-    /// Optional Energy Stream connection for energy input (connects to port 1)
+    /// Optional Energy Stream input connection ID
     /// </summary>
     public Guid? EnergyInputId { get; set; }
 

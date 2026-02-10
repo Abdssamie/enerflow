@@ -25,7 +25,7 @@ public class ConnectionFactory : IConnectionFactory
       {
          // Builder creates objects with ID as the key
          var unitId = unit.Id.ToString();
-         
+
          if (!flowsheet.SimulationObjects.TryGetValue(unitId, out var simObj))
          {
             _logger.LogWarning("Unit Operation {Name} (ID: {Id}) not found in flowsheet.", unit.Name, unit.Id);
@@ -58,106 +58,108 @@ public class ConnectionFactory : IConnectionFactory
          }
       }
 
-	// 2. Map Energy Streams to Units
-	foreach (var unit in domainSimulation.UnitOperations)
-	{
-		var unitId = unit.Id.ToString();
-		
-		if (!flowsheet.SimulationObjects.TryGetValue(unitId, out var simObj))
-		{
-			continue;
-		}
+      // 2. Map Energy Streams to Units
+      foreach (var unit in domainSimulation.UnitOperations)
+      {
+         var unitId = unit.Id.ToString();
+         
+         if (!flowsheet.SimulationObjects.TryGetValue(unitId, out var simObj))
+         {
+            continue;
+         }
 
-		// Check for energy input connections (Heater, Cooler, Compressor, Pump)
-		Guid? energyInputId = unit switch
-		{
-			HeaterObject heater => heater.EnergyInputId,
-			CoolerObject cooler => cooler.EnergyInputId,
-			_ => null
-		};
+         // Check for energy input connections (IEnergyConsumer)
+         if (unit is IEnergyConsumer consumer && consumer.EnergyInputId.HasValue)
+         {
+            var energyStream = domainSimulation.EnergyStreams.FirstOrDefault(s => s.Id == consumer.EnergyInputId.Value);
+            if (energyStream != null)
+            {
+               ConnectEnergyStreamToUnit(flowsheet, energyStream.Id.ToString(), simObj, isInput: true);
+            }
+         }
 
-		if (energyInputId.HasValue)
-		{
-			var energyStream = domainSimulation.EnergyStreams.FirstOrDefault(s => s.Id == energyInputId.Value);
-			if (energyStream != null)
-			{
-				ConnectEnergyStreamToUnit(flowsheet, energyStream.Id.ToString(), simObj, isInput: true);
-			}
-		}
+         // Check for energy output connections (IEnergyProducer)
+         if (unit is IEnergyProducer producer && producer.EnergyOutputId.HasValue)
+         {
+            var energyStream = domainSimulation.EnergyStreams.FirstOrDefault(s => s.Id == producer.EnergyOutputId.Value);
+            if (energyStream != null)
+            {
+               ConnectEnergyStreamToUnit(flowsheet, energyStream.Id.ToString(), simObj, isInput: false);
+            }
+         }
+      }
+   }
 
-		// Check for energy output connections (Reactor, Expander)
-		// TODO: Add when Reactor/Expander entities are implemented with EnergyOutputId property
-	}
-}
+   private void ConnectStreamToUnit(IFlowsheet flowsheet, string streamId, ISimulationObject unit, bool isInput, int portIndex)
+   {
+      var connectors = isInput ? unit.GraphicObject.InputConnectors : unit.GraphicObject.OutputConnectors;
 
-	private void ConnectStreamToUnit(IFlowsheet flowsheet, string streamId, ISimulationObject unit, bool isInput, int portIndex)
-	{
-		var connectors = isInput ? unit.GraphicObject.InputConnectors : unit.GraphicObject.OutputConnectors;
+      if (portIndex < connectors.Count)
+      {
+         if (!flowsheet.SimulationObjects.TryGetValue(streamId, out var streamObj)) return;
 
-		if (portIndex < connectors.Count)
-		{
-			if (!flowsheet.SimulationObjects.TryGetValue(streamId, out var streamObj)) return;
+         try
+         {
+            if (isInput)
+            {
+               // Stream -> Unit
+               // Stream Output -> Unit Input
+               flowsheet.ConnectObjects(streamObj.GraphicObject, unit.GraphicObject, 0, portIndex);
+            }
+            else
+            {
+               // Unit -> Stream
+               // Unit Output -> Stream Input
+               flowsheet.ConnectObjects(unit.GraphicObject, streamObj.GraphicObject, portIndex, 0);
+            }
 
-			try
-			{
-				if (isInput)
-				{
-					// Stream -> Unit
-					// Stream Output -> Unit Input
-					flowsheet.ConnectObjects(streamObj.GraphicObject, unit.GraphicObject, 0, portIndex);
-				}
-				else
-				{
-					// Unit -> Stream
-					// Unit Output -> Stream Input
-					flowsheet.ConnectObjects(unit.GraphicObject, streamObj.GraphicObject, portIndex, 0);
-				}
+            _logger.LogInformation("Connected stream {StreamId} to unit {Unit} (Port {Port}, IsInput={IsInput})",
+               streamId, unit.GraphicObject.Tag, portIndex, isInput);
+         }
+         catch (Exception ex)
+         {
+            _logger.LogError(ex, "Failed to connect stream {StreamId} to unit {Unit} (Port {Port}, IsInput={IsInput})",
+               streamId, unit.GraphicObject.Tag, portIndex, isInput);
+            throw;
+         }
 
-				_logger.LogInformation("Connected stream {StreamId} to unit {Unit} (Port {Port}, IsInput={IsInput})",
-					streamId, unit.GraphicObject.Tag, portIndex, isInput);
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError(ex, "Failed to connect stream {StreamId} to unit {Unit} (Port {Port}, IsInput={IsInput})",
-					streamId, unit.GraphicObject.Tag, portIndex, isInput);
-				throw;
-			}
+      }
+      else
+      {
+         _logger.LogWarning("Port index {Index} out of range for Unit {Unit} (Count: {Count})", portIndex, unit.GraphicObject.Tag, connectors.Count);
+      }
+   }
 
-		}
-		else
-		{
-			_logger.LogWarning("Port index {Index} out of range for Unit {Unit} (Count: {Count})", portIndex, unit.GraphicObject.Tag, connectors.Count);
-		}
-	}
+   private void ConnectEnergyStreamToUnit(IFlowsheet flowsheet, string energyStreamId, ISimulationObject unit, bool isInput)
+   {
+      if (
+         !flowsheet.SimulationObjects.TryGetValue(energyStreamId, out var energyStreamObj)
+      ) return;
 
-	private void ConnectEnergyStreamToUnit(IFlowsheet flowsheet, string energyStreamId, ISimulationObject unit, bool isInput)
-	{
-		if (!flowsheet.SimulationObjects.TryGetValue(energyStreamId, out var energyStreamObj)) return;
+      try
+      {
+         // Energy streams connect to port 1 for Heater/Cooler (per CONNECTION_PORTS.md)
+         const int energyPortIndex = 1;
 
-		try
-		{
-			// Energy streams connect to port 1 for Heater/Cooler (per CONNECTION_PORTS.md)
-			const int energyPortIndex = 1;
+         if (isInput)
+         {
+            // Energy Stream -> Unit
+            flowsheet.ConnectObjects(energyStreamObj.GraphicObject, unit.GraphicObject, 0, energyPortIndex);
+         }
+         else
+         {
+            // Unit -> Energy Stream (for reactors, expanders)
+            flowsheet.ConnectObjects(unit.GraphicObject, energyStreamObj.GraphicObject, energyPortIndex, 0);
+         }
 
-			if (isInput)
-			{
-				// Energy Stream -> Unit
-				flowsheet.ConnectObjects(energyStreamObj.GraphicObject, unit.GraphicObject, 0, energyPortIndex);
-			}
-			else
-			{
-				// Unit -> Energy Stream (for reactors, expanders)
-				flowsheet.ConnectObjects(unit.GraphicObject, energyStreamObj.GraphicObject, energyPortIndex, 0);
-			}
-
-		_logger.LogInformation("Connected energy stream {StreamId} to unit {Unit} (IsInput={IsInput})",
-			energyStreamId, unit.GraphicObject.Tag, isInput);
-		}
-		catch (Exception ex)
-		{
-			_logger.LogError(ex, "Failed to connect energy stream {StreamId} to unit {Unit} (IsInput={IsInput})",
-				energyStreamId, unit.GraphicObject.Tag, isInput);
-			throw;
-		}
-	}
+         _logger.LogInformation("Connected energy stream {StreamId} to unit {Unit} (IsInput={IsInput})",
+            energyStreamId, unit.GraphicObject.Tag, isInput);
+      }
+      catch (Exception ex)
+      {
+         _logger.LogError(ex, "Failed to connect energy stream {StreamId} to unit {Unit} (IsInput={IsInput})",
+            energyStreamId, unit.GraphicObject.Tag, isInput);
+         throw;
+      }
+   }
 }
