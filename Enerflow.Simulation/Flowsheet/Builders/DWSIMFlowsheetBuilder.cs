@@ -63,13 +63,13 @@ public class DWSIMFlowsheetBuilder : IFlowsheetBuilder
       // 3. Configure Settings
       SetSystemOfUnits(flowsheet, simulation.SystemOfUnits);
 
-      // 4. Add Compounds (batch - no loop)
+      // 4. Add Compounds
       _compoundManager.AddCompounds(flowsheet, simulation.Compounds);
 
       // 5. Property Package & Flash Algorithm
       var propertyPackage = _propertyPackageManager.CreatePropertyPackage(simulation.PropertyPackage);
       var flashAlgorithm = _flashAlgorithmManager.CreateFlashAlgorithm(simulation.FlashAlgorithm);
-      _propertyPackageManager.SetFlashAlgorithm(propertyPackage, flashAlgorithm);
+      _flashAlgorithmManager.SetFlashAlgorithm(propertyPackage, flashAlgorithm);
       _propertyPackageManager.AddToFlowsheet(flowsheet, propertyPackage);
 
       // 6. Create and Configure Material Streams (batch - no loop)
@@ -83,11 +83,18 @@ public class DWSIMFlowsheetBuilder : IFlowsheetBuilder
       _unitOperationFactory.CreateAndConfigureUnitOperations(flowsheet, simulation.UnitOperations, compoundLookup);
 
       // 9. Connect Flowsheet (batch - ConnectionFactory handles loops internally)
+      #pragma warning disable CA1873 
       _logger.LogInformation("Connecting flowsheet for simulation {Id}", simulation.Id);
+      
       _connectionFactory.ConnectFlowsheet(simulation, flowsheet);
-      _logger.LogInformation("Flowsheet connected successfully for simulation {Id}", simulation.Id);
+       _logger.LogInformation("Flowsheet connected successfully for simulation {Id}", simulation.Id);
+       
+       // 10. Post-Connection Configuration (e.g., splitter ratios)
+       _logger.LogInformation("Configuring post-connection settings for simulation {Id}", simulation.Id);
+       _unitOperationFactory.ConfigurePostConnection(flowsheet, simulation);
+       _logger.LogInformation("Post-connection configuration completed for simulation {Id}", simulation.Id);
 
-      // 10. Validate
+       // 11. Validate
       _logger.LogInformation("Validating flowsheet for simulation {Id}", simulation.Id);
       var validationResult = _validator.Validate(simulation, flowsheet);
 
