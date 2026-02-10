@@ -8,6 +8,8 @@ using DwsimStreamSpec = DWSIM.Interfaces.Enums.StreamSpec;
 
 namespace Enerflow.Simulation.Flowsheet.Streams;
 
+#pragma warning disable CA1873
+
 /// <summary>
 /// Factory for creating and configuring DWSIM material streams.
 /// </summary>
@@ -49,7 +51,7 @@ public class MaterialStreamFactory : IMaterialStreamFactory
 
          foreach (var (compoundName, moleFraction) in streamEntity.Composition)
          {
-            if (stream.Phases[0].Compounds.ContainsKey(compoundName))
+            if (stream.Phases[0].Compounds.TryGetValue(compoundName, out var _))
             {
                stream.Phases[0].Compounds[compoundName].MoleFraction = moleFraction;
             }
@@ -79,24 +81,22 @@ public class MaterialStreamFactory : IMaterialStreamFactory
        SystemOfUnits systemOfUnits)
    {
       var streamList = streams.ToList();
-      
+
       foreach (var streamEntity in streamList)
       {
-         var dwsimStream = flowsheet.AddObject(
-             ObjectType.MaterialStream,
-             0,
-             0,
-             streamEntity.Id.ToString(),
-             streamEntity.Name
-         ) as DwsimMaterialStream;
+            if (flowsheet.AddObject(
+                ObjectType.MaterialStream,
+                0,
+                0,
+                streamEntity.Id.ToString(),
+                streamEntity.Name
+            ) is not DwsimMaterialStream dwsimStream)
+            {
+                _logger.LogError("Failed to create DWSIM material stream for {Name}", streamEntity.Name);
+                throw new InvalidOperationException($"Failed to create DWSIM material stream for {streamEntity.Name}");
+            }
 
-         if (dwsimStream == null)
-         {
-            _logger.LogError("Failed to create DWSIM material stream for {Name}", streamEntity.Name);
-            throw new InvalidOperationException($"Failed to create DWSIM material stream for {streamEntity.Name}");
-         }
-
-         Configure(dwsimStream, streamEntity, systemOfUnits);
+            Configure(dwsimStream, streamEntity, systemOfUnits);
       }
 
       _logger.LogInformation("Created and configured {Count} material streams", streamList.Count);

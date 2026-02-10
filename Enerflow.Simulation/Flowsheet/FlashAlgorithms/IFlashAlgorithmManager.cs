@@ -9,8 +9,13 @@ namespace Enerflow.Simulation.Flowsheet.FlashAlgorithms;
 /// </summary>
 public interface IFlashAlgorithmManager
 {
-    /// <summary>
-    /// Creates a DWSIM flash algorithm instance from the Enerflow enum.
-    /// </summary>
-    IFlashAlgorithm CreateFlashAlgorithm(EnerflowFlashAlgorithm algorithmType);
+   /// <summary>
+   /// Creates a DWSIM flash algorithm instance from the Enerflow enum.
+   /// </summary>
+   IFlashAlgorithm CreateFlashAlgorithm(EnerflowFlashAlgorithm algorithmType);
+
+   /// <summary>
+   /// Sets the flash algorithm for the property package.
+   /// </summary>
+   void SetFlashAlgorithm(IPropertyPackage package, IFlashAlgorithm flashAlgorithm);
 }

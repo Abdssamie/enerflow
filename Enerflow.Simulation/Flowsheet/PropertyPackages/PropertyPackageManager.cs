@@ -46,18 +46,4 @@ public class PropertyPackageManager : IPropertyPackageManager
             throw;
         }
     }
-
-    public void SetFlashAlgorithm(IPropertyPackage package, IFlashAlgorithm flashAlgorithm)
-    {
-        try
-        {
-            package.FlashAlgorithm = flashAlgorithm;
-            _logger.LogDebug("Set flash algorithm: {AlgorithmName}", flashAlgorithm.Name);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to set flash algorithm");
-            throw;
-        }
-    }
 }

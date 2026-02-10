@@ -10,31 +10,45 @@ namespace Enerflow.Simulation.Flowsheet.FlashAlgorithms;
 /// </summary>
 public class FlashAlgorithmManager : IFlashAlgorithmManager
 {
-    private readonly ILogger<FlashAlgorithmManager> _logger;
+   private readonly ILogger<FlashAlgorithmManager> _logger;
 
-    public FlashAlgorithmManager(ILogger<FlashAlgorithmManager> logger)
-    {
-        _logger = logger;
-    }
+   public FlashAlgorithmManager(ILogger<FlashAlgorithmManager> logger)
+   {
+      _logger = logger;
+   }
 
-    public IFlashAlgorithm CreateFlashAlgorithm(EnerflowFlashAlgorithm algorithmType)
-    {
-        IFlashAlgorithm algorithm = algorithmType switch
-        {
-            EnerflowFlashAlgorithm.NestedLoops => new NestedLoops(),
-            EnerflowFlashAlgorithm.InsideOut => new BostonBrittInsideOut(),
-            EnerflowFlashAlgorithm.InsideOut3Phase => new BostonFournierInsideOut3P(),
-            EnerflowFlashAlgorithm.GibbsMinimization3Phase => new GibbsMinimization3P(),
-            EnerflowFlashAlgorithm.NestedLoops3Phase => new NestedLoops3PV3(),
-            EnerflowFlashAlgorithm.SolidLiquidEquilibrium => new NestedLoopsSLE(),
-            EnerflowFlashAlgorithm.ImmiscibleLLE => new NestedLoopsImmiscible(),
-            EnerflowFlashAlgorithm.SimpleLLE => new SimpleLLE(),
-            EnerflowFlashAlgorithm.SVLLE => new NestedLoopsSVLLE(),
-            EnerflowFlashAlgorithm.Universal => new UniversalFlash(),
-            _ => new NestedLoops() // Fallback to default
-        };
+   public IFlashAlgorithm CreateFlashAlgorithm(EnerflowFlashAlgorithm algorithmType)
+   {
+      IFlashAlgorithm algorithm = algorithmType switch
+      {
+         EnerflowFlashAlgorithm.NestedLoops => new NestedLoops(),
+         EnerflowFlashAlgorithm.InsideOut => new BostonBrittInsideOut(),
+         EnerflowFlashAlgorithm.InsideOut3Phase => new BostonFournierInsideOut3P(),
+         EnerflowFlashAlgorithm.GibbsMinimization3Phase => new GibbsMinimization3P(),
+         EnerflowFlashAlgorithm.NestedLoops3Phase => new NestedLoops3PV3(),
+         EnerflowFlashAlgorithm.SolidLiquidEquilibrium => new NestedLoopsSLE(),
+         EnerflowFlashAlgorithm.ImmiscibleLLE => new NestedLoopsImmiscible(),
+         EnerflowFlashAlgorithm.SimpleLLE => new SimpleLLE(),
+         EnerflowFlashAlgorithm.SVLLE => new NestedLoopsSVLLE(),
+         EnerflowFlashAlgorithm.Universal => new UniversalFlash(),
+         _ => new NestedLoops() // Fallback to default
+      };
 
-        _logger.LogDebug("Created flash algorithm: {AlgorithmType}", algorithmType);
-        return algorithm;
-    }
+      _logger.LogDebug("Created flash algorithm: {AlgorithmType}", algorithmType);
+      return algorithm;
+   }
+
+   public void SetFlashAlgorithm(IPropertyPackage package, IFlashAlgorithm flashAlgorithm)
+   {
+      try
+      {
+         package.FlashAlgorithm = flashAlgorithm;
+         _logger.LogDebug("Set flash algorithm: {AlgorithmName}", flashAlgorithm.Name);
+      }
+      catch (Exception ex)
+      {
+         _logger.LogWarning(ex, "Failed to set flash algorithm");
+         throw;
+      }
+   }
 }
