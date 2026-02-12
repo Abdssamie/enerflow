@@ -26,11 +26,9 @@ public class MaterialStreamFactory : IMaterialStreamFactory
    {
       try
       {
-         _ = systemOfUnits;
-
-         var tempK = streamEntity.Temperature;
-         var pressPa = streamEntity.Pressure;
-         var massFlowKgS = streamEntity.MassFlow;
+         var tempK = streamEntity.Temperature.Value;
+         var pressPa = streamEntity.Pressure.Value;
+         var massFlowKgS = streamEntity.MassFlow.Value;
 
          stream.SpecType = DwsimStreamSpec.Temperature_and_Pressure;
 

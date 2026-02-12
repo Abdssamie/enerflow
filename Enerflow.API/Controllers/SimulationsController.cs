@@ -5,6 +5,7 @@ using Enerflow.Domain.Entities;
 using Enerflow.Domain.Entities.Streams;
 using Enerflow.Domain.Entities.UnitOperations;
 using Enerflow.Domain.Enums;
+using Enerflow.Domain.ValueObjects;
 using Enerflow.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -235,9 +236,9 @@ public class SimulationsController : ControllerBase
             Id = IdGenerator.NextGuid(),
             SimulationId = id,
             Name = request.Name,
-            Temperature = request.Temperature,
-            Pressure = request.Pressure,
-            MassFlow = request.MassFlow,
+            Temperature = new Temperature(request.Temperature, request.SystemOfUnits),
+            Pressure = new Pressure(request.Pressure, request.SystemOfUnits),
+            MassFlow = new MassFlow(request.MassFlow, request.SystemOfUnits),
             Composition = request.Composition
         };
 
@@ -369,16 +370,18 @@ public class SimulationsController : ControllerBase
             {
                 Id = s.Id,
                 Name = s.Name,
-                Temperature = s.Temperature,
-                Pressure = s.Pressure,
-                MassFlow = s.MassFlow,
+                Temperature = s.Temperature.Value,
+                Pressure = s.Pressure.Value,
+                MassFlow = s.MassFlow.Value,
+                SystemOfUnits = s.Temperature.SystemOfUnits,
                 Composition = s.Composition
             }).ToList(),
             EnergyStreams = simulation.EnergyStreams.Select(s => new EnergyStreamExportDto
             {
                 Id = s.Id,
                 Name = s.Name,
-                EnergyFlow = s.EnergyFlow
+                EnergyFlow = s.EnergyFlow.Value,
+                SystemOfUnits = s.EnergyFlow.SystemOfUnits
             }).ToList(),
             UnitOperations = simulation.UnitOperations.Select(u => new UnitOperationExportDto
             {
@@ -475,9 +478,9 @@ public class SimulationsController : ControllerBase
                     Id = newId,
                     SimulationId = simulation.Id,
                     Name = streamDto.Name,
-                    Temperature = streamDto.Temperature,
-                    Pressure = streamDto.Pressure,
-                    MassFlow = streamDto.MassFlow,
+                    Temperature = new Temperature(streamDto.Temperature, streamDto.SystemOfUnits),
+                    Pressure = new Pressure(streamDto.Pressure, streamDto.SystemOfUnits),
+                    MassFlow = new MassFlow(streamDto.MassFlow, streamDto.SystemOfUnits),
                     Composition = streamDto.Composition ?? new Dictionary<string, double>()
                 };
                 _context.MaterialStreams.Add(stream);
@@ -494,7 +497,7 @@ public class SimulationsController : ControllerBase
                     Id = newId,
                     SimulationId = simulation.Id,
                     Name = streamDto.Name,
-                    EnergyFlow = streamDto.EnergyFlow
+                    EnergyFlow = new EnergyFlow(streamDto.EnergyFlow, streamDto.SystemOfUnits)
                 };
                 _context.EnergyStreams.Add(stream);
             }
@@ -614,6 +617,7 @@ public record MaterialStreamExportDto
     public double Temperature { get; init; }
     public double Pressure { get; init; }
     public double MassFlow { get; init; }
+    public SystemOfUnits SystemOfUnits { get; init; } = SystemOfUnits.SI;
     public Dictionary<string, double>? Composition { get; init; }
 }
 
@@ -622,6 +626,7 @@ public record EnergyStreamExportDto
     public Guid Id { get; init; }
     public required string Name { get; init; }
     public double EnergyFlow { get; init; }
+    public SystemOfUnits SystemOfUnits { get; init; } = SystemOfUnits.SI;
 }
 
 public record UnitOperationExportDto

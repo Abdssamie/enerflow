@@ -1,0 +1,1282 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+The content has been processed where comments have been removed, content has been compressed (code blocks are separated by ⋮---- delimiter).
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: Enerflow.*/**/*.cs
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Code comments have been removed from supported file types
+- Content has been compressed - code blocks are separated by ⋮---- delimiter
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+Enerflow.API/
+  Controllers/
+    CatalogsController.cs
+    SimulationJobsController.cs
+    SimulationsController.cs
+  Extensions/
+    PostgresTransportExtensions.cs
+  Middleware/
+    RateLimitingMiddleware.cs
+    SecurityHeadersMiddleware.cs
+  Services/
+    CatalogService.cs
+    JobProducer.cs
+  Program.cs
+Enerflow.Domain/
+  Common/
+    IdGenerator.cs
+  DTOs/
+    ApiRequests.cs
+    SimulationJob.cs
+    SimulationResult.cs
+    SimulationResults.cs
+  Entities/
+    Streams/
+      EnergyStream.cs
+      MaterialStream.cs
+    UnitOperations/
+      CoolerObject.cs
+      FlashDrumObject.cs
+      HeaterObject.cs
+      IEnergyConsumer.cs
+      IEnergyProducer.cs
+      MixerObject.cs
+      RecycleObject.cs
+      ShortcutColumnObject.cs
+      SplitterObject.cs
+      UnitOperationObject.cs
+      ValveObject.cs
+    Compound.cs
+    Simulation.cs
+    SimulationObject.cs
+  Enums/
+    FlashAlgorithm.cs
+    FlashCalculationType.cs
+    HeaterCalculationMode.cs
+    PhaseType.cs
+    PortType.cs
+    PropertyPackageType.cs
+    RecycleAccelerationMethod.cs
+    SimulationStatus.cs
+    SystemOfUnits.cs
+    UnitOperationType.cs
+    ValveCalculationMode.cs
+  Exceptions/
+    InvalidTopologyException.cs
+  Extensions/
+    SimulationMappingExtensions.cs
+  Interfaces/
+    IJobProducer.cs
+  ValueObjects/
+    EnergyFlow.cs
+    IParameter.cs
+    MassFlow.cs
+    Position.cs
+    Pressure.cs
+    Temperature.cs
+Enerflow.Infrastructure/
+  Migrations/
+    20260116032453_InitialCreate.cs
+    20260116032453_InitialCreate.Designer.cs
+    20260116132432_UseSequentialIds.cs
+    20260116132432_UseSequentialIds.Designer.cs
+    20260117021552_SyncModelChanges.cs
+    20260117021552_SyncModelChanges.Designer.cs
+    20260131020350_SyncDomainModelChanges.cs
+    20260131020350_SyncDomainModelChanges.Designer.cs
+    EnerflowDbContextModelSnapshot.cs
+  Persistence/
+    DesignTimeDbContextFactory.cs
+    EnerflowDbContext.cs
+    SequentialGuidValueGenerator.cs
+  DependencyInjection.cs
+Enerflow.Simulation/
+  Flowsheet/
+    Builders/
+      DWSIMFlowsheetBuilder.cs
+      IFlowsheetBuilder.cs
+    Compounds/
+      CompoundManager.cs
+      ICompoundManager.cs
+    Connections/
+      ConnectionFactory.cs
+      IConnectionFactory.cs
+    FlashAlgorithms/
+      FlashAlgorithmManager.cs
+      IFlashAlgorithmManager.cs
+    PropertyPackages/
+      IPropertyPackageManager.cs
+      PropertyPackageManager.cs
+    Streams/
+      EnergyStreamFactory.cs
+      IEnergyStreamFactory.cs
+      IMaterialStreamFactory.cs
+      MaterialStreamFactory.cs
+    UnitOperations/
+      IUnitOperationFactory.cs
+      UnitOperationFactory.cs
+  Validation/
+    FlowsheetValidationException.cs
+    FlowsheetValidator.cs
+    IFlowsheetValidator.cs
+    ValidationConstants.cs
+    ValidationError.cs
+    ValidationErrorCodes.cs
+    ValidationResult.cs
+Enerflow.Tests.DWSIM/
+  Scenarios/
+    Test01_SimpleHeating.cs
+    Test02_CompressionCooling.cs
+    Test03_PressureReduction.cs
+    Test04_EthanolWaterVLE.cs
+    Test05_FlashAlgorithmComparison.cs
+    Test06_ThreePhaseFlash.cs
+    Test07_HeatExchanger.cs
+    Test08_ShortcutDistillation.cs
+    Test09_ConversionReactor.cs
+    Test10_RecycleLoop.cs
+  TestBase.cs
+  TestHelpers.cs
+  UnitTest1.cs
+Enerflow.Tests.Functional/
+  Scenarios/
+    SimulationFlowTests.cs
+  BaseIntegrationTest.cs
+  IntegrationTestWebAppFactory.cs
+Enerflow.Tests.Integration/
+  FlowsheetBuilderIntegrationTests.cs
+Enerflow.Tests.Unit/
+  Simulation/
+    Flowsheet/
+      Connections/
+        ConnectionFactoryTests.cs
+  Worker/
+    Validation/
+      CompoundValidationTests.cs
+      FlowsheetValidatorTests.cs
+      PhysicalPropertyValidationTests.cs
+      UnitOperationValidationTests.cs
+  DtoValidationTests.cs
+  IdGenerationTests.cs
+Enerflow.Worker/
+  Consumers/
+    SimulationJobConsumer.cs
+    SimulationJobConsumerDefinition.cs
+  Extensions/
+    PostgresTransportExtensions.cs
+  Solvers/
+    DWSIMSolver.cs
+    IResultCollector.cs
+    ISimulationSolver.cs
+    ResultCollector.cs
+  Program.cs
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="Enerflow.Tests.Functional/BaseIntegrationTest.cs">
+public abstract class BaseIntegrationTest : IClassFixture<IntegrationTestWebAppFactory>
+⋮----
+private readonly IServiceScope _scope;
+protected readonly HttpClient HttpClient;
+protected readonly EnerflowDbContext DbContext;
+⋮----
+HttpClient = factory.CreateClient();
+_scope = factory.Services.CreateScope();
+</file>
+
+<file path="Enerflow.Tests.Unit/Simulation/Flowsheet/Connections/ConnectionFactoryTests.cs">
+public class ConnectionFactoryTests
+⋮----
+public void HeaterWithEnergyStream_DomainModelStructure_IsCorrect()
+⋮----
+var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+⋮----
+var factory = new ConnectionFactory(logger);
+⋮----
+var simulationId = Guid.NewGuid();
+⋮----
+var energyStream = new EnergyStream
+⋮----
+EnergyFlow = new EnergyFlow(100)
+⋮----
+var heater = new HeaterObject
+⋮----
+simulation.EnergyStreams.Add(energyStream);
+simulation.UnitOperations.Add(heater);
+⋮----
+Assert.NotNull(heater.EnergyInputId);
+Assert.Equal(energyStream.Id, heater.EnergyInputId.Value);
+Assert.Single(simulation.EnergyStreams);
+Assert.Contains(energyStream, simulation.EnergyStreams);
+⋮----
+public void CoolerWithEnergyStream_DomainModelStructure_IsCorrect()
+⋮----
+EnergyFlow = new EnergyFlow(-100)
+⋮----
+var cooler = new CoolerObject
+⋮----
+simulation.UnitOperations.Add(cooler);
+⋮----
+Assert.NotNull(cooler.EnergyInputId);
+Assert.Equal(energyStream.Id, cooler.EnergyInputId.Value);
+⋮----
+public void HeaterWithoutEnergyStream_DomainModel_HandlesOptionalConnection()
+⋮----
+Assert.Null(heater.EnergyInputId);
+Assert.Empty(simulation.EnergyStreams);
+</file>
+
+<file path="Enerflow.Tests.Unit/DtoValidationTests.cs">
+public class DtoValidationTests
+⋮----
+private IList<ValidationResult> ValidateModel(object model)
+⋮----
+var ctx = new ValidationContext(model, null, null);
+Validator.TryValidateObject(model, ctx, validationResults, true);
+⋮----
+public void AddStreamRequest_ValidData_PassesValidation()
+⋮----
+var request = new AddStreamRequest
+⋮----
+Assert.Empty(results);
+⋮----
+public void AddStreamRequest_NegativeTemperature_FailsValidation()
+⋮----
+Assert.NotEmpty(results);
+Assert.Contains(results, r => r.MemberNames.Contains(nameof(AddStreamRequest.Temperature)));
+⋮----
+public void AddStreamRequest_LongName_FailsValidation()
+⋮----
+Assert.Contains(results, r => r.MemberNames.Contains(nameof(AddStreamRequest.Name)));
+⋮----
+public void CreateSimulationRequest_LongName_FailsValidation()
+⋮----
+var request = new CreateSimulationRequest
+⋮----
+Assert.Contains(results, r => r.MemberNames.Contains(nameof(CreateSimulationRequest.Name)));
+</file>
+
+<file path="Enerflow.Worker/Consumers/SimulationJobConsumerDefinition.cs">
+public class SimulationJobConsumerDefinition : ConsumerDefinition<SimulationJobConsumer>
+⋮----
+protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator, IConsumerConfigurator<SimulationJobConsumer> consumerConfigurator, IRegistrationContext context)
+⋮----
+endpointConfigurator.UseMessageRetry(r => r.Interval(3, 1000));
+</file>
+
+<file path="Enerflow.Worker/Extensions/PostgresTransportExtensions.cs">
+public static class PostgresTransportExtensions
+⋮----
+public static IServiceCollection ConfigurePostgresTransport(
+⋮----
+var builder = new NpgsqlConnectionStringBuilder(connectionString);
+⋮----
+services.AddOptions<SqlTransportOptions>().Configure(options =>
+⋮----
+services.AddPostgresMigrationHostedService(create, delete);
+</file>
+
+<file path="Enerflow.Worker/Solvers/IResultCollector.cs">
+public interface IResultCollector
+⋮----
+void ExtractResults(IFlowsheet flowsheet, SimulationEntity simulation, SimulationResult result);
+</file>
+
+<file path="Enerflow.Tests.Unit/Worker/Validation/FlowsheetValidatorTests.cs">
+public sealed class FlowsheetValidatorTests
+⋮----
+private readonly FlowsheetValidator _validator;
+⋮----
+_validator = new FlowsheetValidator(NullLogger<FlowsheetValidator>.Instance);
+⋮----
+public void Validate_DisconnectedUnitOperation_ReturnsError()
+⋮----
+var result = _validator.Validate(simulation, null!);
+⋮----
+result.IsValid.Should().BeFalse();
+result.Errors.Should().Contain(e => e.Code == ValidationErrorCodes.DisconnectedUnit);
+var disconnectedError = result.Errors.First(e => e.Code == ValidationErrorCodes.DisconnectedUnit);
+disconnectedError.EntityName.Should().Be("LonelyMixer");
+disconnectedError.EntityType.Should().Be("UnitOperation");
+disconnectedError.Message.Should().Contain("has no connected streams");
+⋮----
+public void Validate_OrphanedMaterialStream_ReturnsError()
+⋮----
+result.Errors.Should().ContainSingle();
+result.Errors[0].Code.Should().Be(ValidationErrorCodes.OrphanedStream);
+result.Errors[0].EntityType.Should().Be("MaterialStream");
+result.Errors[0].EntityName.Should().Be("OrphanStream");
+⋮----
+public void Validate_OrphanedEnergyStream_ReturnsError()
+⋮----
+result.Errors[0].EntityType.Should().Be("EnergyStream");
+result.Errors[0].EntityName.Should().Be("OrphanEnergy");
+⋮----
+public void Validate_ProperlyConnectedFlowsheet_ReturnsValid()
+⋮----
+result.IsValid.Should().BeTrue();
+result.Errors.Should().BeEmpty();
+⋮----
+public void Validate_MultipleErrors_ReturnsAllErrors()
+⋮----
+result.Errors.Should().HaveCountGreaterThanOrEqualTo(2);
+⋮----
+result.Errors.Should().Contain(e => e.Code == ValidationErrorCodes.OrphanedStream);
+⋮----
+public void Validate_EmptySimulation_ReturnsValid()
+⋮----
+private SimulationEntity CreateSimulationWithDisconnectedUnit()
+⋮----
+var sim = new SimulationEntity
+⋮----
+Id = Guid.NewGuid(),
+⋮----
+sim.Compounds.Add(new Compound
+⋮----
+sim.UnitOperations.Add(new MixerObject
+⋮----
+private SimulationEntity CreateSimulationWithOrphanedMaterialStream()
+⋮----
+sim.MaterialStreams.Add(new MaterialStream
+⋮----
+Temperature = new Temperature(298.15),
+Pressure = new Pressure(101325),
+MassFlow = new MassFlow(1.0),
+⋮----
+private SimulationEntity CreateSimulationWithOrphanedEnergyStream()
+⋮----
+sim.EnergyStreams.Add(new EnergyStream
+⋮----
+EnergyFlow = new EnergyFlow(1000.0)
+⋮----
+private SimulationEntity CreateValidSimulation()
+⋮----
+var stream1Id = Guid.NewGuid();
+var stream2Id = Guid.NewGuid();
+⋮----
+sim.UnitOperations.Add(new HeaterObject
+⋮----
+private SimulationEntity CreateSimulationWithMultipleErrors()
+⋮----
+private SimulationEntity CreateEmptySimulation()
+⋮----
+return new SimulationEntity
+⋮----
+new Compound
+⋮----
+SimulationId = Guid.NewGuid()
+</file>
+
+<file path="Enerflow.Tests.Unit/Worker/Validation/PhysicalPropertyValidationTests.cs">
+public sealed class PhysicalPropertyValidationTests
+⋮----
+private readonly FlowsheetValidator _validator;
+⋮----
+_validator = new FlowsheetValidator(NullLogger<FlowsheetValidator>.Instance);
+⋮----
+public void Validate_InvalidTemperature_ReturnsError(double temperature)
+⋮----
+var result = _validator.Validate(simulation, null!);
+⋮----
+result.IsValid.Should().BeFalse();
+result.Errors.Should().Contain(e => e.Code == ValidationErrorCodes.InvalidTemperature);
+result.Errors.Should().Contain(e => e.EntityType == "MaterialStream");
+result.Errors.Should().Contain(e => e.Message.Contains("Temperature"));
+⋮----
+public void Validate_ValidTemperature_PassesValidation()
+⋮----
+System.Console.WriteLine($"Error: {error.Code} - {error.Message}");
+⋮----
+result.IsValid.Should().BeTrue();
+result.Errors.Should().NotContain(e => e.Code == ValidationErrorCodes.InvalidTemperature);
+⋮----
+public void Validate_InvalidPressure_ReturnsError(double pressure)
+⋮----
+result.Errors.Should().Contain(e => e.Code == ValidationErrorCodes.ValidationError || e.Code == ValidationErrorCodes.InvalidPressure);
+⋮----
+result.Errors.Should().Contain(e => e.Message.Contains("Pressure"));
+⋮----
+public void Validate_ValidPressure_PassesValidation()
+⋮----
+result.Errors.Should().NotContain(e => e.Code == ValidationErrorCodes.InvalidPressure);
+⋮----
+public void Validate_NegativeMassFlow_ReturnsError()
+⋮----
+result.Errors.Should().Contain(e => e.Code == ValidationErrorCodes.InvalidMassFlow);
+⋮----
+result.Errors.Should().Contain(e => e.Message.Contains("MassFlow"));
+⋮----
+public void Validate_ValidMassFlow_PassesValidation(double massFlow)
+⋮----
+result.Errors.Should().NotContain(e => e.Code == ValidationErrorCodes.InvalidMassFlow);
+⋮----
+public void Validate_CompositionNotSummingToOne_ReturnsError()
+⋮----
+result.Errors.Should().Contain(e => e.Code == ValidationErrorCodes.InvalidCompositionSum);
+result.Errors.Should().Contain(e => e.Message.Contains("0.8000"));
+result.Errors.Should().Contain(e => e.Message.Contains("1 ±") || e.Message.Contains("1.0"));
+⋮----
+public void Validate_CompositionWithNegativeValue_ReturnsError()
+⋮----
+result.Errors.Should().Contain(e => e.Code == ValidationErrorCodes.NegativeComposition);
+result.Errors.Should().Contain(e => e.Message.Contains("Ethanol"));
+result.Errors.Should().Contain(e => e.Message.Contains("-0.2"));
+⋮----
+public void Validate_ValidComposition_PassesValidation()
+⋮----
+result.Errors.Should().NotContain(e => e.Code == ValidationErrorCodes.InvalidCompositionSum);
+result.Errors.Should().NotContain(e => e.Code == ValidationErrorCodes.NegativeComposition);
+⋮----
+public void Validate_CompositionWithinTolerance_PassesValidation()
+⋮----
+public void Validate_NegativeEnergyFlow_ReturnsError()
+⋮----
+result.Errors.Should().Contain(e => e.Code == ValidationErrorCodes.InvalidEnergyFlow);
+result.Errors.Should().Contain(e => e.EntityType == "EnergyStream");
+⋮----
+public void Validate_ValidEnergyFlow_PassesValidation(double energyFlow)
+⋮----
+result.Errors.Should().NotContain(e => e.Code == ValidationErrorCodes.InvalidEnergyFlow);
+⋮----
+public void Validate_MultiplePhysicalPropertyErrors_ReturnsAllErrors()
+⋮----
+result.Errors.Should().HaveCountGreaterThanOrEqualTo(1);
+⋮----
+result.Errors.Should().Contain(e =>
+⋮----
+private SimulationEntity CreateSimulationWithStream(
+⋮----
+var simulation = new SimulationEntity
+⋮----
+Id = Guid.NewGuid(),
+⋮----
+simulation.Compounds.Add(new Compound
+⋮----
+if (!simulation.Compounds.Any(c => c.Name == compoundName))
+⋮----
+var stream = new MaterialStream
+⋮----
+Temperature = new Temperature(temperature),
+Pressure = new Pressure(pressure),
+MassFlow = new MassFlow(massFlow),
+⋮----
+simulation.MaterialStreams.Add(stream);
+⋮----
+var unit = new HeaterObject
+⋮----
+simulation.UnitOperations.Add(unit);
+⋮----
+private SimulationEntity CreateSimulationWithEnergyStream(double energyFlow = 1000.0)
+⋮----
+var energyStream = new EnergyStream
+⋮----
+EnergyFlow = new EnergyFlow(energyFlow)
+⋮----
+simulation.EnergyStreams.Add(energyStream);
+</file>
+
+<file path="Enerflow.Worker/Solvers/ISimulationSolver.cs">
+public interface ISimulationSolver
+⋮----
+SimulationResult Solve(SimulationEntity simulation);
+</file>
+
+<file path="Enerflow.Tests.Integration/FlowsheetBuilderIntegrationTests.cs">
+public class FlowsheetBuilderIntegrationTests
+⋮----
+private readonly DWSIMFlowsheetBuilder _builder;
+⋮----
+var compoundManager = new CompoundManager(NullLogger<CompoundManager>.Instance);
+var propPackageManager = new PropertyPackageManager(NullLogger<PropertyPackageManager>.Instance);
+var flashAlgoManager = new FlashAlgorithmManager(NullLogger<FlashAlgorithmManager>.Instance);
+⋮----
+var materialStreamFactory = new MaterialStreamFactory(NullLogger<MaterialStreamFactory>.Instance);
+var energyStreamFactory = new EnergyStreamFactory(NullLogger<EnergyStreamFactory>.Instance);
+var unitOpFactory = new UnitOperationFactory(NullLogger<UnitOperationFactory>.Instance);
+var connectionFactory = new ConnectionFactory(NullLogger<ConnectionFactory>.Instance);
+var validator = new FlowsheetValidator(NullLogger<FlowsheetValidator>.Instance);
+⋮----
+_builder = new DWSIMFlowsheetBuilder(
+⋮----
+public void Build_Simple_Simulation()
+⋮----
+sim.Compounds.Add(new Compound { Name = "Water", SimulationId = sim.Id });
+⋮----
+var feed = new MaterialStream
+⋮----
+Temperature = new Temperature(300),
+Pressure = new Pressure(101325),
+MassFlow = new MassFlow(1)
+⋮----
+var product = new MaterialStream
+⋮----
+sim.MaterialStreams.Add(feed);
+sim.MaterialStreams.Add(product);
+⋮----
+var heater = new HeaterObject
+⋮----
+sim.UnitOperations.Add(heater);
+⋮----
+var flowsheet = _builder.BuildFlowsheet(sim);
+⋮----
+Assert.NotNull(flowsheet);
+⋮----
+.ToList();
+⋮----
+Assert.Equal(2, streams.Count);
+⋮----
+Assert.Single(heaters);
+⋮----
+Assert.NotNull(heaterInstance);
+⋮----
+public void Build_Recycle_Simulation()
+⋮----
+var s1 = new MaterialStream
+⋮----
+Temperature = new Temperature(298.15),
+⋮----
+MassFlow = new MassFlow(1.0)
+⋮----
+var s2 = new MaterialStream
+⋮----
+sim.MaterialStreams.Add(s1);
+sim.MaterialStreams.Add(s2);
+⋮----
+var recycle = new RecycleObject
+⋮----
+sim.UnitOperations.Add(recycle);
+⋮----
+Assert.Single(recycles);
+</file>
+
+<file path="Enerflow.Tests.Unit/Worker/Validation/CompoundValidationTests.cs">
+public sealed class CompoundValidationTests
+⋮----
+private readonly FlowsheetValidator _validator;
+⋮----
+_validator = new FlowsheetValidator(NullLogger<FlowsheetValidator>.Instance);
+⋮----
+public void Validate_SimulationWithNoCompounds_ReturnsNoCompoundsDefinedError()
+⋮----
+var result = _validator.Validate(simulation, null!);
+⋮----
+result.IsValid.Should().BeFalse();
+result.Errors.Should().ContainSingle();
+result.Errors[0].Code.Should().Be(ValidationErrorCodes.NoCompoundsDefined);
+result.Errors[0].EntityType.Should().Be("Simulation");
+result.Errors[0].Message.Should().Contain("at least one compound");
+⋮----
+public void Validate_SimulationWithCompounds_PassesCompoundExistenceCheck()
+⋮----
+result.IsValid.Should().BeTrue();
+result.Errors.Should().NotContain(e => e.Code == ValidationErrorCodes.NoCompoundsDefined);
+⋮----
+public void Validate_StreamReferencesUndefinedCompound_ReturnsUndefinedCompoundReferenceError()
+⋮----
+result.Errors.Should().Contain(e => e.Code == ValidationErrorCodes.UndefinedCompoundReference);
+var error = result.Errors.First(e => e.Code == ValidationErrorCodes.UndefinedCompoundReference);
+error.EntityType.Should().Be("MaterialStream");
+error.Message.Should().Contain("Methanol");
+error.Message.Should().Contain("undefined compound");
+⋮----
+public void Validate_StreamReferencesDefinedCompounds_PassesValidation()
+⋮----
+result.Errors.Should().NotContain(e => e.Code == ValidationErrorCodes.UndefinedCompoundReference);
+⋮----
+public void Validate_CompoundReferenceCaseInsensitive_PassesValidation()
+⋮----
+public void Validate_ShortcutColumnWithInvalidLightKey_ReturnsInvalidLightKeyReferenceError()
+⋮----
+result.Errors.Should().Contain(e => e.Code == ValidationErrorCodes.InvalidLightKeyReference);
+var error = result.Errors.First(e => e.Code == ValidationErrorCodes.InvalidLightKeyReference);
+error.EntityType.Should().Be("ShortcutColumn");
+error.Message.Should().Contain("LightKey");
+error.Message.Should().Contain("invalid");
+⋮----
+public void Validate_ShortcutColumnWithInvalidHeavyKey_ReturnsInvalidHeavyKeyReferenceError()
+⋮----
+result.Errors.Should().Contain(e => e.Code == ValidationErrorCodes.InvalidHeavyKeyReference);
+var error = result.Errors.First(e => e.Code == ValidationErrorCodes.InvalidHeavyKeyReference);
+⋮----
+error.Message.Should().Contain("HeavyKey");
+⋮----
+public void Validate_ShortcutColumnWithValidKeys_PassesValidation()
+⋮----
+result.Errors.Should().NotContain(e => e.Code == ValidationErrorCodes.InvalidLightKeyReference);
+result.Errors.Should().NotContain(e => e.Code == ValidationErrorCodes.InvalidHeavyKeyReference);
+⋮----
+public void Validate_ShortcutColumnWithBothInvalidKeys_ReturnsMultipleErrors()
+⋮----
+public void Validate_MultipleStreamsWithUndefinedCompounds_ReturnsMultipleErrors()
+⋮----
+result.Errors.Should().HaveCountGreaterThanOrEqualTo(2);
+result.Errors.Where(e => e.Code == ValidationErrorCodes.UndefinedCompoundReference)
+.Should().HaveCountGreaterThanOrEqualTo(2);
+⋮----
+private SimulationEntity CreateSimulationWithoutCompounds()
+⋮----
+var simulation = new SimulationEntity
+⋮----
+Id = Guid.NewGuid(),
+⋮----
+private SimulationEntity CreateSimulationWithCompounds()
+⋮----
+simulation.Compounds.Add(new Compound
+⋮----
+private SimulationEntity CreateSimulationWithUndefinedCompoundReference()
+⋮----
+var streamId = Guid.NewGuid();
+var stream = new MaterialStream
+⋮----
+Temperature = new Temperature(298.15),
+Pressure = new Pressure(101325),
+MassFlow = new MassFlow(1.0),
+⋮----
+simulation.MaterialStreams.Add(stream);
+⋮----
+simulation.UnitOperations.Add(new MixerObject
+⋮----
+private SimulationEntity CreateSimulationWithValidCompoundReferences()
+⋮----
+var outputStreamId = Guid.NewGuid();
+simulation.MaterialStreams.Add(new MaterialStream
+⋮----
+simulation.UnitOperations.Add(new HeaterObject
+⋮----
+private SimulationEntity CreateSimulationWithCaseInsensitiveCompoundReference()
+⋮----
+private SimulationEntity CreateSimulationWithInvalidLightKey()
+⋮----
+var waterCompoundId = Guid.NewGuid();
+var ethanolCompoundId = Guid.NewGuid();
+⋮----
+var inputStreamId = Guid.NewGuid();
+var outputStream1Id = Guid.NewGuid();
+var outputStream2Id = Guid.NewGuid();
+⋮----
+MassFlow = new MassFlow(0.5),
+⋮----
+simulation.UnitOperations.Add(new ShortcutColumnObject
+⋮----
+LightKey = Guid.NewGuid(),
+⋮----
+private SimulationEntity CreateSimulationWithInvalidHeavyKey()
+⋮----
+HeavyKey = Guid.NewGuid(),
+⋮----
+private SimulationEntity CreateSimulationWithValidShortcutColumnKeys()
+⋮----
+private SimulationEntity CreateSimulationWithBothInvalidKeys()
+⋮----
+private SimulationEntity CreateSimulationWithMultipleUndefinedCompounds()
+⋮----
+var stream1Id = Guid.NewGuid();
+⋮----
+var stream2Id = Guid.NewGuid();
+</file>
+
+<file path="Enerflow.Tests.Unit/Worker/Validation/UnitOperationValidationTests.cs">
+public sealed class UnitOperationValidationTests
+⋮----
+private readonly FlowsheetValidator _validator;
+⋮----
+_validator = new FlowsheetValidator(NullLogger<FlowsheetValidator>.Instance);
+⋮----
+public void Validate_HeaterWithInvalidEfficiency_ReturnsInvalidEfficiencyError()
+⋮----
+var result = _validator.Validate(simulation, null!);
+result.IsValid.Should().BeFalse();
+result.Errors.Should().Contain(e => e.Code == ValidationErrorCodes.InvalidEfficiency);
+⋮----
+public void Validate_HeaterWithValidConfiguration_PassesValidation()
+⋮----
+result.IsValid.Should().BeTrue();
+⋮----
+public void Validate_MixerWithSingleInput_ReturnsUnitRequiresMultipleInputsError()
+⋮----
+result.Errors.Should().Contain(e => e.Code == ValidationErrorCodes.UnitRequiresMultipleInputs);
+⋮----
+public void Validate_MixerWithValidTopology_PassesValidation()
+⋮----
+public void Validate_SplitterWithInvalidSplitRatios_ReturnsSplitterInvalidRatiosError()
+⋮----
+result.Errors.Should().Contain(e => e.Code == ValidationErrorCodes.SplitterInvalidRatios);
+⋮----
+public void Validate_SplitterWithValidConfiguration_PassesValidation()
+⋮----
+public void Validate_ValveWithNegativeOutletPressure_ReturnsInvalidOutletPressureError()
+⋮----
+result.Errors.Should().Contain(e => e.Code == ValidationErrorCodes.InvalidPressure || e.Code == ValidationErrorCodes.InvalidOutletPressure);
+result.Errors.Should().Contain(e => e.EntityName == "Valve1");
+⋮----
+public void Validate_ShortcutColumnWithInvalidRefluxRatio_ReturnsInvalidRefluxRatioError()
+⋮----
+result.Errors.Should().Contain(e => e.Code == ValidationErrorCodes.InvalidRefluxRatio);
+⋮----
+public void Validate_ShortcutColumnWithInvalidStages_ReturnsInvalidStagesCountError()
+⋮----
+result.Errors.Should().Contain(e => e.Code == ValidationErrorCodes.InvalidStagesCount);
+⋮----
+public void Validate_RecycleWithInvalidTolerance_ReturnsInvalidToleranceError()
+⋮----
+result.Errors.Should().Contain(e => e.Code == ValidationErrorCodes.InvalidTolerance);
+⋮----
+public void Validate_RecycleWithInvalidMaxIterations_ReturnsInvalidMaxIterationsError()
+⋮----
+result.Errors.Should().Contain(e => e.Code == ValidationErrorCodes.InvalidMaxIterations);
+⋮----
+public void Validate_FlashDrumWithNoInputs_ReturnsUnitRequiresInputError()
+⋮----
+result.Errors.Should().Contain(e => e.Code == ValidationErrorCodes.UnitRequiresInput);
+⋮----
+private SimulationEntity CreateBaseSimulation()
+⋮----
+var simulation = new SimulationEntity
+⋮----
+Id = Guid.NewGuid(),
+⋮----
+simulation.Compounds.Add(new Compound
+⋮----
+private SimulationEntity CreateSimulationWithHeater(double efficiency = 1.0, double outletTemperature = 350.0)
+⋮----
+var inputStreamId = Guid.NewGuid();
+var outputStreamId = Guid.NewGuid();
+⋮----
+simulation.MaterialStreams.Add(new MaterialStream
+⋮----
+Temperature = new Temperature(298.15),
+Pressure = new Pressure(101325),
+MassFlow = new MassFlow(1.0),
+⋮----
+simulation.UnitOperations.Add(new HeaterObject
+⋮----
+private SimulationEntity CreateSimulationWithMixer(int inputCount = 2, int outputCount = 1)
+⋮----
+var streamId = Guid.NewGuid();
+inputStreamIds.Add(streamId);
+⋮----
+outputStreamIds.Add(streamId);
+⋮----
+MassFlow = new MassFlow(0.5),
+⋮----
+simulation.UnitOperations.Add(new MixerObject
+⋮----
+private SimulationEntity CreateSimulationWithSplitter(double[] splitRatios, int outputCount = 2)
+⋮----
+simulation.UnitOperations.Add(new SplitterObject
+⋮----
+private SimulationEntity CreateSimulationWithValve(double outletPressure = 50000.0)
+⋮----
+simulation.UnitOperations.Add(new ValveObject
+⋮----
+private SimulationEntity CreateSimulationWithShortcutColumn(double refluxRatio = 2.0, int stages = 10)
+⋮----
+var waterCompoundId = simulation.Compounds.First().Id;
+var ethanolCompoundId = Guid.NewGuid();
+⋮----
+var outputStream1Id = Guid.NewGuid();
+var outputStream2Id = Guid.NewGuid();
+⋮----
+simulation.UnitOperations.Add(new ShortcutColumnObject
+⋮----
+private SimulationEntity CreateSimulationWithRecycle(double tolerance = 1e-4, int maxIterations = 50)
+⋮----
+simulation.UnitOperations.Add(new RecycleObject
+⋮----
+private SimulationEntity CreateSimulationWithFlashDrum(int inputCount = 1, int outputCount = 2)
+⋮----
+simulation.UnitOperations.Add(new FlashDrumObject
+</file>
+
+<file path="Enerflow.Worker/Solvers/ResultCollector.cs">
+public class ResultCollector : IResultCollector
+⋮----
+public void ExtractResults(IFlowsheet flowsheet, SimulationEntity simulation, SimulationResult result)
+⋮----
+_logger.LogDebug("Extracting results for simulation {Id}", simulation.Id);
+⋮----
+var streamId = domainStream.Id.ToString();
+if (flowsheet.SimulationObjects.TryGetValue(streamId, out var simObj) && simObj is DWSIMMaterialStream dwsimStream)
+⋮----
+result.StreamResults.Add(new StreamResultDto
+⋮----
+Temperature = dwsimStream.GetTemperature(),
+Pressure = dwsimStream.GetPressure(),
+MassFlow = dwsimStream.GetMassFlow(),
+⋮----
+_logger.LogWarning("Material Stream {Name} (ID: {Id}) not found in flowsheet or invalid type.", domainStream.Name, domainStream.Id);
+⋮----
+var unitId = unit.Id.ToString();
+if (flowsheet.SimulationObjects.TryGetValue(unitId, out var simObj))
+⋮----
+if (!string.IsNullOrEmpty(simObj.ErrorMessage))
+⋮----
+calculatedParams["DeltaQ"] = heater.DeltaQ.GetValueOrDefault();
+calculatedParams["DeltaT"] = heater.DeltaT.GetValueOrDefault();
+calculatedParams["OutletTemperature"] = heater.OutletTemperature.GetValueOrDefault();
+calculatedParams["Efficiency"] = double.IsNaN(heater.Efficiency) ? 0.0 : heater.Efficiency;
+⋮----
+calculatedParams["DeltaQ"] = cooler.DeltaQ.GetValueOrDefault();
+calculatedParams["DeltaT"] = cooler.DeltaT.GetValueOrDefault();
+calculatedParams["OutletTemperature"] = cooler.OutletTemperature.GetValueOrDefault();
+calculatedParams["Efficiency"] = double.IsNaN(cooler.Efficiency) ? 0.0 : cooler.Efficiency;
+⋮----
+calculatedParams["DeltaP"] = valve.DeltaP.GetValueOrDefault();
+calculatedParams["OutletPressure"] = valve.OutletPressure.GetValueOrDefault();
+calculatedParams["DeltaT"] = valve.DeltaT.GetValueOrDefault();
+⋮----
+var ratios = splitter.Ratios.Cast<double>().ToList();
+⋮----
+calculatedParams["DeltaQ"] = vessel.DeltaQ.GetValueOrDefault();
+⋮----
+calculatedParams["EnergyFlow"] = es.EnergyFlow.GetValueOrDefault();
+⋮----
+result.UnitResults.Add(new UnitResultDto
+⋮----
+CalculatedParams = JsonSerializer.SerializeToDocument(calculatedParams)
+⋮----
+_logger.LogWarning("Unit Operation {Name} (ID: {Id}) not found in flowsheet.", unit.Name, unit.Id);
+</file>
+
+<file path="Enerflow.Tests.Functional/Scenarios/SimulationFlowTests.cs">
+public class SimulationFlowTests : BaseIntegrationTest
+⋮----
+public async Task Can_Run_Simple_Mixer_Simulation()
+⋮----
+var createRequest = new CreateSimulationRequest
+⋮----
+var response = await HttpClient.PostAsJsonAsync("/api/v1/simulations", createRequest);
+⋮----
+var errorBody = await response.Content.ReadAsStringAsync();
+throw new Exception($"Failed to create simulation. Status: {response.StatusCode}, Body: {errorBody}");
+⋮----
+Guid simId = simData.GetProperty("id").GetGuid();
+⋮----
+var addCompoundResponse = await HttpClient.PostAsJsonAsync($"/api/v1/simulations/{simId}/compounds", new { name = "Water" });
+addCompoundResponse.StatusCode.Should().Be(HttpStatusCode.Created);
+⋮----
+var inlet1Request = new AddStreamRequest
+⋮----
+var inlet1Res = await HttpClient.PostAsJsonAsync($"/api/v1/simulations/{simId}/streams", inlet1Request);
+⋮----
+var errorBody = await inlet1Res.Content.ReadAsStringAsync();
+throw new Exception($"Failed to add stream. Status: {inlet1Res.StatusCode}, Body: {errorBody}");
+⋮----
+Guid inlet1Id = inlet1Data.GetProperty("streamId").GetGuid();
+⋮----
+var inlet2Request = new AddStreamRequest
+⋮----
+var inlet2Res = await HttpClient.PostAsJsonAsync($"/api/v1/simulations/{simId}/streams", inlet2Request);
+⋮----
+Guid inlet2Id = inlet2Data.GetProperty("streamId").GetGuid();
+⋮----
+var outletRequest = new AddStreamRequest
+⋮----
+var outletRes = await HttpClient.PostAsJsonAsync($"/api/v1/simulations/{simId}/streams", outletRequest);
+⋮----
+Guid outletId = outletData.GetProperty("streamId").GetGuid();
+⋮----
+var addUnitRequest = new AddUnitRequest
+⋮----
+var mixerRes = await HttpClient.PostAsJsonAsync($"/api/v1/simulations/{simId}/units", addUnitRequest);
+⋮----
+Guid mixerId = mixerData.GetProperty("unitId").GetGuid();
+⋮----
+await HttpClient.PutAsJsonAsync($"/api/v1/simulations/{simId}/connect", new ConnectStreamRequest
+⋮----
+var submitRes = await HttpClient.PostAsJsonAsync("/api/v1/simulation_jobs", new SubmitJobRequest { SimulationId = simId });
+submitRes.StatusCode.Should().Be(HttpStatusCode.Accepted);
+⋮----
+await Task.Delay(1000);
+var statusRes = await HttpClient.GetAsync($"/api/v1/simulation_jobs/{simId}/status");
+⋮----
+var err = await statusRes.Content.ReadAsStringAsync();
+throw new Exception($"Poll failed. Status: {statusRes.StatusCode}, Body: {err}");
+⋮----
+if (!statusData.TryGetProperty("status", out var statusProp))
+⋮----
+var body = statusData.GetRawText();
+throw new Exception($"JSON missing 'status' property. Body: {body}");
+⋮----
+status = statusProp.GetString()!;
+⋮----
+status.Should().Be("Converged", because: "the mixer simulation should solve correctly");
+⋮----
+var resultRes = await HttpClient.GetAsync($"/api/v1/simulation_jobs/{simId}/result");
+resultRes.StatusCode.Should().Be(HttpStatusCode.OK);
+⋮----
+var results = resultData.GetProperty("results");
+var streamResults = results.GetProperty("StreamResults");
+Console.WriteLine($"Stream results count: {streamResults.GetArrayLength()}");
+foreach (var stream in streamResults.EnumerateArray())
+⋮----
+var streamId = stream.GetProperty("StreamId").GetGuid();
+var massFlow = stream.GetProperty("MassFlow").GetDouble();
+Console.WriteLine($"Stream {streamId}: MassFlow = {massFlow}");
+⋮----
+var outletStreamResult = streamResults.EnumerateArray()
+.FirstOrDefault(s => s.GetProperty("StreamId").GetGuid() == outletId);
+⋮----
+outletStreamResult.ValueKind.Should().NotBe(JsonValueKind.Undefined, "outlet stream should be in results");
+double outletMassFlow = outletStreamResult.GetProperty("MassFlow").GetDouble();
+Console.WriteLine($"Outlet ID: {outletId}, Outlet MassFlow: {outletMassFlow}");
+outletMassFlow.Should().BeApproximately(3.0, 0.001);
+⋮----
+public async Task Should_Fail_On_Disconnected_Stream()
+⋮----
+await HttpClient.PostAsJsonAsync($"/api/v1/simulations/{simId}/compounds", new { name = "Water" });
+⋮----
+await HttpClient.PostAsJsonAsync($"/api/v1/simulations/{simId}/units", addUnitRequest);
+⋮----
+await HttpClient.PostAsJsonAsync("/api/v1/simulation_jobs", new SubmitJobRequest { SimulationId = simId });
+⋮----
+status = statusData.GetProperty("status").GetString()!;
+⋮----
+status.Should().Be("Failed");
+⋮----
+resultRes.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+⋮----
+string code = errorData.GetProperty("code").GetString()!;
+code.Should().Be("SimulationFailed");
+string message = errorData.GetProperty("message").GetString()!;
+message.Should().NotBeNullOrEmpty();
+errorData.GetProperty("context").GetProperty("simulationId").GetGuid().Should().Be(simId);
+</file>
+
+<file path="Enerflow.Worker/Solvers/DWSIMSolver.cs">
+public class DWSIMSolver : ISimulationSolver
+⋮----
+private readonly Automation3 _automation;
+private readonly IFlowsheetBuilder _flowsheetBuilder;
+private readonly IResultCollector _resultCollector;
+⋮----
+public SimulationResult Solve(SimulationEntity simulation)
+⋮----
+var sw = Stopwatch.StartNew();
+⋮----
+_logger.LogInformation("Starting simulation solve for Job {JobId}", simulation.Id);
+⋮----
+IFlowsheet flowsheet = _flowsheetBuilder.BuildFlowsheet(simulation);
+_logger.LogInformation("Flowsheet built and connected successfully for Job {JobId}", simulation.Id);
+⋮----
+_logger.LogInformation("Starting DWSIM calculation for Job {JobId}", simulation.Id);
+⋮----
+_logger.LogInformation("Calling DWSIM CalculateFlowsheet4 for Job {JobId}", simulation.Id);
+var errors = _automation.CalculateFlowsheet4(flowsheet);
+_logger.LogInformation("DWSIM CalculateFlowsheet4 completed for Job {JobId}", simulation.Id);
+⋮----
+var errorMsg = !string.IsNullOrEmpty(flowsheet.ErrorMessage)
+⋮----
+_logger.LogError("Flowsheet failed to solve: {Error}", errorMsg);
+⋮----
+sw.Stop();
+return new SimulationResult
+⋮----
+_logger.LogWarning("DWSIM reported {Count} errors during calculation", errors.Count);
+⋮----
+_logger.LogWarning("DWSIM Error: {Message}", err.Message);
+⋮----
+if (!string.IsNullOrEmpty(obj.ErrorMessage))
+⋮----
+_logger.LogWarning("Object error: {Error}", errorMsg);
+objectErrors.Add(errorMsg);
+⋮----
+var combinedErrors = string.Join("; ", objectErrors);
+_logger.LogError("Simulation completed but {Count} object(s) have errors", objectErrors.Count);
+⋮----
+_logger.LogInformation("Simulation {JobId} solved successfully in {Time:F2}s",
+⋮----
+var result = new SimulationResult
+⋮----
+_resultCollector.ExtractResults(flowsheet, simulation, result);
+⋮----
+_logger.LogError(ex, "Error solving simulation {Id}", simulation.Id);
+</file>
+
+<file path="Enerflow.Tests.Unit/IdGenerationTests.cs">
+public class TestEntity
+⋮----
+public class TestDbContext : DbContext
+⋮----
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+⋮----
+entity.HasKey(e => e.Id);
+entity.Property(e => e.Id).HasValueGenerator<SequentialGuidValueGenerator>();
+⋮----
+public class IdGenerationTests
+⋮----
+public void IdGenerator_ShouldGenerateSequentialGuids()
+⋮----
+// Arrange
+var id1 = IdGenerator.NextGuid();
+var id2 = IdGenerator.NextGuid();
+var id3 = IdGenerator.NextGuid();
+⋮----
+// Act & Assert
+Assert.NotEqual(id1, id2);
+Assert.NotEqual(id2, id3);
+⋮----
+public void Entity_ShouldInitializeWithSequentialId()
+⋮----
+// Act
+var simulation1 = new SimulationEntity { Name = "Test 1", PropertyPackage = PropertyPackageType.PengRobinson, SystemOfUnits = SystemOfUnits.SI, FlashAlgorithm = FlashAlgorithm.NestedLoops };
+var simulation2 = new SimulationEntity { Name = "Test 2", PropertyPackage = PropertyPackageType.PengRobinson, SystemOfUnits = SystemOfUnits.SI, FlashAlgorithm = FlashAlgorithm.NestedLoops };
+⋮----
+Assert.NotEqual(Guid.Empty, simulation1.Id);
+Assert.NotEqual(Guid.Empty, simulation2.Id);
+Assert.NotEqual(simulation1.Id, simulation2.Id);
+⋮----
+public async Task EFCore_ValueGenerator_ShouldAssignSequentialId()
+⋮----
+var services = new ServiceCollection();
+⋮----
+options.UseInMemoryDatabase("TestDb"));
+⋮----
+var serviceProvider = services.BuildServiceProvider();
+using var scope = serviceProvider.CreateScope();
+⋮----
+var entity = new TestEntity { Name = "EF Test" };
+⋮----
+context.TestEntities.Add(entity);
+await context.SaveChangesAsync();
+⋮----
+Assert.NotEqual(Guid.Empty, entity.Id);
+</file>
+
+<file path="Enerflow.Tests.Functional/IntegrationTestWebAppFactory.cs">
+public class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
+⋮----
+private readonly PostgreSqlContainer _dbContainer = new PostgreSqlBuilder("postgres:18-bookworm")
+.Build();
+⋮----
+private readonly RedisContainer _redisContainer = new RedisBuilder("redis:alpine")
+⋮----
+public async Task InitializeAsync()
+⋮----
+await Task.WhenAll(
+_dbContainer.StartAsync(),
+_redisContainer.StartAsync());
+⋮----
+using var scope = Services.CreateScope();
+⋮----
+var script = dbContext.Database.GenerateCreateScript();
+await dbContext.Database.ExecuteSqlRawAsync(script);
+⋮----
+protected override void ConfigureWebHost(IWebHostBuilder builder)
+⋮----
+builder.ConfigureLogging(logging =>
+⋮----
+logging.ClearProviders();
+logging.AddConsole();
+logging.SetMinimumLevel(LogLevel.Debug);
+⋮----
+builder.UseSetting("RedisConfiguration", _redisContainer.GetConnectionString());
+builder.UseSetting("ConnectionStrings:DefaultConnection", _dbContainer.GetConnectionString());
+builder.UseSetting("RateLimit:MaxRequests", "1000");
+builder.ConfigureTestServices(services =>
+⋮----
+var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<EnerflowDbContext>));
+if (descriptor != null) services.Remove(descriptor);
+⋮----
+var dataSourceBuilder = new NpgsqlDataSourceBuilder(_dbContainer.GetConnectionString());
+dataSourceBuilder.EnableDynamicJson();
+var dataSource = dataSourceBuilder.Build();
+options.UseNpgsql(dataSource, npgsqlOptions =>
+⋮----
+npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory", "public");
+⋮----
+var massTransitDescriptors = services.Where(d =>
+⋮----
+(d.ServiceType.Namespace.StartsWith("MassTransit") ||
+d.ServiceType.Name.Contains("MassTransit"))).ToList();
+⋮----
+services.Remove(d);
+⋮----
+services.ConfigurePostgresTransport(_dbContainer.GetConnectionString());
+⋮----
+services.AddMassTransit(x =>
+⋮----
+x.SetKebabCaseEndpointNameFormatter();
+⋮----
+x.UsingPostgres((context, cfg) =>
+⋮----
+cfg.ConfigureJsonSerializerOptions(options =>
+⋮----
+cfg.ConfigureEndpoints(context);
+⋮----
+.Configure(options =>
+⋮----
+options.StartTimeout = TimeSpan.FromSeconds(30);
+options.StopTimeout = TimeSpan.FromSeconds(30);
+⋮----
+public new async Task DisposeAsync()
+⋮----
+_dbContainer.StopAsync(),
+_redisContainer.StopAsync());
+</file>
+
+<file path="Enerflow.Worker/Consumers/SimulationJobConsumer.cs">
+public class SimulationJobConsumer : IConsumer<SimulationJob>
+⋮----
+private readonly ISimulationSolver _solver;
+private readonly EnerflowDbContext _dbContext;
+⋮----
+public async Task Consume(ConsumeContext<SimulationJob> context)
+⋮----
+_logger.LogInformation(
+⋮----
+_logger.LogDebug("Mapping job definition to domain model for Job {JobId}", job.JobId);
+⋮----
+_logger.LogInformation("Starting solver for Job {JobId}", job.JobId);
+⋮----
+var result = _solver.Solve(simulation);
+⋮----
+_logger.LogInformation("Solver completed for Job {JobId}. Status: {Status}", job.JobId, status);
+⋮----
+_logger.LogWarning(ex, "Flowsheet validation failed for Job {JobId}", job.JobId);
+⋮----
+var errorMessage = string.Join("; ", ex.ValidationResult.Errors.Select(e => e.Message));
+⋮----
+_logger.LogError(ex, "Critical error processing Job {JobId}", job.JobId);
+⋮----
+private async Task UpdateStatusAsync(Guid simulationId, SimulationStatus status, string? errorMessage,
+⋮----
+.FirstOrDefaultAsync(s => s.Id == simulationId, ct);
+⋮----
+await _dbContext.SaveChangesAsync(ct);
+⋮----
+_logger.LogWarning("Simulation {SimulationId} not found for status update", simulationId);
+⋮----
+_logger.LogError(ex, "Failed to update status for Simulation {SimulationId}", simulationId);
+⋮----
+private async Task PersistResultAsync(
+⋮----
+simulation.ResultJson = JsonSerializer.SerializeToDocument(result);
+⋮----
+_logger.LogDebug("Persisted results for Simulation {SimulationId}", simulationId);
+⋮----
+_logger.LogWarning("Simulation {SimulationId} not found for result persistence", simulationId);
+⋮----
+_logger.LogError(ex, "Failed to persist results for Simulation {SimulationId}", simulationId);
+⋮----
+private SimulationEntity MapToDomain(SimulationJob job)
+⋮----
+var sim = new SimulationEntity
+⋮----
+sim.Compounds.Add(new Compound
+⋮----
+sim.MaterialStreams.Add(new MaterialStream
+⋮----
+Temperature = new Temperature(ms.Temperature, ms.SystemOfUnits),
+Pressure = new Pressure(ms.Pressure, ms.SystemOfUnits),
+MassFlow = new MassFlow(ms.MassFlow, ms.SystemOfUnits),
+⋮----
+sim.EnergyStreams.Add(new EnergyStream
+⋮----
+EnergyFlow = new EnergyFlow(es.EnergyFlow, es.SystemOfUnits)
+⋮----
+sim.UnitOperations.Add(unit);
+⋮----
+_logger.LogWarning("Skipping unsupported unit operation type: {Type}", uo.Type);
+⋮----
+private UnitOperationObject? CreateUnitOperation(UnitOperationDto dto, Guid simulationId)
+⋮----
+UnitOperationType.Mixer => new MixerObject
+⋮----
+UnitOperationType.Splitter => new SplitterObject
+⋮----
+UnitOperationType.Heater => new HeaterObject
+⋮----
+UnitOperationType.Cooler => new CoolerObject
+⋮----
+UnitOperationType.Valve => new ValveObject
+⋮----
+UnitOperationType.FlashDrum => new FlashDrumObject
+⋮----
+UnitOperationType.ShortcutColumn => new ShortcutColumnObject
+⋮----
+UnitOperationType.Recycle => new RecycleObject
+</file>
+
+<file path="Enerflow.Worker/Program.cs">
+var builder = Host.CreateApplicationBuilder(args);
+⋮----
+NewId.SetProcessIdProvider(new MassTransit.NewIdProviders.CurrentProcessIdProvider());
+⋮----
+var dbConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+?? throw new InvalidOperationException("DefaultConnection is not set in configuration");
+⋮----
+options.UseNpgsql(dbConnectionString);
+⋮----
+builder.Services.ConfigurePostgresTransport(dbConnectionString);
+⋮----
+builder.Services.AddMassTransit(x =>
+⋮----
+x.SetKebabCaseEndpointNameFormatter();
+⋮----
+x.UsingPostgres((context, cfg) =>
+⋮----
+cfg.ConfigureJsonSerializerOptions(options =>
+⋮----
+cfg.ConfigureEndpoints(context);
+⋮----
+.Configure(options =>
+⋮----
+options.StartTimeout = TimeSpan.FromSeconds(30);
+options.StopTimeout = TimeSpan.FromSeconds(30);
+⋮----
+options.ShutdownTimeout = TimeSpan.FromSeconds(60);
+⋮----
+var host = builder.Build();
+⋮----
+var logger = host.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Enerflow.Worker");
+logger.LogInformation("Enerflow Worker starting...");
+⋮----
+logger.LogInformation("DWSIM Automation Mode enabled");
+⋮----
+logger.LogInformation("Listening for SimulationJob messages on PostgreSQL transport");
+logger.LogInformation("Database: {ConnectionString}",
+dbConnectionString.Split(';').FirstOrDefault(s => s.StartsWith("Database=")) ?? "configured");
+⋮----
+await host.RunAsync();
+</file>
+
+</files>

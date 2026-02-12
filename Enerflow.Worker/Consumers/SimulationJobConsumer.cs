@@ -1,9 +1,11 @@
 using System.Text.Json;
+
 using Enerflow.Domain.DTOs;
 using Enerflow.Domain.Entities;
 using Enerflow.Domain.Entities.Streams;
 using Enerflow.Domain.Entities.UnitOperations;
 using Enerflow.Domain.Enums;
+using Enerflow.Domain.ValueObjects;
 using Enerflow.Infrastructure.Persistence;
 using Enerflow.Worker.Solvers;
 using Enerflow.Simulation.Validation;
@@ -180,9 +182,9 @@ public class SimulationJobConsumer : IConsumer<SimulationJob>
                 Id = ms.Id,
                 SimulationId = sim.Id,
                 Name = ms.Name,
-                Temperature = ms.Temperature,
-                Pressure = ms.Pressure,
-                MassFlow = ms.MassFlow,
+                Temperature = new Temperature(ms.Temperature, ms.SystemOfUnits),
+                Pressure = new Pressure(ms.Pressure, ms.SystemOfUnits),
+                MassFlow = new MassFlow(ms.MassFlow, ms.SystemOfUnits),
                 Composition = ms.MolarCompositions
             });
         }
@@ -195,7 +197,7 @@ public class SimulationJobConsumer : IConsumer<SimulationJob>
                 Id = es.Id,
                 SimulationId = sim.Id,
                 Name = es.Name,
-                EnergyFlow = es.EnergyFlow
+                EnergyFlow = new EnergyFlow(es.EnergyFlow, es.SystemOfUnits)
             });
         }
 

@@ -13,6 +13,8 @@ using SimulationEntity = Enerflow.Domain.Entities.Simulation;
 
 namespace Enerflow.Simulation.Flowsheet.Builders;
 
+#pragma warning disable CA1873
+
 public class DWSIMFlowsheetBuilder : IFlowsheetBuilder
 {
    private readonly DWSIM.Automation.Automation3 _automation;
@@ -76,25 +78,24 @@ public class DWSIMFlowsheetBuilder : IFlowsheetBuilder
       _materialStreamFactory.CreateAndConfigureStreams(flowsheet, simulation.MaterialStreams, simulation.SystemOfUnits);
 
       // 7. Create and Configure Energy Streams (batch - no loop)
-      _energyStreamFactory.CreateAndConfigureStreams(flowsheet, simulation.EnergyStreams);
+      _energyStreamFactory.CreateAndConfigureStreams(flowsheet, simulation.EnergyStreams, simulation.SystemOfUnits);
 
       // 8. Create and Configure Unit Operations (batch - no loop)
       var compoundLookup = simulation.Compounds.ToDictionary(c => c.Id, c => c.Name);
       _unitOperationFactory.CreateAndConfigureUnitOperations(flowsheet, simulation.UnitOperations, compoundLookup);
 
-      // 9. Connect Flowsheet (batch - ConnectionFactory handles loops internally)
-      #pragma warning disable CA1873 
+      // 9. Connect Flowsheet 
       _logger.LogInformation("Connecting flowsheet for simulation {Id}", simulation.Id);
-      
-       _connectionFactory.ConnectFlowsheet(simulation, flowsheet);
-	_logger.LogInformation("Flowsheet connected successfully for simulation {Id}", simulation.Id);
-	
-	// 10. Post-Connection Configuration (e.g., splitter ratios)
-	_logger.LogInformation("Configuring post-connection settings for simulation {Id}", simulation.Id);
-	_unitOperationFactory.ConfigurePostConnection(flowsheet, simulation);
-	_logger.LogInformation("Post-connection configuration completed for simulation {Id}", simulation.Id);
+      _connectionFactory.ConnectFlowsheet(simulation, flowsheet);
 
-	// 11. Validate
+      _logger.LogInformation("Flowsheet connected successfully for simulation {Id}", simulation.Id);
+
+      // 10. Post-Connection Configuration (e.g., splitter ratios)
+      _logger.LogInformation("Configuring post-connection settings for simulation {Id}", simulation.Id);
+      _unitOperationFactory.ConfigurePostConnection(flowsheet, simulation);
+      _logger.LogInformation("Post-connection configuration completed for simulation {Id}", simulation.Id);
+
+      // 11. Validate
       _logger.LogInformation("Validating flowsheet for simulation {Id}", simulation.Id);
       var validationResult = _validator.Validate(simulation, flowsheet);
 

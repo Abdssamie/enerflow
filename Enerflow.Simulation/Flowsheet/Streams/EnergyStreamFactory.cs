@@ -3,6 +3,7 @@ using DwsimEnergyStream = DWSIM.UnitOperations.Streams.EnergyStream;
 using Microsoft.Extensions.Logging;
 using DWSIM.Interfaces;
 using DWSIM.Interfaces.Enums.GraphicObjects;
+using Enerflow.Domain.Enums;
 
 namespace Enerflow.Simulation.Flowsheet.Streams;
 
@@ -20,11 +21,11 @@ public class EnergyStreamFactory : IEnergyStreamFactory
       _logger = logger;
    }
 
-   public void Configure(DwsimEnergyStream stream, DomainEnergyStream streamEntity)
+   public void Configure(DwsimEnergyStream stream, DomainEnergyStream streamEntity, SystemOfUnits systemOfUnits)
    {
       try
       {
-         stream.EnergyFlow = streamEntity.EnergyFlow;
+         stream.EnergyFlow = streamEntity.EnergyFlow.ValueInKW;
          _logger.LogDebug("Configured energy stream: {Name}", streamEntity.Name);
       }
       catch (Exception ex)
@@ -36,7 +37,8 @@ public class EnergyStreamFactory : IEnergyStreamFactory
 
    public void CreateAndConfigureStreams(
        IFlowsheet flowsheet,
-       IEnumerable<DomainEnergyStream> streams)
+       IEnumerable<DomainEnergyStream> streams,
+       SystemOfUnits systemOfUnits)
    {
       var streamList = streams.ToList();
 
@@ -49,7 +51,7 @@ public class EnergyStreamFactory : IEnergyStreamFactory
              streamEntity.Id.ToString(),
              streamEntity.Name) is DwsimEnergyStream dwsimStream)
          {
-            Configure(dwsimStream, streamEntity);
+            Configure(dwsimStream, streamEntity, systemOfUnits);
          }
       }
 

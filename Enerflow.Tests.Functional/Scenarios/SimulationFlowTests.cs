@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Enerflow.Domain.DTOs;
 using Enerflow.Domain.Enums;
+using Enerflow.Domain.ValueObjects;
 using FluentAssertions;
 
 // TODO: TROUBLESHOOTING PAUSED (2026-01-17)
@@ -60,6 +61,7 @@ public class SimulationFlowTests : BaseIntegrationTest
             Temperature = 300, // K
             Pressure = 101325, // Pa
             MassFlow = 1.0,    // kg/s
+            SystemOfUnits = SystemOfUnits.SI,
             Composition = new Dictionary<string, double> { { "Water", 1.0 } }
         };
         var inlet1Res = await HttpClient.PostAsJsonAsync($"/api/v1/simulations/{simId}/streams", inlet1Request);
@@ -77,6 +79,7 @@ public class SimulationFlowTests : BaseIntegrationTest
             Temperature = 300,
             Pressure = 101325,
             MassFlow = 2.0,
+            SystemOfUnits = SystemOfUnits.SI,
             Composition = new Dictionary<string, double> { { "Water", 1.0 } }
         };
         var inlet2Res = await HttpClient.PostAsJsonAsync($"/api/v1/simulations/{simId}/streams", inlet2Request);
@@ -89,6 +92,7 @@ public class SimulationFlowTests : BaseIntegrationTest
             Temperature = 300,
             Pressure = 101325,
             MassFlow = 0.0,
+            SystemOfUnits = SystemOfUnits.SI,
             Composition = new Dictionary<string, double> { { "Water", 1.0 } }
         };
         var outletRes = await HttpClient.PostAsJsonAsync($"/api/v1/simulations/{simId}/streams", outletRequest);

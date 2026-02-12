@@ -1,0 +1,1414 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+The content has been processed where comments have been removed, content has been compressed (code blocks are separated by ⋮---- delimiter).
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: Enerflow.*/**/*.cs
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Code comments have been removed from supported file types
+- Content has been compressed - code blocks are separated by ⋮---- delimiter
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+Enerflow.API/
+  Controllers/
+    CatalogsController.cs
+    SimulationJobsController.cs
+    SimulationsController.cs
+  Extensions/
+    PostgresTransportExtensions.cs
+  Middleware/
+    RateLimitingMiddleware.cs
+    SecurityHeadersMiddleware.cs
+  Services/
+    CatalogService.cs
+    JobProducer.cs
+  Program.cs
+Enerflow.Domain/
+  Common/
+    IdGenerator.cs
+  DTOs/
+    ApiRequests.cs
+    SimulationJob.cs
+    SimulationResult.cs
+    SimulationResults.cs
+  Entities/
+    Streams/
+      EnergyStream.cs
+      MaterialStream.cs
+    UnitOperations/
+      CoolerObject.cs
+      FlashDrumObject.cs
+      HeaterObject.cs
+      IEnergyConsumer.cs
+      IEnergyProducer.cs
+      MixerObject.cs
+      RecycleObject.cs
+      ShortcutColumnObject.cs
+      SplitterObject.cs
+      UnitOperationObject.cs
+      ValveObject.cs
+    Compound.cs
+    Simulation.cs
+    SimulationObject.cs
+  Enums/
+    FlashAlgorithm.cs
+    FlashCalculationType.cs
+    HeaterCalculationMode.cs
+    PhaseType.cs
+    PortType.cs
+    PropertyPackageType.cs
+    RecycleAccelerationMethod.cs
+    SimulationStatus.cs
+    SystemOfUnits.cs
+    UnitOperationType.cs
+    ValveCalculationMode.cs
+  Exceptions/
+    InvalidTopologyException.cs
+  Extensions/
+    SimulationMappingExtensions.cs
+  Interfaces/
+    IJobProducer.cs
+  ValueObjects/
+    EnergyFlow.cs
+    IParameter.cs
+    MassFlow.cs
+    Position.cs
+    Pressure.cs
+    Temperature.cs
+Enerflow.Infrastructure/
+  Migrations/
+    20260116032453_InitialCreate.cs
+    20260116032453_InitialCreate.Designer.cs
+    20260116132432_UseSequentialIds.cs
+    20260116132432_UseSequentialIds.Designer.cs
+    20260117021552_SyncModelChanges.cs
+    20260117021552_SyncModelChanges.Designer.cs
+    20260131020350_SyncDomainModelChanges.cs
+    20260131020350_SyncDomainModelChanges.Designer.cs
+    EnerflowDbContextModelSnapshot.cs
+  Persistence/
+    DesignTimeDbContextFactory.cs
+    EnerflowDbContext.cs
+    SequentialGuidValueGenerator.cs
+  DependencyInjection.cs
+Enerflow.Simulation/
+  Flowsheet/
+    Builders/
+      DWSIMFlowsheetBuilder.cs
+      IFlowsheetBuilder.cs
+    Compounds/
+      CompoundManager.cs
+      ICompoundManager.cs
+    Connections/
+      ConnectionFactory.cs
+      IConnectionFactory.cs
+    FlashAlgorithms/
+      FlashAlgorithmManager.cs
+      IFlashAlgorithmManager.cs
+    PropertyPackages/
+      IPropertyPackageManager.cs
+      PropertyPackageManager.cs
+    Streams/
+      EnergyStreamFactory.cs
+      IEnergyStreamFactory.cs
+      IMaterialStreamFactory.cs
+      MaterialStreamFactory.cs
+    UnitOperations/
+      IUnitOperationFactory.cs
+      UnitOperationFactory.cs
+  Validation/
+    FlowsheetValidationException.cs
+    FlowsheetValidator.cs
+    IFlowsheetValidator.cs
+    ValidationConstants.cs
+    ValidationError.cs
+    ValidationErrorCodes.cs
+    ValidationResult.cs
+Enerflow.Tests.DWSIM/
+  Scenarios/
+    Test01_SimpleHeating.cs
+    Test02_CompressionCooling.cs
+    Test03_PressureReduction.cs
+    Test04_EthanolWaterVLE.cs
+    Test05_FlashAlgorithmComparison.cs
+    Test06_ThreePhaseFlash.cs
+    Test07_HeatExchanger.cs
+    Test08_ShortcutDistillation.cs
+    Test09_ConversionReactor.cs
+    Test10_RecycleLoop.cs
+  TestBase.cs
+  TestHelpers.cs
+  UnitTest1.cs
+Enerflow.Tests.Functional/
+  Scenarios/
+    SimulationFlowTests.cs
+  BaseIntegrationTest.cs
+  IntegrationTestWebAppFactory.cs
+Enerflow.Tests.Integration/
+  FlowsheetBuilderIntegrationTests.cs
+Enerflow.Tests.Unit/
+  Simulation/
+    Flowsheet/
+      Connections/
+        ConnectionFactoryTests.cs
+  Worker/
+    Validation/
+      CompoundValidationTests.cs
+      FlowsheetValidatorTests.cs
+      PhysicalPropertyValidationTests.cs
+      UnitOperationValidationTests.cs
+  DtoValidationTests.cs
+  IdGenerationTests.cs
+Enerflow.Worker/
+  Consumers/
+    SimulationJobConsumer.cs
+    SimulationJobConsumerDefinition.cs
+  Extensions/
+    PostgresTransportExtensions.cs
+  Solvers/
+    DWSIMSolver.cs
+    IResultCollector.cs
+    ISimulationSolver.cs
+    ResultCollector.cs
+  Program.cs
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="Enerflow.Tests.DWSIM/UnitTest1.cs">
+public class UnitTest1
+⋮----
+public void Test1()
+</file>
+
+<file path="Enerflow.Tests.DWSIM/Scenarios/Test04_EthanolWaterVLE.cs">
+public class Test04EthanolWaterVle : TestBase
+⋮----
+public void EthanolWater_ComparePropertyPackages_ResultsDiffer()
+⋮----
+Logger.Information("TEST 04: Ethanol/Water VLE - Property Package Comparison");
+Logger.Information("========================================");
+Logger.Information("PART 1: Simulation with NRTL (Non-Random Two-Liquid)");
+⋮----
+var flowsheetNRTL = Automation.CreateFlowsheet();
+Assert.NotNull(flowsheetNRTL);
+⋮----
+flowsheetNRTL.SelectedCompounds.Add("Ethanol", flowsheetNRTL.AvailableCompounds["Ethanol"]);
+flowsheetNRTL.SelectedCompounds.Add("Water", flowsheetNRTL.AvailableCompounds["Water"]);
+Logger.Information("Added compounds: Ethanol, Water");
+⋮----
+var siUnits = flowsheetNRTL.AvailableSystemsOfUnits.First(u => u.Name.Contains("SI"));
+⋮----
+var nrtl = new NRTLPropertyPackage();
+flowsheetNRTL.AddPropertyPackage(nrtl);
+Logger.Information("Property Package chosen: NRTL");
+⋮----
+var streamNRTL = flowsheetNRTL.AddObject(ObjectType.MaterialStream, 100, 100, "Feed_NRTL") as MaterialStream;
+Assert.NotNull(streamNRTL);
+⋮----
+Logger.Information("Stream Config: 1 bar, VF=0 (Bubble Point), 50/50 mol%");
+⋮----
+Automation.CalculateFlowsheet4(flowsheetNRTL);
+⋮----
+Logger.Information("NRTL Results:");
+Logger.Information("  Bubble Point Temperature: {Temp:F2} K ({TempC:F2} °C)", tempNRTL, tempNRTL - 273.15);
+⋮----
+Logger.Information("PART 2: Simulation with Peng-Robinson");
+⋮----
+var flowsheetPR = Automation.CreateFlowsheet();
+Assert.NotNull(flowsheetPR);
+⋮----
+flowsheetPR.SelectedCompounds.Add("Ethanol", flowsheetPR.AvailableCompounds["Ethanol"]);
+flowsheetPR.SelectedCompounds.Add("Water", flowsheetPR.AvailableCompounds["Water"]);
+⋮----
+var pr = new PengRobinsonPropertyPackage();
+flowsheetPR.AddPropertyPackage(pr);
+Logger.Information("Property Package chosen: Peng-Robinson");
+⋮----
+var streamPR = flowsheetPR.AddObject(ObjectType.MaterialStream, 100, 100, "Feed_PR") as MaterialStream;
+Assert.NotNull(streamPR);
+⋮----
+Automation.CalculateFlowsheet4(flowsheetPR);
+⋮----
+Logger.Information("Peng-Robinson Results:");
+Logger.Information("  Bubble Point Temperature: {Temp:F2} K ({TempC:F2} °C)", tempPR, tempPR - 273.15);
+⋮----
+Logger.Information("Comparison:");
+Logger.Information("  NRTL T_bubble: {T1:F2} K", tempNRTL);
+Logger.Information("  PR   T_bubble: {T2:F2} K", tempPR);
+Logger.Information("  Difference:    {Diff:F2} K", Math.Abs(tempNRTL - tempPR));
+⋮----
+Assert.True(Math.Abs(tempNRTL - tempPR) > 0.5, "Expected significant difference between NRTL and PR for Ethanol/Water mixture");
+⋮----
+Logger.Information("✓ Confirmed property packages yield different results for non-ideal mixture");
+</file>
+
+<file path="Enerflow.Tests.DWSIM/Scenarios/Test05_FlashAlgorithmComparison.cs">
+public class Test05FlashAlgorithmComparison : TestBase
+⋮----
+public void FlashAlgorithmComparison_NestedLoopsVsInsideOut_ConvergesToSimilarResults()
+⋮----
+Logger.Information("TEST 05: Flash Algorithm Comparison");
+Logger.Information("Scenario: Propane/n-Butane flash separation at different conditions");
+Logger.Information("========================================");
+Logger.Information("PART 1: Simulation with NestedLoops Flash Algorithm");
+⋮----
+var flowsheetNL = Automation.CreateFlowsheet();
+Assert.NotNull(flowsheetNL);
+⋮----
+flowsheetNL.SelectedCompounds.Add("Propane", flowsheetNL.AvailableCompounds["Propane"]);
+flowsheetNL.SelectedCompounds.Add("n-Butane", flowsheetNL.AvailableCompounds["n-Butane"]);
+Logger.Information("Added compounds: Propane, n-Butane");
+⋮----
+var siUnits = flowsheetNL.AvailableSystemsOfUnits.First(u => u.Name.Contains("SI"));
+⋮----
+var prNL = new PengRobinsonPropertyPackage();
+prNL.FlashAlgorithm = new NestedLoops();
+flowsheetNL.AddPropertyPackage(prNL);
+Logger.Information("Property Package: Peng-Robinson with NestedLoops flash");
+⋮----
+var feedNL = flowsheetNL.AddObject(ObjectType.MaterialStream, 100, 100, "Feed_NL") as MaterialStream;
+Assert.NotNull(feedNL);
+⋮----
+Logger.Information("Feed: 10 bar, 300 K, 1 kg/s, 50% Propane / 50% n-Butane");
+⋮----
+var valveNL = flowsheetNL.AddObject(ObjectType.Valve, 200, 100, "Valve_NL") as Valve;
+Assert.NotNull(valveNL);
+⋮----
+Logger.Information("Valve: Flash to 5 bar");
+⋮----
+var flashedNL = flowsheetNL.AddObject(ObjectType.MaterialStream, 300, 100, "Flashed_NL") as MaterialStream;
+Assert.NotNull(flashedNL);
+⋮----
+flowsheetNL.ConnectObjects(feedNL.GraphicObject, valveNL.GraphicObject, 0, 0);
+flowsheetNL.ConnectObjects(valveNL.GraphicObject, flashedNL.GraphicObject, 0, 0);
+⋮----
+Logger.Information("Solving with NestedLoops...");
+⋮----
+Automation.CalculateFlowsheet4(flowsheetNL);
+⋮----
+Logger.Information("NestedLoops Results:");
+Logger.Information("  Calculation time: {Time:F2} ms", timeNL);
+Logger.Information("  Temperature: {Temp:F2} K ({TempC:F2} C)", tempNL, tempNL - 273.15);
+Logger.Information("  Vapor Fraction: {VF:F4}", vaporFracNL);
+Logger.Information("  Vapor Propane: {Prop:F4}", propaneVaporNL);
+Logger.Information("  Vapor n-Butane: {But:F4}", butaneVaporNL);
+⋮----
+Logger.Information("PART 2: Simulation with InsideOut Flash Algorithm");
+⋮----
+var flowsheetIO = Automation.CreateFlowsheet();
+Assert.NotNull(flowsheetIO);
+⋮----
+flowsheetIO.SelectedCompounds.Add("Propane", flowsheetIO.AvailableCompounds["Propane"]);
+flowsheetIO.SelectedCompounds.Add("n-Butane", flowsheetIO.AvailableCompounds["n-Butane"]);
+⋮----
+var prIO = new PengRobinsonPropertyPackage();
+prIO.FlashAlgorithm = new BostonBrittInsideOut();
+flowsheetIO.AddPropertyPackage(prIO);
+Logger.Information("Property Package: Peng-Robinson with BostonBrittInsideOut flash");
+⋮----
+var feedIO = flowsheetIO.AddObject(ObjectType.MaterialStream, 100, 100, "Feed_IO") as MaterialStream;
+Assert.NotNull(feedIO);
+⋮----
+var valveIO = flowsheetIO.AddObject(ObjectType.Valve, 200, 100, "Valve_IO") as Valve;
+Assert.NotNull(valveIO);
+⋮----
+var flashedIO = flowsheetIO.AddObject(ObjectType.MaterialStream, 300, 100, "Flashed_IO") as MaterialStream;
+Assert.NotNull(flashedIO);
+⋮----
+flowsheetIO.ConnectObjects(feedIO.GraphicObject, valveIO.GraphicObject, 0, 0);
+flowsheetIO.ConnectObjects(valveIO.GraphicObject, flashedIO.GraphicObject, 0, 0);
+⋮----
+Logger.Information("Solving with InsideOut...");
+⋮----
+Automation.CalculateFlowsheet4(flowsheetIO);
+⋮----
+Logger.Information("InsideOut Results:");
+Logger.Information("  Calculation time: {Time:F2} ms", timeIO);
+Logger.Information("  Temperature: {Temp:F2} K ({TempC:F2} C)", tempIO, tempIO - 273.15);
+Logger.Information("  Vapor Fraction: {VF:F4}", vaporFracIO);
+Logger.Information("  Vapor Propane: {Prop:F4}", propaneVaporIO);
+Logger.Information("  Vapor n-Butane: {But:F4}", butaneVaporIO);
+⋮----
+Logger.Information("Comparison:");
+Logger.Information("  Temperature - NL: {T1:F2} K, IO: {T2:F2} K, Diff: {Diff:F4} K",
+tempNL, tempIO, Math.Abs(tempNL - tempIO));
+Logger.Information("  Vapor Frac  - NL: {V1:F4}, IO: {V2:F4}, Diff: {Diff:F6}",
+vaporFracNL, vaporFracIO, Math.Abs(vaporFracNL - vaporFracIO));
+Logger.Information("  Performance - NL: {T1:F2} ms, IO: {T2:F2} ms",
+⋮----
+Assert.True(Math.Abs(tempNL - tempIO) < tempTolerance,
+$"Temperature difference ({Math.Abs(tempNL - tempIO):F4} K) exceeds tolerance ({tempTolerance} K)");
+Logger.Information("Temperature difference within tolerance ({Tol} K)", tempTolerance);
+⋮----
+Assert.True(Math.Abs(vaporFracNL - vaporFracIO) < vfTolerance,
+$"Vapor fraction difference ({Math.Abs(vaporFracNL - vaporFracIO):F6}) exceeds tolerance ({vfTolerance})");
+Logger.Information("Vapor fraction difference within tolerance ({Tol})", vfTolerance);
+⋮----
+Assert.True(Math.Abs(propaneVaporNL - propaneVaporIO) < compTolerance,
+⋮----
+Logger.Information("Vapor propane composition within tolerance");
+⋮----
+Assert.True(tempNL < 300 && tempIO < 300, "Flash temperature should be below feed temperature (Joule-Thomson effect)");
+Logger.Information("Flash temperatures are below feed temperature (thermodynamically consistent)");
+⋮----
+Logger.Information("Test 05: PASSED - Both flash algorithms converge to consistent results");
+</file>
+
+<file path="Enerflow.Tests.DWSIM/Scenarios/Test06_ThreePhaseFlash.cs">
+public class Test06ThreePhaseFlash : TestBase
+⋮----
+public void ThreePhaseFlash_MethaneHexaneWater_SeparatesIntoThreePhases()
+⋮----
+Logger.Information("TEST 06: Three-Phase Flash (VLLE)");
+Logger.Information("Scenario: Methane/n-Hexane/Water mixture separation");
+Logger.Information("========================================");
+⋮----
+var flowsheet = Automation.CreateFlowsheet();
+Assert.NotNull(flowsheet);
+⋮----
+flowsheet.SelectedCompounds.Add("Methane", flowsheet.AvailableCompounds["Methane"]);
+flowsheet.SelectedCompounds.Add("n-Hexane", flowsheet.AvailableCompounds["n-Hexane"]);
+flowsheet.SelectedCompounds.Add("Water", flowsheet.AvailableCompounds["Water"]);
+Logger.Information("Added compounds: Methane, n-Hexane, Water");
+⋮----
+var siUnits = flowsheet.AvailableSystemsOfUnits.First(u => u.Name.Contains("SI"));
+⋮----
+var pr = new PengRobinsonPropertyPackage();
+pr.FlashAlgorithm = new NestedLoops3PV3();
+flowsheet.AddPropertyPackage(pr);
+Logger.Information("Property Package: Peng-Robinson with NestedLoops3PV3 flash");
+⋮----
+var feed = flowsheet.AddObject(ObjectType.MaterialStream, 100, 100, "Feed") as MaterialStream;
+Assert.NotNull(feed);
+⋮----
+Logger.Information("Feed: 10 bar, 350 K (77C), 1 kg/s");
+Logger.Information("  Composition: 20% Methane, 40% n-Hexane, 40% Water (molar)");
+⋮----
+var separator = flowsheet.AddObject(ObjectType.Vessel, 200, 100, "Separator") as Vessel;
+Assert.NotNull(separator);
+Logger.Information("Separator: Three-phase flash at feed conditions");
+⋮----
+var vapor = flowsheet.AddObject(ObjectType.MaterialStream, 300, 50, "Vapor") as MaterialStream;
+Assert.NotNull(vapor);
+⋮----
+var liquid1 = flowsheet.AddObject(ObjectType.MaterialStream, 300, 100, "Liquid1_Organic") as MaterialStream;
+Assert.NotNull(liquid1);
+⋮----
+var liquid2 = flowsheet.AddObject(ObjectType.MaterialStream, 300, 150, "Liquid2_Aqueous") as MaterialStream;
+Assert.NotNull(liquid2);
+⋮----
+flowsheet.ConnectObjects(feed.GraphicObject, separator.GraphicObject, 0, 0);
+flowsheet.ConnectObjects(separator.GraphicObject, vapor.GraphicObject, 0, 0);
+flowsheet.ConnectObjects(separator.GraphicObject, liquid1.GraphicObject, 1, 0);
+flowsheet.ConnectObjects(separator.GraphicObject, liquid2.GraphicObject, 2, 0);
+Logger.Information("Connected: Feed -> Separator -> Vapor + Liquid1 + Liquid2");
+⋮----
+Logger.Information("Solving flowsheet...");
+Automation.CalculateFlowsheet4(flowsheet);
+⋮----
+Logger.Information("RESULTS:");
+⋮----
+Logger.Information("FEED STREAM:");
+TestHelpers.LogStreamProperties(feed, Logger);
+⋮----
+Logger.Information("");
+Logger.Information("VAPOR STREAM:");
+TestHelpers.LogStreamProperties(vapor, Logger);
+⋮----
+Logger.Information("LIQUID 1 (Organic) STREAM:");
+TestHelpers.LogStreamProperties(liquid1, Logger);
+⋮----
+Logger.Information("LIQUID 2 (Aqueous) STREAM:");
+TestHelpers.LogStreamProperties(liquid2, Logger);
+⋮----
+// Get mass flows
+⋮----
+Logger.Information("Mass Flow Summary:");
+Logger.Information("  Feed: {Feed:F6} kg/s", feedMassFlow);
+Logger.Information("  Vapor: {Vapor:F6} kg/s", vaporMassFlow);
+Logger.Information("  Liquid1 (Organic): {L1:F6} kg/s", liquid1MassFlow);
+Logger.Information("  Liquid2 (Aqueous): {L2:F6} kg/s", liquid2MassFlow);
+⋮----
+var massError = Math.Abs(feedMassFlow - totalOut);
+Logger.Information("  Total Out: {Total:F6} kg/s", totalOut);
+Logger.Information("  Mass Balance Error: {Error:E3} kg/s", massError);
+⋮----
+Assert.True(massError < 0.001, $"Mass balance error ({massError:E3} kg/s) exceeds tolerance");
+Logger.Information("Mass balance within tolerance");
+⋮----
+Logger.Information("Phase Enrichment Check:");
+Logger.Information("  Vapor phase Methane: {VaporMethane:P2}", vaporMethane);
+Logger.Information("  Organic phase n-Hexane: {L1Hexane:P2}", liquid1Hexane);
+Logger.Information("  Aqueous phase Water: {L2Water:P2}", liquid2Water);
+⋮----
+// Vapor should be enriched in methane (lighter component)
+Assert.True(vaporMethane > 0.2,
+⋮----
+Logger.Information("Vapor phase is enriched in Methane");
+⋮----
+Logger.Information("Phase Presence:");
+Logger.Information("  Vapor: {HasVapor}", hasVapor ? "YES" : "NO");
+Logger.Information("  Liquid1: {HasL1}", hasLiquid1 ? "YES" : "NO");
+Logger.Information("  Liquid2: {HasL2}", hasLiquid2 ? "YES" : "NO");
+⋮----
+Assert.True(phaseCount >= 2,
+⋮----
+Logger.Information("At least 2 phases present (thermodynamically consistent)");
+⋮----
+Assert.True(Math.Abs(vaporTemp - liquid1Temp) < 1.0,
+⋮----
+Assert.True(Math.Abs(liquid1Temp - liquid2Temp) < 1.0,
+⋮----
+Logger.Information("Phase temperatures are consistent (thermal equilibrium)");
+⋮----
+Logger.Information("Test 06: PASSED - Three-phase flash separation successful");
+</file>
+
+<file path="Enerflow.Tests.DWSIM/Scenarios/Test07_HeatExchanger.cs">
+public class Test07HeatExchanger : TestBase
+⋮----
+public void HeatExchanger_CounterCurrent_EnergyBalanceHolds()
+⋮----
+Logger.Information("TEST 07: Heat Exchanger");
+Logger.Information("Scenario: Counter-current heat exchange between hot and cold methane streams");
+Logger.Information("========================================");
+⋮----
+var flowsheet = Automation.CreateFlowsheet();
+Assert.NotNull(flowsheet);
+⋮----
+flowsheet.SelectedCompounds.Add("Methane", flowsheet.AvailableCompounds["Methane"]);
+Logger.Information("Added compound: Methane");
+⋮----
+var siUnits = flowsheet.AvailableSystemsOfUnits.First(u => u.Name.Contains("SI"));
+⋮----
+var pr = new PengRobinsonPropertyPackage();
+flowsheet.AddPropertyPackage(pr);
+Logger.Information("Property Package: Peng-Robinson");
+⋮----
+var hotIn = flowsheet.AddObject(ObjectType.MaterialStream, 100, 50, "HotIn") as MaterialStream;
+Assert.NotNull(hotIn);
+⋮----
+Logger.Information("Hot Inlet: 400 K (127C), 10 bar, 1 kg/s Methane");
+⋮----
+var coldIn = flowsheet.AddObject(ObjectType.MaterialStream, 100, 150, "ColdIn") as MaterialStream;
+Assert.NotNull(coldIn);
+⋮----
+Logger.Information("Cold Inlet: 300 K (27C), 10 bar, 1 kg/s Methane");
+⋮----
+var hx = flowsheet.AddObject(ObjectType.HeatExchanger, 200, 100, "HeatExchanger") as HeatExchanger;
+Assert.NotNull(hx);
+⋮----
+Logger.Information("Heat Exchanger: CalcBothTemp_UA mode, U=500 W/(m2.K), A=10 m2, Counter-current");
+⋮----
+var hotOut = flowsheet.AddObject(ObjectType.MaterialStream, 300, 50, "HotOut") as MaterialStream;
+Assert.NotNull(hotOut);
+⋮----
+var coldOut = flowsheet.AddObject(ObjectType.MaterialStream, 300, 150, "ColdOut") as MaterialStream;
+Assert.NotNull(coldOut);
+⋮----
+flowsheet.ConnectObjects(hotIn.GraphicObject, hx.GraphicObject, 0, 0);
+flowsheet.ConnectObjects(coldIn.GraphicObject, hx.GraphicObject, 0, 1);
+flowsheet.ConnectObjects(hx.GraphicObject, hotOut.GraphicObject, 0, 0);
+flowsheet.ConnectObjects(hx.GraphicObject, coldOut.GraphicObject, 1, 0);
+Logger.Information("Connected: HotIn + ColdIn -> HX -> HotOut + ColdOut");
+⋮----
+Logger.Information("Solving flowsheet...");
+Automation.CalculateFlowsheet4(flowsheet);
+⋮----
+Logger.Information("RESULTS:");
+⋮----
+Logger.Information("HOT INLET:");
+TestHelpers.LogStreamProperties(hotIn, Logger);
+⋮----
+Logger.Information("");
+Logger.Information("HOT OUTLET:");
+TestHelpers.LogStreamProperties(hotOut, Logger);
+⋮----
+Logger.Information("COLD INLET:");
+TestHelpers.LogStreamProperties(coldIn, Logger);
+⋮----
+Logger.Information("COLD OUTLET:");
+TestHelpers.LogStreamProperties(coldOut, Logger);
+⋮----
+// Get temperatures
+⋮----
+Logger.Information("Temperature Summary:");
+Logger.Information("  Hot Side:  {HotIn:F2} K -> {HotOut:F2} K (Delta = {DeltaHot:F2} K)",
+⋮----
+Logger.Information("  Cold Side: {ColdIn:F2} K -> {ColdOut:F2} K (Delta = {DeltaCold:F2} K)",
+⋮----
+// Verify hot stream cooled down
+Assert.True(hotOutTemp < hotInTemp,
+⋮----
+Logger.Information("Hot stream temperature decreased (correct)");
+⋮----
+// Verify cold stream heated up
+Assert.True(coldOutTemp > coldInTemp,
+⋮----
+Logger.Information("Cold stream temperature increased (correct)");
+⋮----
+// Verify no temperature cross (thermodynamic constraint)
+// For counter-current: Hot out should be >= Cold in, Cold out should be <= Hot in
+// (otherwise we'd have impossible heat transfer)
+Assert.True(hotOutTemp >= coldInTemp,
+⋮----
+Assert.True(coldOutTemp <= hotInTemp,
+⋮----
+Logger.Information("No temperature crossing (thermodynamically valid)");
+⋮----
+// Verify energy balance (Q_hot = Q_cold within tolerance)
+// For same fluid and same mass flow, temperature changes should be equal
+⋮----
+// Since both streams are same fluid (Methane) with same mass flow,
+// the temperature changes should be approximately equal
+var energyBalanceError = Math.Abs(deltaT_hot - deltaT_cold);
+⋮----
+Logger.Information("Energy Balance Check:");
+Logger.Information("  Hot side Delta T: {DeltaHot:F2} K", deltaT_hot);
+Logger.Information("  Cold side Delta T: {DeltaCold:F2} K", deltaT_cold);
+Logger.Information("  Difference: {Diff:F4} K", energyBalanceError);
+⋮----
+Assert.True(energyBalanceError < 5.0,
+⋮----
+Logger.Information("Energy balance within tolerance");
+⋮----
+Logger.Information("Heat Exchanger Properties:");
+Logger.Information("  Heat Duty (Q): {Q:F2} kW", hx.Q ?? 0);
+Logger.Information("  UA: {UA:F2} W/K", (hx.OverallCoefficient ?? 0) * (hx.Area ?? 0));
+Logger.Information("  LMTD: {LMTD:F2} K", hx.LMTD);
+⋮----
+Assert.True(heatDuty > 0, "Heat duty should be positive");
+Logger.Information("Heat duty is positive ({Q:F2} kW)", heatDuty);
+⋮----
+Logger.Information("Approach Temperatures:");
+Logger.Information("  Hot end approach: {HotApproach:F2} K", hotApproach);
+Logger.Information("  Cold end approach: {ColdApproach:F2} K", coldApproach);
+⋮----
+Assert.True(hotApproach > 0, "Hot end approach must be positive (no temperature cross)");
+Assert.True(coldApproach > 0, "Cold end approach must be positive (no temperature cross)");
+Logger.Information("Approach temperatures are positive (valid heat exchanger design)");
+⋮----
+Logger.Information("Test 07: PASSED - Heat exchanger energy balance verified");
+</file>
+
+<file path="Enerflow.Tests.DWSIM/Scenarios/Test08_ShortcutDistillation.cs">
+public class Test08ShortcutDistillation : TestBase
+⋮----
+public void ShortcutDistillation_PropaneButane_SeparatesWithTargetPurity()
+⋮----
+Logger.Information("TEST 08: Shortcut Distillation Column");
+Logger.Information("Scenario: Propane/n-Butane separation (Fenske-Underwood-Gilliland)");
+Logger.Information("========================================");
+⋮----
+var flowsheet = Automation.CreateFlowsheet();
+Assert.NotNull(flowsheet);
+⋮----
+flowsheet.SelectedCompounds.Add("Propane", flowsheet.AvailableCompounds["Propane"]);
+flowsheet.SelectedCompounds.Add("n-Butane", flowsheet.AvailableCompounds["n-Butane"]);
+Logger.Information("Added compounds: Propane, n-Butane");
+⋮----
+var siUnits = flowsheet.AvailableSystemsOfUnits.First(u => u.Name.Contains("SI"));
+⋮----
+var pr = new PengRobinsonPropertyPackage();
+flowsheet.AddPropertyPackage(pr);
+Logger.Information("Property Package: Peng-Robinson");
+⋮----
+var feed = flowsheet.AddObject(ObjectType.MaterialStream, 100, 100, "Feed") as MaterialStream;
+Assert.NotNull(feed);
+⋮----
+Logger.Information("Feed: 5 bar, saturated liquid, 1 kg/s, 50% Propane / 50% n-Butane");
+⋮----
+var column = flowsheet.AddObject(ObjectType.ShortcutColumn, 200, 100, "Column") as ShortcutColumn;
+Assert.NotNull(column);
+⋮----
+Logger.Information("Column Configuration:");
+Logger.Information("  Light Key: Propane");
+Logger.Information("  Heavy Key: n-Butane");
+Logger.Information("  Light Key in Bottoms: 5% (95% recovery to distillate)");
+Logger.Information("  Heavy Key in Distillate: 5% (95% recovery to bottoms)");
+Logger.Information("  Reflux Ratio: 2.0");
+Logger.Information("  Condenser Pressure: 5 bar");
+Logger.Information("  Reboiler Pressure: 5.5 bar");
+⋮----
+var distillate = flowsheet.AddObject(ObjectType.MaterialStream, 300, 50, "Distillate") as MaterialStream;
+Assert.NotNull(distillate);
+⋮----
+var bottoms = flowsheet.AddObject(ObjectType.MaterialStream, 300, 150, "Bottoms") as MaterialStream;
+Assert.NotNull(bottoms);
+⋮----
+var condenserDuty = flowsheet.AddObject(ObjectType.EnergyStream, 200, 50, "CondenserDuty");
+Assert.NotNull(condenserDuty);
+⋮----
+var reboilerDuty = flowsheet.AddObject(ObjectType.EnergyStream, 200, 150, "ReboilerDuty");
+Assert.NotNull(reboilerDuty);
+⋮----
+flowsheet.ConnectObjects(feed.GraphicObject, column.GraphicObject, 0, 0);
+flowsheet.ConnectObjects(column.GraphicObject, distillate.GraphicObject, 0, 0);
+flowsheet.ConnectObjects(column.GraphicObject, bottoms.GraphicObject, 1, 0);
+flowsheet.ConnectObjects(column.GraphicObject, condenserDuty.GraphicObject, 2, 0);
+flowsheet.ConnectObjects(reboilerDuty.GraphicObject, column.GraphicObject, 0, 1);
+⋮----
+Logger.Information("Connected: Feed -> Column -> Distillate + Bottoms");
+⋮----
+Logger.Information("Solving flowsheet...");
+Automation.CalculateFlowsheet4(flowsheet);
+⋮----
+Logger.Information("RESULTS:");
+⋮----
+Logger.Information("FEED:");
+TestHelpers.LogStreamProperties(feed, Logger);
+⋮----
+Logger.Information("");
+Logger.Information("DISTILLATE (Propane-rich):");
+TestHelpers.LogStreamProperties(distillate, Logger);
+⋮----
+Logger.Information("BOTTOMS (n-Butane-rich):");
+TestHelpers.LogStreamProperties(bottoms, Logger);
+⋮----
+// Get compositions
+⋮----
+Logger.Information("Composition Summary:");
+Logger.Information("  Distillate: {Propane:P2} Propane, {Butane:P2} n-Butane",
+⋮----
+Logger.Information("  Bottoms: {Propane:P2} Propane, {Butane:P2} n-Butane",
+⋮----
+Assert.True(distillatePropane > 0.80,
+⋮----
+Logger.Information("Distillate is enriched in Propane (>80%)");
+⋮----
+Assert.True(bottomsButane > 0.80,
+⋮----
+Logger.Information("Bottoms is enriched in n-Butane (>80%)");
+⋮----
+Logger.Information("Mass Balance:");
+Logger.Information("  Feed: {Feed:F6} kg/s", feedMassFlow);
+Logger.Information("  Distillate: {Dist:F6} kg/s", distillateMassFlow);
+Logger.Information("  Bottoms: {Bot:F6} kg/s", bottomsMassFlow);
+Logger.Information("  Total Out: {Total:F6} kg/s", totalOut);
+⋮----
+var massError = Math.Abs(feedMassFlow - totalOut);
+Assert.True(massError < 0.01, $"Mass balance error ({massError:F6} kg/s) exceeds tolerance");
+Logger.Information("Mass balance within tolerance");
+⋮----
+Logger.Information("Column Results:");
+Logger.Information("  Minimum Stages (Nmin): {Nmin:F2}", column.m_Nmin);
+Logger.Information("  Minimum Reflux (Rmin): {Rmin:F4}", column.m_Rmin);
+Logger.Information("  Actual Stages (N): {N:F2}", column.m_N);
+// Get temperatures from streams (more reliable than internal column variables)
+⋮----
+Logger.Information("  Distillate Temperature: {Tc:F2} K ({TcC:F2} C)",
+⋮----
+Logger.Information("  Bottoms Temperature: {Tb:F2} K ({TbC:F2} C)",
+⋮----
+Logger.Information("  Condenser Duty: {Qc:F2} kW", column.m_Qc / 1000);
+Logger.Information("  Reboiler Duty: {Qb:F2} kW", column.m_Qb / 1000);
+⋮----
+Assert.True(bottomsTemp > distillateTemp,
+⋮----
+Logger.Information("Bottoms temperature > Distillate temperature (thermodynamically correct)");
+⋮----
+Assert.True(column.m_N > column.m_Nmin,
+⋮----
+Logger.Information("Actual stages > Minimum stages (correct)");
+⋮----
+Assert.True(column.m_refluxratio > column.m_Rmin,
+⋮----
+Logger.Information("Operating reflux > Minimum reflux (correct)");
+⋮----
+Assert.True(column.m_Qc < 0 || column.m_Qb > 0,
+⋮----
+Logger.Information("Column has heat duties (correct)");
+⋮----
+Logger.Information("Test 08: PASSED - Shortcut distillation column works correctly");
+</file>
+
+<file path="Enerflow.Tests.DWSIM/Scenarios/Test09_ConversionReactor.cs">
+public class Test09ConversionReactor : TestBase
+⋮----
+public void ConversionReactor_SimplifiedFlashProcess_SimulatesConversion()
+⋮----
+Logger.Information("TEST 09: Simplified Conversion Test");
+Logger.Information("Scenario: Heating + Flash to simulate conversion-like behavior");
+Logger.Information("Note: Full reactor testing deferred due to reaction set complexity");
+Logger.Information("========================================");
+⋮----
+var flowsheet = Automation.CreateFlowsheet();
+Assert.NotNull(flowsheet);
+⋮----
+flowsheet.SelectedCompounds.Add("Propane", flowsheet.AvailableCompounds["Propane"]);
+flowsheet.SelectedCompounds.Add("n-Butane", flowsheet.AvailableCompounds["n-Butane"]);
+Logger.Information("Added compounds: Propane, n-Butane");
+⋮----
+var siUnits = flowsheet.AvailableSystemsOfUnits.First(u => u.Name.Contains("SI"));
+⋮----
+var pr = new PengRobinsonPropertyPackage();
+flowsheet.AddPropertyPackage(pr);
+Logger.Information("Property Package: Peng-Robinson");
+⋮----
+var feed = flowsheet.AddObject(ObjectType.MaterialStream, 100, 100, "Feed") as MaterialStream;
+Assert.NotNull(feed);
+⋮----
+Logger.Information("Feed: 10 bar, 300 K, 1 kg/s, 70% Propane / 30% n-Butane");
+⋮----
+var heater = flowsheet.AddObject(ObjectType.Heater, 200, 100, "Heater") as Heater;
+Assert.NotNull(heater);
+⋮----
+Logger.Information("Heater: Heat to 350 K (simulates reaction heat)");
+⋮----
+var heated = flowsheet.AddObject(ObjectType.MaterialStream, 300, 100, "Heated") as MaterialStream;
+Assert.NotNull(heated);
+⋮----
+var valve = flowsheet.AddObject(ObjectType.Valve, 400, 100, "Valve") as Valve;
+Assert.NotNull(valve);
+⋮----
+Logger.Information("Valve: Flash to 3 bar");
+⋮----
+var product = flowsheet.AddObject(ObjectType.MaterialStream, 500, 100, "Product") as MaterialStream;
+Assert.NotNull(product);
+⋮----
+flowsheet.ConnectObjects(feed.GraphicObject, heater.GraphicObject, 0, 0);
+flowsheet.ConnectObjects(heater.GraphicObject, heated.GraphicObject, 0, 0);
+flowsheet.ConnectObjects(heated.GraphicObject, valve.GraphicObject, 0, 0);
+flowsheet.ConnectObjects(valve.GraphicObject, product.GraphicObject, 0, 0);
+⋮----
+Logger.Information("Connected: Feed -> Heater -> Heated -> Valve -> Product");
+⋮----
+Logger.Information("Solving flowsheet...");
+Automation.CalculateFlowsheet4(flowsheet);
+⋮----
+Logger.Information("RESULTS:");
+⋮----
+Logger.Information("FEED:");
+TestHelpers.LogStreamProperties(feed, Logger);
+⋮----
+Logger.Information("");
+Logger.Information("HEATED:");
+TestHelpers.LogStreamProperties(heated, Logger);
+⋮----
+Logger.Information("PRODUCT (after flash):");
+TestHelpers.LogStreamProperties(product, Logger);
+⋮----
+// Verify temperature increase
+⋮----
+Logger.Information("Temperature Profile:");
+Logger.Information("  Feed: {T:F2} K", feedTemp);
+Logger.Information("  After Heater: {T:F2} K", heatedTemp);
+Logger.Information("  After Flash: {T:F2} K", productTemp);
+⋮----
+Assert.True(heatedTemp > feedTemp, "Heater should increase temperature");
+Logger.Information("Temperature increased after heating (correct)");
+⋮----
+Assert.True(heatDuty > 0, "Heat duty should be positive");
+Logger.Information("Heat duty: {Q:F2} kW", heatDuty);
+⋮----
+var massError = Math.Abs(feedMassFlow - productMassFlow);
+⋮----
+Logger.Information("Mass Balance:");
+Logger.Information("  Feed: {F:F6} kg/s", feedMassFlow);
+Logger.Information("  Product: {P:F6} kg/s", productMassFlow);
+Logger.Information("  Error: {E:E3} kg/s", massError);
+⋮----
+Assert.True(massError < 0.001, $"Mass balance error exceeds tolerance");
+Logger.Information("Mass balance within tolerance");
+⋮----
+Logger.Information("Product vapor fraction: {VF:F4}", productVaporFrac);
+⋮----
+Logger.Information("Test 09: PASSED - Simplified conversion process works");
+Logger.Information("Note: Full reactor with reactions requires more complex setup");
+</file>
+
+<file path="Enerflow.Tests.DWSIM/Scenarios/Test10_RecycleLoop.cs">
+public class Test10RecycleLoop : TestBase
+⋮----
+public void RecycleLoop_SimpleProcess_ConvergesWithMassBalance()
+⋮----
+Logger.Information("TEST 10: Recycle Loop");
+Logger.Information("Scenario: Fresh feed with 20% recycle");
+Logger.Information("Flow: Fresh -> Mixer -> Heater -> Splitter (80% product, 20% recycle)");
+Logger.Information("========================================");
+⋮----
+var flowsheet = Automation.CreateFlowsheet();
+Assert.NotNull(flowsheet);
+⋮----
+flowsheet.SelectedCompounds.Add("Methane", flowsheet.AvailableCompounds["Methane"]);
+Logger.Information("Added compound: Methane");
+⋮----
+var siUnits = flowsheet.AvailableSystemsOfUnits.First(u => u.Name.Contains("SI"));
+⋮----
+var pr = new PengRobinsonPropertyPackage();
+flowsheet.AddPropertyPackage(pr);
+Logger.Information("Property Package: Peng-Robinson");
+⋮----
+var freshFeed = flowsheet.AddObject(ObjectType.MaterialStream, 100, 100, "FreshFeed") as MaterialStream;
+Assert.NotNull(freshFeed);
+⋮----
+Logger.Information("Fresh Feed: 10 bar, 300 K, 1 kg/s, 100% Methane");
+⋮----
+var recycleEstimate = flowsheet.AddObject(ObjectType.MaterialStream, 100, 150, "RecycleEstimate") as MaterialStream;
+Assert.NotNull(recycleEstimate);
+⋮----
+Logger.Information("Recycle Estimate (initial): 10 bar, 350 K, 0.25 kg/s");
+⋮----
+var mixer = flowsheet.AddObject(ObjectType.NodeIn, 200, 125, "Mixer") as Mixer;
+Assert.NotNull(mixer);
+⋮----
+Logger.Information("Mixer: Minimum pressure mode");
+⋮----
+var mixerOut = flowsheet.AddObject(ObjectType.MaterialStream, 300, 125, "MixerOut") as MaterialStream;
+Assert.NotNull(mixerOut);
+⋮----
+var heater = flowsheet.AddObject(ObjectType.Heater, 400, 125, "Heater") as Heater;
+Assert.NotNull(heater);
+⋮----
+Logger.Information("Heater: Outlet temperature = 400 K");
+⋮----
+var heaterOut = flowsheet.AddObject(ObjectType.MaterialStream, 500, 125, "HeaterOut") as MaterialStream;
+Assert.NotNull(heaterOut);
+⋮----
+var splitter = flowsheet.AddObject(ObjectType.NodeOut, 600, 125, "Splitter") as Splitter;
+Assert.NotNull(splitter);
+⋮----
+splitter.Ratios.Clear();
+splitter.Ratios.Add(0.8);
+splitter.Ratios.Add(0.2);
+splitter.Ratios.Add(0.0);
+Logger.Information("Splitter: 80% product, 20% recycle");
+⋮----
+var product = flowsheet.AddObject(ObjectType.MaterialStream, 700, 100, "Product") as MaterialStream;
+Assert.NotNull(product);
+⋮----
+var recycleOut = flowsheet.AddObject(ObjectType.MaterialStream, 700, 150, "RecycleOut") as MaterialStream;
+Assert.NotNull(recycleOut);
+⋮----
+var recycle = flowsheet.AddObject(ObjectType.OT_Recycle, 450, 175, "Recycle") as Recycle;
+Assert.NotNull(recycle);
+⋮----
+Logger.Information("Recycle block: Max 50 iterations");
+⋮----
+var recycleBlockOut = flowsheet.AddObject(ObjectType.MaterialStream, 200, 200, "RecycleBlockOut") as MaterialStream;
+Assert.NotNull(recycleBlockOut);
+⋮----
+flowsheet.ConnectObjects(freshFeed.GraphicObject, mixer.GraphicObject, 0, 0);
+⋮----
+flowsheet.ConnectObjects(recycleEstimate.GraphicObject, mixer.GraphicObject, 0, 1);
+⋮----
+flowsheet.ConnectObjects(mixer.GraphicObject, mixerOut.GraphicObject, 0, 0);
+⋮----
+flowsheet.ConnectObjects(mixerOut.GraphicObject, heater.GraphicObject, 0, 0);
+⋮----
+flowsheet.ConnectObjects(heater.GraphicObject, heaterOut.GraphicObject, 0, 0);
+⋮----
+flowsheet.ConnectObjects(heaterOut.GraphicObject, splitter.GraphicObject, 0, 0);
+⋮----
+flowsheet.ConnectObjects(splitter.GraphicObject, product.GraphicObject, 0, 0);
+⋮----
+flowsheet.ConnectObjects(splitter.GraphicObject, recycleOut.GraphicObject, 1, 0);
+⋮----
+flowsheet.ConnectObjects(recycleOut.GraphicObject, recycle.GraphicObject, 0, 0);
+⋮----
+Logger.Information("Connected: FreshFeed + RecycleEstimate -> Mixer -> Heater -> Splitter -> Product + RecycleOut");
+Logger.Information("Recycle: RecycleOut -> Recycle Block");
+⋮----
+Logger.Information("Solving flowsheet (recycle convergence)...");
+⋮----
+Automation.CalculateFlowsheet4(flowsheet);
+⋮----
+Logger.Warning("First solve iteration did not fully converge. Trying additional iterations...");
+⋮----
+Logger.Information("Converged after {Iterations} additional iterations", i + 1);
+⋮----
+Logger.Information("RESULTS:");
+⋮----
+Logger.Information("FRESH FEED:");
+TestHelpers.LogStreamProperties(freshFeed, Logger);
+⋮----
+Logger.Information("");
+Logger.Information("MIXER OUTLET:");
+TestHelpers.LogStreamProperties(mixerOut, Logger);
+⋮----
+Logger.Information("HEATER OUTLET:");
+TestHelpers.LogStreamProperties(heaterOut, Logger);
+⋮----
+Logger.Information("PRODUCT:");
+TestHelpers.LogStreamProperties(product, Logger);
+⋮----
+Logger.Information("RECYCLE OUT:");
+TestHelpers.LogStreamProperties(recycleOut, Logger);
+⋮----
+// Get mass flows
+⋮----
+Logger.Information("Mass Flow Summary:");
+Logger.Information("  Fresh Feed: {Fresh:F6} kg/s", freshFeedFlow);
+Logger.Information("  Product: {Product:F6} kg/s", productFlow);
+Logger.Information("  Recycle Out: {Recycle:F6} kg/s", recycleOutFlow);
+Logger.Information("  Mixer Out: {MixerOut:F6} kg/s", mixerOutFlow);
+⋮----
+var massError = Math.Abs(freshFeedFlow - productFlow);
+Logger.Information("  Mass Balance Error: {Error:E3} kg/s", massError);
+⋮----
+Assert.True(massError < 0.05,
+⋮----
+Logger.Information("Overall mass balance within tolerance (Fresh Feed = Product)");
+⋮----
+Logger.Information("Split Ratio Check:");
+Logger.Information("  Product fraction: {ProdFrac:P2} (expected 80%)", actualProductFraction);
+Logger.Information("  Recycle fraction: {RecFrac:P2} (expected 20%)", actualRecycleFraction);
+⋮----
+Assert.True(Math.Abs(actualProductFraction - 0.8) < 0.05,
+⋮----
+Assert.True(Math.Abs(actualRecycleFraction - 0.2) < 0.05,
+⋮----
+Logger.Information("Split ratios within expected range");
+⋮----
+Logger.Information("Temperature Check:");
+Logger.Information("  Heater Inlet: {In:F2} K", heaterInTemp);
+Logger.Information("  Heater Outlet: {Out:F2} K", heaterOutTemp);
+⋮----
+Assert.True(heaterOutTemp > heaterInTemp,
+⋮----
+Logger.Information("Heater increased temperature (correct)");
+⋮----
+Logger.Information("Recycle Block:");
+Logger.Information("  Converged: {Conv}", recycle.Converged);
+Logger.Information("  Iterations Taken: {Iter}", recycle.IterationsTaken);
+⋮----
+Logger.Information("Test 10: PASSED - Recycle loop mass balance verified");
+</file>
+
+<file path="Enerflow.Tests.DWSIM/TestHelpers.cs">
+public static class TestHelpers
+⋮----
+public static void LogStreamProperties(MaterialStream? stream, ILogger logger)
+⋮----
+logger.Warning("Stream is null");
+⋮----
+logger.Information("    Temperature: {Temp:F2} K ({TempC:F2} °C)",
+⋮----
+logger.Information("    Pressure: {Pressure:F2} Pa ({PressureBar:F2} bar)",
+⋮----
+logger.Information("    Mass Flow: {MassFlow:F4} kg/s", phase0.Properties.massflow ?? 0);
+logger.Information("    Molar Flow: {MolarFlow:F4} mol/s", phase0.Properties.molarflow ?? 0);
+logger.Information("    Volumetric Flow: {VolumetricFlow:F6} m³/s", phase0.Properties.volumetric_flow ?? 0);
+logger.Information("    Enthalpy: {Enthalpy:F2} kJ/kg", (phase0.Properties.enthalpy ?? 0) / 1000.0);
+logger.Information("    Entropy: {Entropy:F2} kJ/[kg.K]", (phase0.Properties.entropy ?? 0) / 1000.0);
+⋮----
+logger.Information("    Vapor Fraction in moles: {VaporFrac:F4}", phase0.Properties.molarfraction ?? 0);
+⋮----
+if (phase0.Compounds != null && phase0.Compounds.Any())
+⋮----
+logger.Information("    Composition (Mole Fraction):");
+foreach (var compound in phase0.Compounds.OrderByDescending(c => c.Value.MoleFraction ?? 0))
+⋮----
+logger.Information("      {Compound}: {MoleFrac:F6}",
+⋮----
+logger.Warning(ex, "Failed to log stream properties for {StreamName}", stream.Name);
+⋮----
+public static void AssertTemperatureInRange(MaterialStream stream, double minK, double maxK, ILogger logger)
+⋮----
+logger.Error("Temperature {Temp:F2} K is outside expected range [{Min:F2}, {Max:F2}] K",
+⋮----
+Assert.Fail($"Temperature {temp:F2} K is outside expected range [{minK:F2}, {maxK:F2}] K");
+⋮----
+logger.Information("✓ Temperature {Temp:F2} K is within expected range [{Min:F2}, {Max:F2}] K",
+⋮----
+public static void AssertPressureInRange(MaterialStream stream, double minPa, double maxPa, ILogger logger)
+⋮----
+logger.Error("Pressure {Pressure:F2} Pa is outside expected range [{Min:F2}, {Max:F2}] Pa",
+⋮----
+Assert.Fail($"Pressure {pressure:F2} Pa is outside expected range [{minPa:F2}, {maxPa:F2}] Pa");
+⋮----
+logger.Information("✓ Pressure {Pressure:F2} Pa ({PressureBar:F2} bar) is within expected range",
+⋮----
+public static void CheckGlobalMassBalance(IFlowsheet flowsheet, ILogger logger, double toleranceKgPerS = 1e-3)
+⋮----
+logger.Debug("Inlet stream {Name}: {MassFlow:F6} kg/s", ms.Name, massFlow);
+⋮----
+logger.Debug("Outlet stream {Name}: {MassFlow:F6} kg/s", ms.Name, massFlow);
+⋮----
+var imbalance = Math.Abs(totalInflow - totalOutflow);
+logger.Information("Mass Balance Check:");
+logger.Information("  Total Inflow:  {Inflow:F6} kg/s", totalInflow);
+logger.Information("  Total Outflow: {Outflow:F6} kg/s", totalOutflow);
+logger.Information("  Imbalance:     {Imbalance:E3} kg/s", imbalance);
+⋮----
+logger.Warning("Mass imbalance exceeds tolerance: {Imbalance:E3} > {Tolerance:E3} kg/s",
+⋮----
+logger.Information("✓ Mass balance within tolerance");
+⋮----
+logger.Warning(ex, "Failed to check mass balance");
+</file>
+
+<file path="Enerflow.Tests.DWSIM/Scenarios/Test01_SimpleHeating.cs">
+public class Test01SimpleHeating : TestBase
+⋮----
+public void SimpleHeating_MethaneStream_ConvergesSuccessfully()
+⋮----
+Logger.Information("TEST 01: Simple Heating Process");
+Logger.Information("Scenario: Methane stream heated from 25°C to 75°C");
+Logger.Information("========================================");
+⋮----
+var flowsheet = Automation.CreateFlowsheet();
+Logger.Information("Flowsheet created");
+⋮----
+flowsheet.SelectedCompounds.Add("Methane", methane);
+Logger.Information("Added compound: Methane");
+⋮----
+var siUnits = flowsheet.AvailableSystemsOfUnits.First(u => u.Name.Contains("SI"));
+⋮----
+Logger.Information("Set unit system: {Units}", siUnits.Name);
+⋮----
+var pr = new PengRobinsonPropertyPackage();
+flowsheet.AddPropertyPackage(pr);
+Logger.Information("Property Package: Peng-Robinson");
+⋮----
+var feed = flowsheet.AddObject(ObjectType.MaterialStream, 100, 100, "Feed") as MaterialStream;
+Assert.NotNull(feed);
+⋮----
+Logger.Information("Created feed stream:");
+Logger.Information("  Temperature: 25°C (298.15 K)");
+Logger.Information("  Pressure: 1 bar (101325 Pa)");
+Logger.Information("  Mass Flow: 1 kg/s");
+Logger.Information("  Composition: 100% Methane");
+⋮----
+var heater = flowsheet.AddObject(ObjectType.Heater, 200, 100, "Heater") as Heater;
+Assert.NotNull(heater);
+⋮----
+Logger.Information("Created Heater: Outlet Temperature = 75°C (348.15 K)");
+⋮----
+var product = flowsheet.AddObject(ObjectType.MaterialStream, 300, 100, "Product") as MaterialStream;
+Assert.NotNull(product);
+Logger.Information("Created product stream");
+⋮----
+flowsheet.ConnectObjects(feed.GraphicObject, heater.GraphicObject, 0, 0);
+flowsheet.ConnectObjects(heater.GraphicObject, product.GraphicObject, 0, 0);
+Logger.Information("Connected: Feed → Heater → Product");
+⋮----
+Logger.Information("Solving flowsheet...");
+Automation.CalculateFlowsheet4(flowsheet);
+⋮----
+Logger.Information("RESULTS:");
+⋮----
+Logger.Information("FEED STREAM:");
+TestHelpers.LogStreamProperties(feed, Logger);
+⋮----
+Logger.Information("");
+Logger.Information("PRODUCT STREAM:");
+TestHelpers.LogStreamProperties(product, Logger);
+⋮----
+Logger.Information("HEATER:");
+Logger.Information("  Heat Duty: {Duty:F2} kW", heater.DeltaQ ?? 0);
+Logger.Information("  Calculated: {Calculated}", heater.Calculated);
+⋮----
+TestHelpers.AssertTemperatureInRange(product, 347, 349, Logger);
+⋮----
+TestHelpers.AssertPressureInRange(product, 90000, 110000, Logger);
+⋮----
+Assert.InRange(productMassFlow, 0.99, 1.01);
+Logger.Information("✓ Mass flow conserved: {MassFlow:F4} kg/s", productMassFlow);
+⋮----
+Assert.True(heatDuty > 0, "Heat duty should be positive (energy added)");
+Logger.Information("✓ Heat duty is positive: {Duty:F2} kW", heatDuty);
+⋮----
+Logger.Information("Test 01: PASSED ✓");
+</file>
+
+<file path="Enerflow.Tests.DWSIM/Scenarios/Test02_CompressionCooling.cs">
+public class Test02CompressionCooling : TestBase
+⋮----
+public void CompressionCooling_NaturalGas_ConvergesSuccessfully()
+⋮----
+Logger.Information("TEST 02: Compression and Cooling");
+Logger.Information("Scenario: Natural gas compressed from 5 bar to 20 bar, then cooled to 25°C");
+Logger.Information("========================================");
+⋮----
+var flowsheet = Automation.CreateFlowsheet();
+Logger.Information("Flowsheet created");
+⋮----
+flowsheet.SelectedCompounds.Add("Methane", flowsheet.AvailableCompounds["Methane"]);
+flowsheet.SelectedCompounds.Add("Ethane", flowsheet.AvailableCompounds["Ethane"]);
+flowsheet.SelectedCompounds.Add("Propane", flowsheet.AvailableCompounds["Propane"]);
+Logger.Information("Added compounds: Methane, Ethane, Propane");
+⋮----
+var siUnits = flowsheet.AvailableSystemsOfUnits.First(u => u.Name.Contains("SI"));
+⋮----
+var pr = new PengRobinsonPropertyPackage();
+flowsheet.AddPropertyPackage(pr);
+Logger.Information("Property Package: Peng-Robinson");
+⋮----
+var feed = flowsheet.AddObject(ObjectType.MaterialStream, 100, 100, "Feed") as MaterialStream;
+Assert.NotNull(feed);
+⋮----
+Logger.Information("Feed: 5 bar, 25°C, 1 kg/s, 85% CH4 / 10% C2H6 / 5% C3H8");
+⋮----
+var compressor = flowsheet.AddObject(ObjectType.Compressor, 200, 100, "Compressor") as Compressor;
+Assert.NotNull(compressor);
+⋮----
+Logger.Information("Compressor: 5 bar → 20 bar, 75% efficiency");
+⋮----
+var compressed = flowsheet.AddObject(ObjectType.MaterialStream, 300, 100, "Compressed") as MaterialStream;
+Assert.NotNull(compressed);
+⋮----
+var cooler = flowsheet.AddObject(ObjectType.Cooler, 400, 100, "Cooler") as Cooler;
+Assert.NotNull(cooler);
+⋮----
+Logger.Information("Cooler: Outlet Temperature = 25°C");
+⋮----
+var product = flowsheet.AddObject(ObjectType.MaterialStream, 500, 100, "Product") as MaterialStream;
+Assert.NotNull(product);
+⋮----
+flowsheet.ConnectObjects(feed.GraphicObject, compressor.GraphicObject, 0, 0);
+flowsheet.ConnectObjects(compressor.GraphicObject, compressed.GraphicObject, 0, 0);
+flowsheet.ConnectObjects(compressed.GraphicObject, cooler.GraphicObject, 0, 0);
+flowsheet.ConnectObjects(cooler.GraphicObject, product.GraphicObject, 0, 0);
+Logger.Information("Connected: Feed → Compressor → Compressed → Cooler → Product");
+⋮----
+Logger.Information("Solving flowsheet...");
+Automation.CalculateFlowsheet4(flowsheet);
+⋮----
+Logger.Information("RESULTS:");
+⋮----
+Logger.Information("FEED (5 bar, 25°C):");
+TestHelpers.LogStreamProperties(feed, Logger);
+⋮----
+Logger.Information("");
+Logger.Information("COMPRESSED (20 bar, elevated temp):");
+TestHelpers.LogStreamProperties(compressed, Logger);
+⋮----
+Logger.Information("PRODUCT (20 bar, 25°C):");
+TestHelpers.LogStreamProperties(product, Logger);
+⋮----
+Logger.Information("COMPRESSOR:");
+Logger.Information("  Power Required: {Power:F2} kW", compressor.DeltaQ);
+Logger.Information("  Calculated: {Calculated}", compressor.Calculated);
+⋮----
+Logger.Information("COOLER:");
+Logger.Information("  Cooling Duty: {Duty:F2} kW", cooler.DeltaQ ?? 0);
+Logger.Information("  Calculated: {Calculated}", cooler.Calculated);
+⋮----
+TestHelpers.AssertPressureInRange(compressed, 1900000, 2100000, Logger);
+⋮----
+Assert.True(compressedTemp > 320, $"Compressed temp {compressedTemp:F2} K should be > 320 K (compression heats gas)");
+Logger.Information("✓ Compression increased temperature to {Temp:F2} K ({TempC:F2} °C)",
+⋮----
+TestHelpers.AssertTemperatureInRange(product, 297, 300, Logger);
+⋮----
+TestHelpers.AssertPressureInRange(product, 1900000, 2100000, Logger);
+⋮----
+Assert.True(compPower > 0, "Compressor power should be positive");
+Logger.Information("✓ Compressor power: {Power:F2} kW", compPower);
+⋮----
+Assert.True(coolingDuty > 0, "Cooling duty should be positive (DWSIM reports magnitude of heat removed)");
+Logger.Information("Cooling duty (heat removed): {Duty:F2} kW", coolingDuty);
+⋮----
+TestHelpers.CheckGlobalMassBalance(flowsheet, Logger);
+⋮----
+Logger.Information("Test 02: PASSED ✓");
+</file>
+
+<file path="Enerflow.Tests.DWSIM/Scenarios/Test03_PressureReduction.cs">
+public class Test03PressureReduction : TestBase
+⋮----
+public void PressureReduction_PropaneButaneMixture_ConvergesSuccessfully()
+⋮----
+Logger.Information("TEST 03: Pressure Reduction and Phase Separation");
+Logger.Information("Scenario: Propane/n-Butane (20 bar, 40°C) → Valve (5 bar) → Separator");
+Logger.Information("========================================");
+⋮----
+var flowsheet = Automation.CreateFlowsheet();
+⋮----
+flowsheet.SelectedCompounds.Add("Propane", flowsheet.AvailableCompounds["Propane"]);
+flowsheet.SelectedCompounds.Add("n-Butane", flowsheet.AvailableCompounds["n-Butane"]);
+Logger.Information("Added compounds: Propane, n-Butane");
+⋮----
+var siUnits = flowsheet.AvailableSystemsOfUnits.First(u => u.Name.Contains("SI"));
+⋮----
+var pr = new PengRobinsonPropertyPackage();
+flowsheet.AddPropertyPackage(pr);
+Logger.Information("Property Package: Peng-Robinson");
+⋮----
+var feed = flowsheet.AddObject(ObjectType.MaterialStream, 100, 100, "Feed") as MaterialStream;
+Assert.NotNull(feed);
+⋮----
+Logger.Information("Feed: 20 bar, 40°C, 1 kg/s, 50% Propane / 50% n-Butane");
+⋮----
+var valve = flowsheet.AddObject(ObjectType.Valve, 200, 100, "Valve") as Valve;
+Assert.NotNull(valve);
+⋮----
+Logger.Information("Valve: 20 bar -> 5 bar (isenthalpic expansion)");
+⋮----
+var flashed = flowsheet.AddObject(ObjectType.MaterialStream, 300, 100, "Flashed") as MaterialStream;
+Assert.NotNull(flashed);
+⋮----
+var separator = flowsheet.AddObject(ObjectType.Vessel, 400, 100, "Separator") as Vessel;
+Assert.NotNull(separator);
+⋮----
+Logger.Information("Separator: Two-phase flash separation");
+⋮----
+var vapor = flowsheet.AddObject(ObjectType.MaterialStream, 500, 50, "Vapor") as MaterialStream;
+Assert.NotNull(vapor);
+⋮----
+var liquid = flowsheet.AddObject(ObjectType.MaterialStream, 500, 150, "Liquid") as MaterialStream;
+Assert.NotNull(liquid);
+⋮----
+flowsheet.ConnectObjects(feed.GraphicObject, valve.GraphicObject, 0, 0);
+flowsheet.ConnectObjects(valve.GraphicObject, flashed.GraphicObject, 0, 0);
+flowsheet.ConnectObjects(flashed.GraphicObject, separator.GraphicObject, 0, 0);
+flowsheet.ConnectObjects(separator.GraphicObject, vapor.GraphicObject, 0, 0);
+flowsheet.ConnectObjects(separator.GraphicObject, liquid.GraphicObject, 1, 0);
+Logger.Information("Connected flowsheet");
+⋮----
+Logger.Information("Solving flowsheet...");
+Automation.CalculateFlowsheet4(flowsheet);
+⋮----
+Logger.Information("RESULTS:");
+⋮----
+Logger.Information("FEED (20 bar, 40°C):");
+TestHelpers.LogStreamProperties(feed, Logger);
+⋮----
+Logger.Information("");
+Logger.Information("FLASHED (5 bar, two-phase):");
+TestHelpers.LogStreamProperties(flashed, Logger);
+⋮----
+Logger.Information("VAPOR PRODUCT:");
+TestHelpers.LogStreamProperties(vapor, Logger);
+⋮----
+Logger.Information("LIQUID PRODUCT:");
+TestHelpers.LogStreamProperties(liquid, Logger);
+⋮----
+// Verify flashed stream has reduced pressure
+TestHelpers.AssertPressureInRange(flashed, 450000, 550000, Logger); // ~5 bar
+⋮----
+// Verify temperature dropped due to flash
+⋮----
+Assert.True(flashedTemp < 313.15, "Temperature should drop during flash");
+Logger.Information("✓ Flash caused temperature drop to {Temp:F2} K ({TempC:F2} °C)",
+⋮----
+Assert.InRange(Math.Abs(vaporPress - liquidPress), 0, 1000);
+Logger.Information("✓ Vapor and liquid at same pressure: {Press:F0} Pa", vaporPress);
+⋮----
+Assert.True(vaporFlow > 0.01, "Should have significant vapor flow");
+Assert.True(liquidFlow > 0.01, "Should have significant liquid flow");
+Logger.Information("✓ Phase split: {Vapor:P1} vapor, {Liquid:P1} liquid",
+⋮----
+Assert.InRange(totalOut, feedFlow * 0.99, feedFlow * 1.01);
+Logger.Information("✓ Mass balance: In = {In:F4} kg/s, Out = {Out:F4} kg/s", feedFlow, totalOut);
+⋮----
+Assert.True(vaporPropane > liquidPropane, "Vapor should be enriched in lighter component (Propane)");
+Logger.Information("✓ Propane enrichment in vapor: Vapor = {VaporProp:P2}, Liquid = {LiquidProp:P2}",
+⋮----
+Logger.Information("Test 03: PASSED ✓");
+</file>
+
+<file path="Enerflow.Tests.DWSIM/TestBase.cs">
+public abstract class TestBase : IDisposable
+⋮----
+protected readonly Logger Logger;
+protected readonly DWSIMAutomation Automation;
+⋮----
+var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+_logFilePath = Path.Combine("TestResults", $"{_testName}_{timestamp}.log");
+⋮----
+Directory.CreateDirectory("TestResults");
+⋮----
+Logger = new LoggerConfiguration()
+.MinimumLevel.Debug()
+.WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+.WriteTo.File(
+⋮----
+.CreateLogger();
+⋮----
+Logger.Information("========================================");
+Logger.Information("{TestName} - Starting Test", _testName);
+Logger.Information("Log file: {LogFile}", _logFilePath);
+⋮----
+Logger.Debug("DWSIM GlobalSettings.AutomationMode = true");
+⋮----
+Automation = new DWSIMAutomation();
+Logger.Information("DWSIM Automation initialized");
+⋮----
+protected void AssertConverged(IFlowsheet flowsheet)
+⋮----
+Assert.NotNull(flowsheet);
+⋮----
+var errorMsg = !string.IsNullOrEmpty(flowsheet.ErrorMessage)
+⋮----
+Logger.Error("Flowsheet convergence failed: {Error}", errorMsg);
+Assert.Fail($"Flowsheet did not converge: {errorMsg}");
+⋮----
+if (!string.IsNullOrEmpty(obj.ErrorMessage))
+⋮----
+errors.Add($"{obj.Name}: {obj.ErrorMessage}");
+⋮----
+if (errors.Any())
+⋮----
+Logger.Error("Simulation objects have errors:");
+⋮----
+Logger.Error("  - {Error}", error);
+⋮----
+Assert.Fail($"Flowsheet solved but {errors.Count} object(s) have errors:\n" + string.Join("\n", errors));
+⋮----
+Logger.Information("✓ Flowsheet converged successfully");
+⋮----
+protected void LogFlowsheetSummary(IFlowsheet flowsheet)
+⋮----
+Logger.Information("FLOWSHEET SUMMARY");
+⋮----
+Logger.Information("Total Simulation Objects: {Count}", flowsheet.SimulationObjects.Count);
+Logger.Information("Solved: {Solved}", flowsheet.Solved);
+⋮----
+Logger.Information("  [MATERIAL STREAM] {Name}", ms.Name);
+TestHelpers.LogStreamProperties(ms, Logger);
+⋮----
+Logger.Information("  [ENERGY STREAM] {Name} - Energy Flow: {Energy:F2} kW", es.Name,
+⋮----
+Logger.Information("  [UNIT OP] {Name} ({Type}) - Calculated: {Calculated}",
+⋮----
+obj.GetType().Name,
+⋮----
+public virtual void Dispose()
+⋮----
+Logger.Information("{TestName} - Test Complete", _testName);
+Logger.Information("Log saved to: {LogFile}", _logFilePath);
+⋮----
+Automation.ReleaseResources();
+Logger.Dispose();
+</file>
+
+</files>

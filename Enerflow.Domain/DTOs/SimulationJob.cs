@@ -40,6 +40,7 @@ public record MaterialStreamDto
     public double Temperature { get; init; }
     public double Pressure { get; init; }
     public double MassFlow { get; init; }
+    public SystemOfUnits SystemOfUnits { get; init; } = SystemOfUnits.SI;
     public Dictionary<string, double> MolarCompositions { get; init; } = [];
 }
 
@@ -48,6 +49,7 @@ public record EnergyStreamDto
     public required Guid Id { get; init; }
     public required string Name { get; init; }
     public double EnergyFlow { get; init; }
+    public SystemOfUnits SystemOfUnits { get; init; } = SystemOfUnits.SI;
 }
 
 public record UnitOperationDto

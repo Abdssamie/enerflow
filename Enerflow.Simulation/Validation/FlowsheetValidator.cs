@@ -5,355 +5,357 @@ using SimulationEntity = Enerflow.Domain.Entities.Simulation;
 
 namespace Enerflow.Simulation.Validation;
 
+#pragma warning disable CA1873
+
 /// <summary>
 /// Validates flowsheet configurations before execution.
 /// Uses an adapter pattern to orchestrate entity-level validation and convert exceptions to structured errors.
 /// </summary>
 public sealed class FlowsheetValidator : IFlowsheetValidator
 {
-    private readonly ILogger<FlowsheetValidator> _logger;
+   private readonly ILogger<FlowsheetValidator> _logger;
 
-    public FlowsheetValidator(ILogger<FlowsheetValidator> logger)
-    {
-        _logger = logger;
-    }
+   public FlowsheetValidator(ILogger<FlowsheetValidator> logger)
+   {
+      _logger = logger;
+   }
 
-    public ValidationResult Validate(SimulationEntity simulation, IFlowsheet flowsheet)
-    {
-        var errors = new List<ValidationError>();
+   public ValidationResult Validate(SimulationEntity simulation, IFlowsheet flowsheet)
+   {
+      var errors = new List<ValidationError>();
 
-        _logger.LogInformation(
-            "Starting comprehensive validation for simulation {Id}: {Name}",
-            simulation.Id, simulation.Name);
+      _logger.LogInformation(
+          "Starting comprehensive validation for simulation {Id}: {Name}",
+          simulation.Id, simulation.Name);
 
-        // Phase 1: Topology validation (disconnected units, orphaned streams)
-        var topologyErrors = ValidateTopology(simulation);
-        errors.AddRange(topologyErrors);
-        _logger.LogDebug("Topology validation: {Count} errors", topologyErrors.Count);
+      // Phase 1: Topology validation (disconnected units, orphaned streams)
+      var topologyErrors = ValidateTopology(simulation);
+      errors.AddRange(topologyErrors);
+      _logger.LogDebug("Topology validation: {Count} errors", topologyErrors.Count);
 
-        // Phase 2: Compound validation (no compounds, undefined references)
-        var compoundErrors = ValidateCompounds(simulation);
-        errors.AddRange(compoundErrors);
-        _logger.LogDebug("Compound validation: {Count} errors", compoundErrors.Count);
+      // Phase 2: Compound validation (no compounds, undefined references)
+      var compoundErrors = ValidateCompounds(simulation);
+      errors.AddRange(compoundErrors);
+      _logger.LogDebug("Compound validation: {Count} errors", compoundErrors.Count);
 
-        // Phase 3: Physical properties validation (temperature, pressure, flow, composition)
-        var physicalErrors = ValidatePhysicalProperties(simulation);
-        errors.AddRange(physicalErrors);
-        _logger.LogDebug("Physical properties validation: {Count} errors", physicalErrors.Count);
+      // Phase 3: Physical properties validation (temperature, pressure, flow, composition)
+      var physicalErrors = ValidatePhysicalProperties(simulation);
+      errors.AddRange(physicalErrors);
+      _logger.LogDebug("Physical properties validation: {Count} errors", physicalErrors.Count);
 
-        // Phase 4: Unit operations validation (configuration, topology)
-        var unitErrors = ValidateUnitOperations(simulation);
-        errors.AddRange(unitErrors);
-        _logger.LogDebug("Unit operations validation: {Count} errors", unitErrors.Count);
+      // Phase 4: Unit operations validation (configuration, topology)
+      var unitErrors = ValidateUnitOperations(simulation);
+      errors.AddRange(unitErrors);
+      _logger.LogDebug("Unit operations validation: {Count} errors", unitErrors.Count);
 
-        _logger.LogInformation(
-            "Validation completed for simulation {Id}. Total errors: {ErrorCount}",
-            simulation.Id, errors.Count);
+      _logger.LogInformation(
+          "Validation completed for simulation {Id}. Total errors: {ErrorCount}",
+          simulation.Id, errors.Count);
 
-        return new ValidationResult(errors);
-    }
+      return new ValidationResult(errors);
+   }
 
-    #region Topology Validation
+   #region Topology Validation
 
-    private List<ValidationError> ValidateTopology(SimulationEntity simulation)
-    {
-        // Check for disconnected unit operations
-        var errors = (from unit in simulation.UnitOperations
-            where unit.InputStreamIds.Count == 0
-                  && unit.OutputStreamIds.Count == 0
-            select new ValidationError(
-                ValidationErrorCodes.DisconnectedUnit,
-                $"Unit operation '{unit.Name}' has no connected streams",
-                "UnitOperation",
-                unit.Name
-            )).ToList();
+   private List<ValidationError> ValidateTopology(SimulationEntity simulation)
+   {
+      // Check for disconnected unit operations
+      var errors = (from unit in simulation.UnitOperations
+                    where unit.InputStreamIds.Count == 0
+                          && unit.OutputStreamIds.Count == 0
+                    select new ValidationError(
+                        ValidationErrorCodes.DisconnectedUnit,
+                        $"Unit operation '{unit.Name}' has no connected streams",
+                        "UnitOperation",
+                        unit.Name
+                    )).ToList();
 
 
-        // Check for orphaned streams
-        var connectedStreamIds = simulation.UnitOperations
-            .SelectMany(u => u.InputStreamIds.Concat(u.OutputStreamIds))
-            .ToHashSet();
+      // Check for orphaned streams
+      var connectedStreamIds = simulation.UnitOperations
+          .SelectMany(u => u.InputStreamIds.Concat(u.OutputStreamIds))
+          .ToHashSet();
 
-        errors.AddRange(from stream in simulation.MaterialStreams
-            where !connectedStreamIds.Contains(stream.Id)
-            select new ValidationError(
-                ValidationErrorCodes.OrphanedStream,
-                $"Stream '{stream.Name}' is not connected to any unit operation",
-                "MaterialStream", stream.Name
-            ));
+      errors.AddRange(from stream in simulation.MaterialStreams
+                      where !connectedStreamIds.Contains(stream.Id)
+                      select new ValidationError(
+                          ValidationErrorCodes.OrphanedStream,
+                          $"Stream '{stream.Name}' is not connected to any unit operation",
+                          "MaterialStream", stream.Name
+                      ));
 
-        errors.AddRange(from stream in simulation.EnergyStreams
-            where !connectedStreamIds.Contains(stream.Id)
-            select new ValidationError(
-                ValidationErrorCodes.OrphanedStream,
-                $"Stream '{stream.Name}' is not connected to any unit operation",
-                "EnergyStream", stream.Name
-            ));
+      errors.AddRange(from stream in simulation.EnergyStreams
+                      where !connectedStreamIds.Contains(stream.Id)
+                      select new ValidationError(
+                          ValidationErrorCodes.OrphanedStream,
+                          $"Stream '{stream.Name}' is not connected to any unit operation",
+                          "EnergyStream", stream.Name
+                      ));
 
-        return errors;
-    }
+      return errors;
+   }
 
-    #endregion
+   #endregion
 
-    #region Compound Validation
+   #region Compound Validation
 
-    private List<ValidationError> ValidateCompounds(SimulationEntity simulation)
-    {
-        var errors = new List<ValidationError>();
+   private List<ValidationError> ValidateCompounds(SimulationEntity simulation)
+   {
+      var errors = new List<ValidationError>();
 
-        // Check if compounds exist
-        if (simulation.Compounds.Count == 0)
-        {
+      // Check if compounds exist
+      if (simulation.Compounds.Count == 0)
+      {
+         errors.Add(new ValidationError(
+             ValidationErrorCodes.NoCompoundsDefined,
+             "Simulation must have at least one compound defined. Add compounds before running the simulation.",
+             "Simulation",
+             simulation.Name
+         ));
+         return errors; // Early return - can't validate compound references without compounds
+      }
+
+      // Get defined compound names (case-insensitive comparison)
+      var definedCompounds = simulation.Compounds
+          .Select(c => c.Name)
+          .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+      // Validate streams reference defined compounds
+      errors.AddRange(from stream in simulation.MaterialStreams
+                      from compoundName in stream.Composition.Keys
+                      where !definedCompounds.Contains(compoundName)
+                      select new ValidationError(
+                          ValidationErrorCodes.UndefinedCompoundReference,
+                          $"Stream '{stream.Name}' references undefined compound '{compoundName}'. "
+                          + $"Available compounds: {string.Join(", ", definedCompounds)}", "MaterialStream", stream.Name
+                      ));
+
+      // Validate ShortcutColumn light/heavy keys reference valid compounds
+      var compoundIds = simulation.Compounds.Select(c => c.Id).ToHashSet();
+
+      foreach (var unit in simulation.UnitOperations.OfType<ShortcutColumnObject>())
+      {
+         if (unit.LightKey != Guid.Empty && !compoundIds.Contains(unit.LightKey))
+         {
             errors.Add(new ValidationError(
-                ValidationErrorCodes.NoCompoundsDefined,
-                "Simulation must have at least one compound defined. Add compounds before running the simulation.",
-                "Simulation",
-                simulation.Name
+                ValidationErrorCodes.InvalidLightKeyReference,
+                $"ShortcutColumn '{unit.Name}' references invalid LightKey compound ID: {unit.LightKey}",
+                "ShortcutColumn",
+                unit.Name
             ));
-            return errors; // Early return - can't validate compound references without compounds
-        }
+         }
 
-        // Get defined compound names (case-insensitive comparison)
-        var definedCompounds = simulation.Compounds
-            .Select(c => c.Name)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        // Validate streams reference defined compounds
-        errors.AddRange(from stream in simulation.MaterialStreams
-            from compoundName in stream.Composition.Keys
-            where !definedCompounds.Contains(compoundName)
-            select new ValidationError(
-                ValidationErrorCodes.UndefinedCompoundReference,
-                $"Stream '{stream.Name}' references undefined compound '{compoundName}'. "
-                + $"Available compounds: {string.Join(", ", definedCompounds)}", "MaterialStream", stream.Name
+         if (unit.HeavyKey != Guid.Empty && !compoundIds.Contains(unit.HeavyKey))
+         {
+            errors.Add(new ValidationError(
+                ValidationErrorCodes.InvalidHeavyKeyReference,
+                $"ShortcutColumn '{unit.Name}' references invalid HeavyKey compound ID: {unit.HeavyKey}",
+                "ShortcutColumn",
+                unit.Name
             ));
+         }
+      }
 
-        // Validate ShortcutColumn light/heavy keys reference valid compounds
-        var compoundIds = simulation.Compounds.Select(c => c.Id).ToHashSet();
+      return errors;
+   }
 
-        foreach (var unit in simulation.UnitOperations.OfType<ShortcutColumnObject>())
-        {
-            if (unit.LightKey != Guid.Empty && !compoundIds.Contains(unit.LightKey))
+   #endregion
+
+   #region Physical Properties Validation
+
+   private List<ValidationError> ValidatePhysicalProperties(SimulationEntity simulation)
+   {
+      var errors = new List<ValidationError>();
+
+      // Validate material streams (delegates to entity validation)
+      foreach (var stream in simulation.MaterialStreams)
+      {
+         try
+         {
+            stream.Validate();
+         }
+         catch (ArgumentException ex)
+         {
+            errors.Add(ConvertExceptionToError(ex, "MaterialStream", stream.Name));
+         }
+      }
+
+      // Validate energy streams (delegates to entity validation)
+      foreach (var stream in simulation.EnergyStreams)
+      {
+         try
+         {
+            stream.Validate();
+         }
+         catch (ArgumentException ex)
+         {
+            errors.Add(ConvertExceptionToError(ex, "EnergyStream", stream.Name));
+         }
+      }
+
+      // Additional validation: Composition sum (not in entity)
+      foreach (var stream in simulation.MaterialStreams)
+      {
+         if (stream.Composition.Count == 0) continue;
+
+         var sum = stream.Composition.Values.Sum();
+
+         if (Math.Abs(sum - ValidationConstants.ExpectedCompositionSum) >
+             ValidationConstants.CompositionSumTolerance)
+         {
+            errors.Add(new ValidationError(
+                ValidationErrorCodes.InvalidCompositionSum,
+                $"Stream '{stream.Name}' composition sums to {sum:F4} (must be {ValidationConstants.ExpectedCompositionSum} ± {ValidationConstants.CompositionSumTolerance}). " +
+                $"Please adjust mole fractions to sum to {ValidationConstants.ExpectedCompositionSum}.",
+                "MaterialStream",
+                stream.Name
+            ));
+         }
+
+         // Check for negative compositions
+         foreach (var (compound, fraction) in stream.Composition)
+         {
+            if (fraction < 0)
             {
-                errors.Add(new ValidationError(
-                    ValidationErrorCodes.InvalidLightKeyReference,
-                    $"ShortcutColumn '{unit.Name}' references invalid LightKey compound ID: {unit.LightKey}",
-                    "ShortcutColumn",
-                    unit.Name
-                ));
+               errors.Add(new ValidationError(
+                   ValidationErrorCodes.NegativeComposition,
+                   $"Stream '{stream.Name}' has negative composition for compound '{compound}': {fraction}. " +
+                   $"Mole fractions must be non-negative.",
+                   "MaterialStream",
+                   stream.Name
+               ));
             }
+         }
+      }
 
-            if (unit.HeavyKey != Guid.Empty && !compoundIds.Contains(unit.HeavyKey))
-            {
-                errors.Add(new ValidationError(
-                    ValidationErrorCodes.InvalidHeavyKeyReference,
-                    $"ShortcutColumn '{unit.Name}' references invalid HeavyKey compound ID: {unit.HeavyKey}",
-                    "ShortcutColumn",
-                    unit.Name
-                ));
-            }
-        }
+      return errors;
+   }
 
-        return errors;
-    }
+   #endregion
 
-    #endregion
+   #region Unit Operations Validation
 
-    #region Physical Properties Validation
+   private List<ValidationError> ValidateUnitOperations(SimulationEntity simulation)
+   {
+      var errors = new List<ValidationError>();
 
-    private List<ValidationError> ValidatePhysicalProperties(SimulationEntity simulation)
-    {
-        var errors = new List<ValidationError>();
+      foreach (var unit in simulation.UnitOperations)
+      {
+         try
+         {
+            unit.Validate();
+         }
+         catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException)
+         {
+            errors.Add(ConvertExceptionToError(ex, unit.Type.ToString(), unit.Name));
+         }
+      }
 
-        // Validate material streams (delegates to entity validation)
-        foreach (var stream in simulation.MaterialStreams)
-        {
-            try
-            {
-                stream.Validate();
-            }
-            catch (ArgumentException ex)
-            {
-                errors.Add(ConvertExceptionToError(ex, "MaterialStream", stream.Name));
-            }
-        }
+      return errors;
+   }
 
-        // Validate energy streams (delegates to entity validation)
-        foreach (var stream in simulation.EnergyStreams)
-        {
-            try
-            {
-                stream.Validate();
-            }
-            catch (ArgumentException ex)
-            {
-                errors.Add(ConvertExceptionToError(ex, "EnergyStream", stream.Name));
-            }
-        }
+   #endregion
 
-        // Additional validation: Composition sum (not in entity)
-        foreach (var stream in simulation.MaterialStreams)
-        {
-            if (stream.Composition.Count == 0) continue;
+   #region Exception to Error Conversion (Adapter Pattern)
 
-            var sum = stream.Composition.Values.Sum();
+   /// <summary>
+   /// Converts domain entity validation exceptions to structured ValidationError objects.
+   /// This adapter method maps exception messages to specific error codes for fine-grained error reporting.
+   /// </summary>
+   private ValidationError ConvertExceptionToError(
+       Exception ex,
+       string entityType,
+       string entityName)
+   {
+      var message = ex.Message;
 
-            if (Math.Abs(sum - ValidationConstants.ExpectedCompositionSum) >
-                ValidationConstants.CompositionSumTolerance)
-            {
-                errors.Add(new ValidationError(
-                    ValidationErrorCodes.InvalidCompositionSum,
-                    $"Stream '{stream.Name}' composition sums to {sum:F4} (must be {ValidationConstants.ExpectedCompositionSum} ± {ValidationConstants.CompositionSumTolerance}). " +
-                    $"Please adjust mole fractions to sum to {ValidationConstants.ExpectedCompositionSum}.",
-                    "MaterialStream",
-                    stream.Name
-                ));
-            }
+      // Fine-grained error code mapping based on exception message patterns
+      var code = (message, ex) switch
+      {
+         // Temperature errors
+         var (msg, _) when msg.Contains("Temperature") && msg.Contains("greater than 0")
+             => ValidationErrorCodes.InvalidTemperature,
 
-            // Check for negative compositions
-            foreach (var (compound, fraction) in stream.Composition)
-            {
-                if (fraction < 0)
-                {
-                    errors.Add(new ValidationError(
-                        ValidationErrorCodes.NegativeComposition,
-                        $"Stream '{stream.Name}' has negative composition for compound '{compound}': {fraction}. " +
-                        $"Mole fractions must be non-negative.",
-                        "MaterialStream",
-                        stream.Name
-                    ));
-                }
-            }
-        }
+         var valueTuple when valueTuple.message.Contains("OutletTemperature")
+             => ValidationErrorCodes.InvalidOutletTemperature,
 
-        return errors;
-    }
+         // Pressure errors
+         var (msg, _) when msg.Contains("Pressure") && msg.Contains("non-negative")
+             => ValidationErrorCodes.InvalidPressure,
 
-    #endregion
+         var (msg, _) when msg.Contains("OutletPressure")
+             => ValidationErrorCodes.InvalidOutletPressure,
 
-    #region Unit Operations Validation
+         var (msg, _) when msg.Contains("CondenserPressure")
+             => ValidationErrorCodes.InvalidCondenserPressure,
 
-    private List<ValidationError> ValidateUnitOperations(SimulationEntity simulation)
-    {
-        var errors = new List<ValidationError>();
+         var (msg, _) when msg.Contains("ReboilerPressure")
+             => ValidationErrorCodes.InvalidReboilerPressure,
 
-        foreach (var unit in simulation.UnitOperations)
-        {
-            try
-            {
-                unit.Validate();
-            }
-            catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException)
-            {
-                errors.Add(ConvertExceptionToError(ex, unit.Type.ToString(), unit.Name));
-            }
-        }
+         var (msg, _) when msg.Contains("PressureDrop")
+             => ValidationErrorCodes.InvalidPressureDrop,
 
-        return errors;
-    }
+         // Flow errors
+         var (msg, _) when msg.Contains("MassFlow")
+             => ValidationErrorCodes.InvalidMassFlow,
 
-    #endregion
+         var (msg, _) when msg.Contains("MolarFlow")
+             => ValidationErrorCodes.InvalidMolarFlow,
 
-    #region Exception to Error Conversion (Adapter Pattern)
+         var (msg, _) when msg.Contains("EnergyFlow")
+             => ValidationErrorCodes.InvalidEnergyFlow,
 
-    /// <summary>
-    /// Converts domain entity validation exceptions to structured ValidationError objects.
-    /// This adapter method maps exception messages to specific error codes for fine-grained error reporting.
-    /// </summary>
-    private ValidationError ConvertExceptionToError(
-        Exception ex,
-        string entityType,
-        string entityName)
-    {
-        var message = ex.Message;
+         // Unit operation configuration errors
+         var (msg, _) when msg.Contains("Efficiency")
+             => ValidationErrorCodes.InvalidEfficiency,
 
-        // Fine-grained error code mapping based on exception message patterns
-        var code = (message, ex) switch
-        {
-            // Temperature errors
-            var (msg, _) when msg.Contains("Temperature") && msg.Contains("greater than 0")
-                => ValidationErrorCodes.InvalidTemperature,
+         var (msg, _) when msg.Contains("split ratio")
+             => ValidationErrorCodes.SplitterInvalidRatios,
 
-            var valueTuple when valueTuple.message.Contains("OutletTemperature")
-                => ValidationErrorCodes.InvalidOutletTemperature,
+         var (msg, _) when msg.Contains("RefluxRatio")
+             => ValidationErrorCodes.InvalidRefluxRatio,
 
-            // Pressure errors
-            var (msg, _) when msg.Contains("Pressure") && msg.Contains("non-negative")
-                => ValidationErrorCodes.InvalidPressure,
+         var (msg, _) when msg.Contains("Stages")
+             => ValidationErrorCodes.InvalidStagesCount,
 
-            var (msg, _) when msg.Contains("OutletPressure")
-                => ValidationErrorCodes.InvalidOutletPressure,
+         var (msg, _) when msg.Contains("Tolerance")
+             => ValidationErrorCodes.InvalidTolerance,
 
-            var (msg, _) when msg.Contains("CondenserPressure")
-                => ValidationErrorCodes.InvalidCondenserPressure,
+         var (msg, _) when msg.Contains("MaxIterations")
+             => ValidationErrorCodes.InvalidMaxIterations,
 
-            var (msg, _) when msg.Contains("ReboilerPressure")
-                => ValidationErrorCodes.InvalidReboilerPressure,
+         var (msg, _) when msg.Contains("HeatDuty")
+             => ValidationErrorCodes.InvalidHeatDuty,
 
-            var (msg, _) when msg.Contains("PressureDrop")
-                => ValidationErrorCodes.InvalidPressureDrop,
+         // Topology errors (unit operation input/output requirements)
+         var (msg, _) when msg.Contains("input stream") && msg.Contains("exactly one")
+             => ValidationErrorCodes.UnitRequiresSingleInput,
+         var (msg, _) when msg.Contains("output stream") && msg.Contains("exactly one")
+             => ValidationErrorCodes.UnitRequiresSingleOutput,
+         var (msg, _) when msg.Contains("input stream") && msg.Contains("at least two")
+             => ValidationErrorCodes.UnitRequiresMultipleInputs,
+         var (msg, _) when msg.Contains("output stream") && msg.Contains("at least two")
+             => ValidationErrorCodes.UnitRequiresMultipleOutputs,
+         var (msg, _) when msg.Contains("input stream") && msg.Contains("at least one")
+             => ValidationErrorCodes.UnitRequiresInput,
+         var (msg, _) when msg.Contains("output stream") && msg.Contains("two output")
+             => ValidationErrorCodes.UnitRequiresTwoOutputs,
 
-            // Flow errors
-            var (msg, _) when msg.Contains("MassFlow")
-                => ValidationErrorCodes.InvalidMassFlow,
+         // Null reference errors
+         (_, ArgumentNullException) => ValidationErrorCodes.NullReferenceError,
 
-            var (msg, _) when msg.Contains("MolarFlow")
-                => ValidationErrorCodes.InvalidMolarFlow,
+         // Fallback for unmapped errors
+         _ => ValidationErrorCodes.ValidationError
+      };
 
-            var (msg, _) when msg.Contains("EnergyFlow")
-                => ValidationErrorCodes.InvalidEnergyFlow,
+      return new ValidationError(
+          code,
+          message,
+          entityType,
+          entityName,
+          severity: ErrorSeverity.Error
+      );
+   }
 
-            // Unit operation configuration errors
-            var (msg, _) when msg.Contains("Efficiency")
-                => ValidationErrorCodes.InvalidEfficiency,
-
-            var (msg, _) when msg.Contains("split ratio")
-                => ValidationErrorCodes.SplitterInvalidRatios,
-
-            var (msg, _) when msg.Contains("RefluxRatio")
-                => ValidationErrorCodes.InvalidRefluxRatio,
-
-            var (msg, _) when msg.Contains("Stages")
-                => ValidationErrorCodes.InvalidStagesCount,
-
-            var (msg, _) when msg.Contains("Tolerance")
-                => ValidationErrorCodes.InvalidTolerance,
-
-            var (msg, _) when msg.Contains("MaxIterations")
-                => ValidationErrorCodes.InvalidMaxIterations,
-
-            var (msg, _) when msg.Contains("HeatDuty")
-                => ValidationErrorCodes.InvalidHeatDuty,
-
-            // Topology errors (unit operation input/output requirements)
-            var (msg, _) when msg.Contains("input stream") && msg.Contains("exactly one")
-                => ValidationErrorCodes.UnitRequiresSingleInput,
-            var (msg, _) when msg.Contains("output stream") && msg.Contains("exactly one")
-                => ValidationErrorCodes.UnitRequiresSingleOutput,
-            var (msg, _) when msg.Contains("input stream") && msg.Contains("at least two")
-                => ValidationErrorCodes.UnitRequiresMultipleInputs,
-            var (msg, _) when msg.Contains("output stream") && msg.Contains("at least two")
-                => ValidationErrorCodes.UnitRequiresMultipleOutputs,
-            var (msg, _) when msg.Contains("input stream") && msg.Contains("at least one")
-                => ValidationErrorCodes.UnitRequiresInput,
-            var (msg, _) when msg.Contains("output stream") && msg.Contains("two output")
-                => ValidationErrorCodes.UnitRequiresTwoOutputs,
-
-            // Null reference errors
-            (_, ArgumentNullException) => ValidationErrorCodes.NullReferenceError,
-
-            // Fallback for unmapped errors
-            _ => ValidationErrorCodes.ValidationError
-        };
-
-        return new ValidationError(
-            code,
-            message,
-            entityType,
-            entityName,
-            severity: ErrorSeverity.Error
-        );
-    }
-
-    #endregion
+   #endregion
 }

@@ -2,6 +2,7 @@ using Enerflow.Domain.Entities;
 using Enerflow.Domain.Entities.Streams;
 using Enerflow.Domain.Entities.UnitOperations;
 using Enerflow.Domain.Enums;
+using Enerflow.Domain.ValueObjects;
 using Enerflow.Simulation.Validation;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -156,11 +157,11 @@ public sealed class UnitOperationValidationTests
         simulation.MaterialStreams.Add(new MaterialStream
         {
             Id = inputStreamId,
-            Name = "Inlet",
+            Name = "Input",
             SimulationId = simulation.Id,
-            Temperature = 298.15,
-            Pressure = 101325,
-            MassFlow = 1.0,
+            Temperature = new Temperature(298.15),
+            Pressure = new Pressure(101325),
+            MassFlow = new MassFlow(1.0),
             Composition = new Dictionary<string, double> { { "Water", 1.0 } }
         });
         
@@ -169,9 +170,9 @@ public sealed class UnitOperationValidationTests
             Id = outputStreamId,
             Name = "Outlet",
             SimulationId = simulation.Id,
-            Temperature = 298.15,
-            Pressure = 101325,
-            MassFlow = 1.0,
+            Temperature = new Temperature(298.15),
+            Pressure = new Pressure(101325),
+            MassFlow = new MassFlow(1.0),
             Composition = new Dictionary<string, double> { { "Water", 1.0 } }
         });
         
@@ -204,9 +205,9 @@ public sealed class UnitOperationValidationTests
                 Id = streamId,
                 Name = $"Input{i + 1}",
                 SimulationId = simulation.Id,
-                Temperature = 298.15,
-                Pressure = 101325,
-                MassFlow = 1.0,
+                Temperature = new Temperature(298.15),
+                Pressure = new Pressure(101325),
+                MassFlow = new MassFlow(1.0),
                 Composition = new Dictionary<string, double> { { "Water", 1.0 } }
             });
         }
@@ -221,9 +222,9 @@ public sealed class UnitOperationValidationTests
                 Id = streamId,
                 Name = $"Output{i + 1}",
                 SimulationId = simulation.Id,
-                Temperature = 298.15,
-                Pressure = 101325,
-                MassFlow = 1.0,
+                Temperature = new Temperature(298.15),
+                Pressure = new Pressure(101325),
+                MassFlow = new MassFlow(0.5),
                 Composition = new Dictionary<string, double> { { "Water", 1.0 } }
             });
         }
@@ -250,9 +251,9 @@ public sealed class UnitOperationValidationTests
             Id = inputStreamId,
             Name = "Input",
             SimulationId = simulation.Id,
-            Temperature = 298.15,
-            Pressure = 101325,
-            MassFlow = 1.0,
+            Temperature = new Temperature(298.15),
+            Pressure = new Pressure(101325),
+            MassFlow = new MassFlow(1.0),
             Composition = new Dictionary<string, double> { { "Water", 1.0 } }
         });
         
@@ -269,9 +270,9 @@ public sealed class UnitOperationValidationTests
                 Id = streamId,
                 Name = $"Output{i + 1}",
                 SimulationId = simulation.Id,
-                Temperature = 298.15,
-                Pressure = 101325,
-                MassFlow = 0.5,
+                Temperature = new Temperature(298.15),
+                Pressure = new Pressure(101325),
+                MassFlow = new MassFlow(0.5),
                 Composition = new Dictionary<string, double> { { "Water", 1.0 } }
             });
             
@@ -305,9 +306,9 @@ public sealed class UnitOperationValidationTests
             Id = inputStreamId,
             Name = "Input",
             SimulationId = simulation.Id,
-            Temperature = 298.15,
-            Pressure = 101325,
-            MassFlow = 1.0,
+            Temperature = new Temperature(298.15),
+            Pressure = new Pressure(101325),
+            MassFlow = new MassFlow(1.0),
             Composition = new Dictionary<string, double> { { "Water", 1.0 } }
         });
         
@@ -316,9 +317,9 @@ public sealed class UnitOperationValidationTests
             Id = outputStreamId,
             Name = "Output",
             SimulationId = simulation.Id,
-            Temperature = 298.15,
-            Pressure = 101325,
-            MassFlow = 1.0,
+            Temperature = new Temperature(298.15),
+            Pressure = new Pressure(101325),
+            MassFlow = new MassFlow(1.0),
             Composition = new Dictionary<string, double> { { "Water", 1.0 } }
         });
         
@@ -357,9 +358,9 @@ public sealed class UnitOperationValidationTests
             Id = inputStreamId,
             Name = "Feed",
             SimulationId = simulation.Id,
-            Temperature = 298.15,
-            Pressure = 101325,
-            MassFlow = 1.0,
+            Temperature = new Temperature(298.15),
+            Pressure = new Pressure(101325),
+            MassFlow = new MassFlow(1.0),
             Composition = new Dictionary<string, double> { { "Water", 0.5 }, { "Ethanol", 0.5 } }
         });
         
@@ -368,9 +369,9 @@ public sealed class UnitOperationValidationTests
             Id = outputStream1Id,
             Name = "Distillate",
             SimulationId = simulation.Id,
-            Temperature = 298.15,
-            Pressure = 101325,
-            MassFlow = 0.5,
+            Temperature = new Temperature(298.15),
+            Pressure = new Pressure(101325),
+            MassFlow = new MassFlow(0.5),
             Composition = new Dictionary<string, double> { { "Ethanol", 1.0 } }
         });
         
@@ -379,9 +380,9 @@ public sealed class UnitOperationValidationTests
             Id = outputStream2Id,
             Name = "Bottoms",
             SimulationId = simulation.Id,
-            Temperature = 298.15,
-            Pressure = 101325,
-            MassFlow = 0.5,
+            Temperature = new Temperature(298.15),
+            Pressure = new Pressure(101325),
+            MassFlow = new MassFlow(0.5),
             Composition = new Dictionary<string, double> { { "Water", 1.0 } }
         });
         
@@ -414,9 +415,9 @@ public sealed class UnitOperationValidationTests
             Id = inputStreamId,
             Name = "Input",
             SimulationId = simulation.Id,
-            Temperature = 298.15,
-            Pressure = 101325,
-            MassFlow = 1.0,
+            Temperature = new Temperature(298.15),
+            Pressure = new Pressure(101325),
+            MassFlow = new MassFlow(1.0),
             Composition = new Dictionary<string, double> { { "Water", 1.0 } }
         });
         
@@ -425,9 +426,9 @@ public sealed class UnitOperationValidationTests
             Id = outputStreamId,
             Name = "Output",
             SimulationId = simulation.Id,
-            Temperature = 298.15,
-            Pressure = 101325,
-            MassFlow = 1.0,
+            Temperature = new Temperature(298.15),
+            Pressure = new Pressure(101325),
+            MassFlow = new MassFlow(1.0),
             Composition = new Dictionary<string, double> { { "Water", 1.0 } }
         });
         
@@ -459,9 +460,9 @@ public sealed class UnitOperationValidationTests
                 Id = streamId,
                 Name = $"Input{i + 1}",
                 SimulationId = simulation.Id,
-                Temperature = 298.15,
-                Pressure = 101325,
-                MassFlow = 1.0,
+                Temperature = new Temperature(298.15),
+                Pressure = new Pressure(101325),
+                MassFlow = new MassFlow(1.0),
                 Composition = new Dictionary<string, double> { { "Water", 1.0 } }
             });
         }
@@ -476,9 +477,9 @@ public sealed class UnitOperationValidationTests
                 Id = streamId,
                 Name = $"Output{i + 1}",
                 SimulationId = simulation.Id,
-                Temperature = 298.15,
-                Pressure = 101325,
-                MassFlow = 0.5,
+                Temperature = new Temperature(298.15),
+                Pressure = new Pressure(101325),
+                MassFlow = new MassFlow(0.5),
                 Composition = new Dictionary<string, double> { { "Water", 1.0 } }
             });
         }

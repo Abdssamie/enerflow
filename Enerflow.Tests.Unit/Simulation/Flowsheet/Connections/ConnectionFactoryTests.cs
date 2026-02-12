@@ -2,6 +2,7 @@ using Enerflow.Domain.Entities;
 using Enerflow.Domain.Entities.Streams;
 using Enerflow.Domain.Entities.UnitOperations;
 using Enerflow.Domain.Enums;
+using Enerflow.Domain.ValueObjects;
 using Enerflow.Simulation.Flowsheet.Connections;
 using Microsoft.Extensions.Logging;
 using Xunit;
@@ -33,7 +34,7 @@ public class ConnectionFactoryTests
 		{
 			SimulationId = simulationId,
 			Name = "Heat Input",
-			EnergyFlow = 100
+			EnergyFlow = new EnergyFlow(100)
 		};
 
 		var heater = new HeaterObject
@@ -78,7 +79,7 @@ public class ConnectionFactoryTests
 		{
 			SimulationId = simulationId,
 			Name = "Heat Removal",
-			EnergyFlow = -100
+			EnergyFlow = new EnergyFlow(-100)
 		};
 
 		var cooler = new CoolerObject

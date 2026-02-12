@@ -1,0 +1,791 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+The content has been processed where comments have been removed, content has been compressed (code blocks are separated by ⋮---- delimiter).
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: Enerflow.*/**/*.cs
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Code comments have been removed from supported file types
+- Content has been compressed - code blocks are separated by ⋮---- delimiter
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+Enerflow.API/
+  Controllers/
+    CatalogsController.cs
+    SimulationJobsController.cs
+    SimulationsController.cs
+  Extensions/
+    PostgresTransportExtensions.cs
+  Middleware/
+    RateLimitingMiddleware.cs
+    SecurityHeadersMiddleware.cs
+  Services/
+    CatalogService.cs
+    JobProducer.cs
+  Program.cs
+Enerflow.Domain/
+  Common/
+    IdGenerator.cs
+  DTOs/
+    ApiRequests.cs
+    SimulationJob.cs
+    SimulationResult.cs
+    SimulationResults.cs
+  Entities/
+    Streams/
+      EnergyStream.cs
+      MaterialStream.cs
+    UnitOperations/
+      CoolerObject.cs
+      FlashDrumObject.cs
+      HeaterObject.cs
+      IEnergyConsumer.cs
+      IEnergyProducer.cs
+      MixerObject.cs
+      RecycleObject.cs
+      ShortcutColumnObject.cs
+      SplitterObject.cs
+      UnitOperationObject.cs
+      ValveObject.cs
+    Compound.cs
+    Simulation.cs
+    SimulationObject.cs
+  Enums/
+    FlashAlgorithm.cs
+    FlashCalculationType.cs
+    HeaterCalculationMode.cs
+    PhaseType.cs
+    PortType.cs
+    PropertyPackageType.cs
+    RecycleAccelerationMethod.cs
+    SimulationStatus.cs
+    SystemOfUnits.cs
+    UnitOperationType.cs
+    ValveCalculationMode.cs
+  Exceptions/
+    InvalidTopologyException.cs
+  Extensions/
+    SimulationMappingExtensions.cs
+  Interfaces/
+    IJobProducer.cs
+  ValueObjects/
+    EnergyFlow.cs
+    IParameter.cs
+    MassFlow.cs
+    Position.cs
+    Pressure.cs
+    Temperature.cs
+Enerflow.Infrastructure/
+  Migrations/
+    20260116032453_InitialCreate.cs
+    20260116032453_InitialCreate.Designer.cs
+    20260116132432_UseSequentialIds.cs
+    20260116132432_UseSequentialIds.Designer.cs
+    20260117021552_SyncModelChanges.cs
+    20260117021552_SyncModelChanges.Designer.cs
+    20260131020350_SyncDomainModelChanges.cs
+    20260131020350_SyncDomainModelChanges.Designer.cs
+    EnerflowDbContextModelSnapshot.cs
+  Persistence/
+    DesignTimeDbContextFactory.cs
+    EnerflowDbContext.cs
+    SequentialGuidValueGenerator.cs
+  DependencyInjection.cs
+Enerflow.Simulation/
+  Flowsheet/
+    Builders/
+      DWSIMFlowsheetBuilder.cs
+      IFlowsheetBuilder.cs
+    Compounds/
+      CompoundManager.cs
+      ICompoundManager.cs
+    Connections/
+      ConnectionFactory.cs
+      IConnectionFactory.cs
+    FlashAlgorithms/
+      FlashAlgorithmManager.cs
+      IFlashAlgorithmManager.cs
+    PropertyPackages/
+      IPropertyPackageManager.cs
+      PropertyPackageManager.cs
+    Streams/
+      EnergyStreamFactory.cs
+      IEnergyStreamFactory.cs
+      IMaterialStreamFactory.cs
+      MaterialStreamFactory.cs
+    UnitOperations/
+      IUnitOperationFactory.cs
+      UnitOperationFactory.cs
+  Validation/
+    FlowsheetValidationException.cs
+    FlowsheetValidator.cs
+    IFlowsheetValidator.cs
+    ValidationConstants.cs
+    ValidationError.cs
+    ValidationErrorCodes.cs
+    ValidationResult.cs
+Enerflow.Tests.DWSIM/
+  Scenarios/
+    Test01_SimpleHeating.cs
+    Test02_CompressionCooling.cs
+    Test03_PressureReduction.cs
+    Test04_EthanolWaterVLE.cs
+    Test05_FlashAlgorithmComparison.cs
+    Test06_ThreePhaseFlash.cs
+    Test07_HeatExchanger.cs
+    Test08_ShortcutDistillation.cs
+    Test09_ConversionReactor.cs
+    Test10_RecycleLoop.cs
+  TestBase.cs
+  TestHelpers.cs
+  UnitTest1.cs
+Enerflow.Tests.Functional/
+  Scenarios/
+    SimulationFlowTests.cs
+  BaseIntegrationTest.cs
+  IntegrationTestWebAppFactory.cs
+Enerflow.Tests.Integration/
+  FlowsheetBuilderIntegrationTests.cs
+Enerflow.Tests.Unit/
+  Simulation/
+    Flowsheet/
+      Connections/
+        ConnectionFactoryTests.cs
+  Worker/
+    Validation/
+      CompoundValidationTests.cs
+      FlowsheetValidatorTests.cs
+      PhysicalPropertyValidationTests.cs
+      UnitOperationValidationTests.cs
+  DtoValidationTests.cs
+  IdGenerationTests.cs
+Enerflow.Worker/
+  Consumers/
+    SimulationJobConsumer.cs
+    SimulationJobConsumerDefinition.cs
+  Extensions/
+    PostgresTransportExtensions.cs
+  Solvers/
+    DWSIMSolver.cs
+    IResultCollector.cs
+    ISimulationSolver.cs
+    ResultCollector.cs
+  Program.cs
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="Enerflow.Simulation/Flowsheet/Builders/IFlowsheetBuilder.cs">
+public interface IFlowsheetBuilder
+⋮----
+IFlowsheet BuildFlowsheet(SimulationEntity simulation);
+</file>
+
+<file path="Enerflow.Simulation/Flowsheet/Connections/IConnectionFactory.cs">
+public interface IConnectionFactory
+⋮----
+void ConnectFlowsheet(SimulationEntity domainSimulation, IFlowsheet flowsheet);
+</file>
+
+<file path="Enerflow.Simulation/Validation/FlowsheetValidationException.cs">
+public class FlowsheetValidationException : Exception
+⋮----
+: base($"Flowsheet validation failed with {result.Errors.Count} error(s): {string.Join("; ", result.Errors.Select(e => e.Message))}")
+</file>
+
+<file path="Enerflow.Simulation/Validation/FlowsheetValidator.cs">
+public sealed class FlowsheetValidator : IFlowsheetValidator
+⋮----
+public ValidationResult Validate(SimulationEntity simulation, IFlowsheet flowsheet)
+⋮----
+_logger.LogInformation(
+⋮----
+errors.AddRange(topologyErrors);
+_logger.LogDebug("Topology validation: {Count} errors", topologyErrors.Count);
+⋮----
+errors.AddRange(compoundErrors);
+_logger.LogDebug("Compound validation: {Count} errors", compoundErrors.Count);
+⋮----
+errors.AddRange(physicalErrors);
+_logger.LogDebug("Physical properties validation: {Count} errors", physicalErrors.Count);
+⋮----
+errors.AddRange(unitErrors);
+_logger.LogDebug("Unit operations validation: {Count} errors", unitErrors.Count);
+⋮----
+return new ValidationResult(errors);
+⋮----
+private List<ValidationError> ValidateTopology(SimulationEntity simulation)
+⋮----
+select new ValidationError(
+⋮----
+)).ToList();
+⋮----
+.SelectMany(u => u.InputStreamIds.Concat(u.OutputStreamIds))
+.ToHashSet();
+⋮----
+errors.AddRange(from stream in simulation.MaterialStreams
+where !connectedStreamIds.Contains(stream.Id)
+⋮----
+errors.AddRange(from stream in simulation.EnergyStreams
+⋮----
+private List<ValidationError> ValidateCompounds(SimulationEntity simulation)
+⋮----
+errors.Add(new ValidationError(
+⋮----
+.Select(c => c.Name)
+.ToHashSet(StringComparer.OrdinalIgnoreCase);
+⋮----
+where !definedCompounds.Contains(compoundName)
+⋮----
++ $"Available compounds: {string.Join(", ", definedCompounds)}", "MaterialStream", stream.Name
+⋮----
+var compoundIds = simulation.Compounds.Select(c => c.Id).ToHashSet();
+⋮----
+if (unit.LightKey != Guid.Empty && !compoundIds.Contains(unit.LightKey))
+⋮----
+if (unit.HeavyKey != Guid.Empty && !compoundIds.Contains(unit.HeavyKey))
+⋮----
+private List<ValidationError> ValidatePhysicalProperties(SimulationEntity simulation)
+⋮----
+stream.Validate();
+⋮----
+errors.Add(ConvertExceptionToError(ex, "MaterialStream", stream.Name));
+⋮----
+errors.Add(ConvertExceptionToError(ex, "EnergyStream", stream.Name));
+⋮----
+var sum = stream.Composition.Values.Sum();
+⋮----
+if (Math.Abs(sum - ValidationConstants.ExpectedCompositionSum) >
+⋮----
+private List<ValidationError> ValidateUnitOperations(SimulationEntity simulation)
+⋮----
+unit.Validate();
+⋮----
+errors.Add(ConvertExceptionToError(ex, unit.Type.ToString(), unit.Name));
+⋮----
+private ValidationError ConvertExceptionToError(
+⋮----
+var (msg, _) when msg.Contains("Temperature") && msg.Contains("greater than 0")
+⋮----
+var valueTuple when valueTuple.message.Contains("OutletTemperature")
+⋮----
+var (msg, _) when msg.Contains("Pressure") && msg.Contains("non-negative")
+⋮----
+var (msg, _) when msg.Contains("OutletPressure")
+⋮----
+var (msg, _) when msg.Contains("CondenserPressure")
+⋮----
+var (msg, _) when msg.Contains("ReboilerPressure")
+⋮----
+var (msg, _) when msg.Contains("PressureDrop")
+⋮----
+var (msg, _) when msg.Contains("MassFlow")
+⋮----
+var (msg, _) when msg.Contains("MolarFlow")
+⋮----
+var (msg, _) when msg.Contains("EnergyFlow")
+⋮----
+var (msg, _) when msg.Contains("Efficiency")
+⋮----
+var (msg, _) when msg.Contains("split ratio")
+⋮----
+var (msg, _) when msg.Contains("RefluxRatio")
+⋮----
+var (msg, _) when msg.Contains("Stages")
+⋮----
+var (msg, _) when msg.Contains("Tolerance")
+⋮----
+var (msg, _) when msg.Contains("MaxIterations")
+⋮----
+var (msg, _) when msg.Contains("HeatDuty")
+⋮----
+var (msg, _) when msg.Contains("input stream") && msg.Contains("exactly one")
+⋮----
+var (msg, _) when msg.Contains("output stream") && msg.Contains("exactly one")
+⋮----
+var (msg, _) when msg.Contains("input stream") && msg.Contains("at least two")
+⋮----
+var (msg, _) when msg.Contains("output stream") && msg.Contains("at least two")
+⋮----
+var (msg, _) when msg.Contains("input stream") && msg.Contains("at least one")
+⋮----
+var (msg, _) when msg.Contains("output stream") && msg.Contains("two output")
+⋮----
+return new ValidationError(
+</file>
+
+<file path="Enerflow.Simulation/Validation/IFlowsheetValidator.cs">
+public interface IFlowsheetValidator
+⋮----
+ValidationResult Validate(SimulationEntity simulation, IFlowsheet flowsheet);
+</file>
+
+<file path="Enerflow.Simulation/Validation/ValidationConstants.cs">
+public static class ValidationConstants
+</file>
+
+<file path="Enerflow.Simulation/Validation/ValidationError.cs">
+public class ValidationError
+⋮----
+public class ValidationWarning
+</file>
+
+<file path="Enerflow.Simulation/Validation/ValidationErrorCodes.cs">
+public static class ValidationErrorCodes
+</file>
+
+<file path="Enerflow.Simulation/Validation/ValidationResult.cs">
+public class ValidationResult
+⋮----
+public bool IsValid => !Errors.Any();
+</file>
+
+<file path="Enerflow.Simulation/Flowsheet/Compounds/ICompoundManager.cs">
+public interface ICompoundManager
+⋮----
+void AddCompound(IFlowsheet flowsheet, Compound compound);
+⋮----
+void AddCompounds(IFlowsheet flowsheet, IEnumerable<Compound> compounds);
+⋮----
+bool ValidateCompound(string compoundName);
+</file>
+
+<file path="Enerflow.Simulation/Flowsheet/FlashAlgorithms/IFlashAlgorithmManager.cs">
+public interface IFlashAlgorithmManager
+⋮----
+IFlashAlgorithm CreateFlashAlgorithm(EnerflowFlashAlgorithm algorithmType);
+⋮----
+void SetFlashAlgorithm(IPropertyPackage package, IFlashAlgorithm flashAlgorithm);
+</file>
+
+<file path="Enerflow.Simulation/Flowsheet/Builders/DWSIMFlowsheetBuilder.cs">
+public class DWSIMFlowsheetBuilder : IFlowsheetBuilder
+⋮----
+private readonly ICompoundManager _compoundManager;
+private readonly IPropertyPackageManager _propertyPackageManager;
+private readonly IFlashAlgorithmManager _flashAlgorithmManager;
+private readonly IMaterialStreamFactory _materialStreamFactory;
+private readonly IEnergyStreamFactory _energyStreamFactory;
+private readonly IUnitOperationFactory _unitOperationFactory;
+private readonly IConnectionFactory _connectionFactory;
+private readonly IFlowsheetValidator _validator;
+⋮----
+public IFlowsheet BuildFlowsheet(SimulationEntity simulation)
+⋮----
+_logger.LogInformation("Building flowsheet for simulation {Id}: {Name}", simulation.Id, simulation.Name);
+⋮----
+var flowsheet = _automation.CreateFlowsheet();
+⋮----
+_compoundManager.AddCompounds(flowsheet, simulation.Compounds);
+⋮----
+var propertyPackage = _propertyPackageManager.CreatePropertyPackage(simulation.PropertyPackage);
+var flashAlgorithm = _flashAlgorithmManager.CreateFlashAlgorithm(simulation.FlashAlgorithm);
+_flashAlgorithmManager.SetFlashAlgorithm(propertyPackage, flashAlgorithm);
+_propertyPackageManager.AddToFlowsheet(flowsheet, propertyPackage);
+⋮----
+_materialStreamFactory.CreateAndConfigureStreams(flowsheet, simulation.MaterialStreams, simulation.SystemOfUnits);
+⋮----
+_energyStreamFactory.CreateAndConfigureStreams(flowsheet, simulation.EnergyStreams, simulation.SystemOfUnits);
+⋮----
+var compoundLookup = simulation.Compounds.ToDictionary(c => c.Id, c => c.Name);
+_unitOperationFactory.CreateAndConfigureUnitOperations(flowsheet, simulation.UnitOperations, compoundLookup);
+⋮----
+_logger.LogInformation("Connecting flowsheet for simulation {Id}", simulation.Id);
+_connectionFactory.ConnectFlowsheet(simulation, flowsheet);
+⋮----
+_logger.LogInformation("Flowsheet connected successfully for simulation {Id}", simulation.Id);
+⋮----
+_logger.LogInformation("Configuring post-connection settings for simulation {Id}", simulation.Id);
+_unitOperationFactory.ConfigurePostConnection(flowsheet, simulation);
+_logger.LogInformation("Post-connection configuration completed for simulation {Id}", simulation.Id);
+⋮----
+_logger.LogInformation("Validating flowsheet for simulation {Id}", simulation.Id);
+var validationResult = _validator.Validate(simulation, flowsheet);
+⋮----
+_logger.LogWarning("Flowsheet validation failed for simulation {Id} with {Count} errors",
+⋮----
+throw new FlowsheetValidationException(validationResult);
+⋮----
+_logger.LogInformation("Flowsheet validation passed for simulation {Id}", simulation.Id);
+⋮----
+private void SetSystemOfUnits(IFlowsheet flowsheet, SystemOfUnits systemOfUnits)
+⋮----
+IUnitsOfMeasure unitSystem = systemOfUnits switch
+⋮----
+SystemOfUnits.SI => new SI(),
+SystemOfUnits.CGS => new CGS(),
+SystemOfUnits.English => new English(),
+_ => new SI()
+⋮----
+_logger.LogDebug("Set system of units to {System}", systemOfUnits);
+</file>
+
+<file path="Enerflow.Simulation/Flowsheet/Compounds/CompoundManager.cs">
+public class CompoundManager : ICompoundManager
+⋮----
+public void AddCompound(IFlowsheet flowsheet, Compound compound)
+⋮----
+flowsheet.AddCompound(compound.Name);
+_logger.LogDebug("Added compound: {Name}", compound.Name);
+⋮----
+_logger.LogWarning(ex, "Failed to add compound: {Name}", compound.Name);
+⋮----
+public void AddCompounds(IFlowsheet flowsheet, IEnumerable<Compound> compounds)
+⋮----
+var compoundList = compounds.ToList();
+_logger.LogInformation("Adding {Count} compounds to flowsheet", compoundList.Count);
+⋮----
+_logger.LogInformation("Successfully added {Count} compounds", compoundList.Count);
+⋮----
+public bool ValidateCompound(string compoundName)
+⋮----
+return !string.IsNullOrWhiteSpace(compoundName);
+</file>
+
+<file path="Enerflow.Simulation/Flowsheet/FlashAlgorithms/FlashAlgorithmManager.cs">
+public class FlashAlgorithmManager : IFlashAlgorithmManager
+⋮----
+public IFlashAlgorithm CreateFlashAlgorithm(EnerflowFlashAlgorithm algorithmType)
+⋮----
+IFlashAlgorithm algorithm = algorithmType switch
+⋮----
+EnerflowFlashAlgorithm.NestedLoops => new NestedLoops(),
+EnerflowFlashAlgorithm.InsideOut => new BostonBrittInsideOut(),
+EnerflowFlashAlgorithm.InsideOut3Phase => new BostonFournierInsideOut3P(),
+EnerflowFlashAlgorithm.GibbsMinimization3Phase => new GibbsMinimization3P(),
+EnerflowFlashAlgorithm.NestedLoops3Phase => new NestedLoops3PV3(),
+EnerflowFlashAlgorithm.SolidLiquidEquilibrium => new NestedLoopsSLE(),
+EnerflowFlashAlgorithm.ImmiscibleLLE => new NestedLoopsImmiscible(),
+EnerflowFlashAlgorithm.SimpleLLE => new SimpleLLE(),
+EnerflowFlashAlgorithm.SVLLE => new NestedLoopsSVLLE(),
+EnerflowFlashAlgorithm.Universal => new UniversalFlash(),
+_ => new NestedLoops()
+⋮----
+_logger.LogDebug("Created flash algorithm: {AlgorithmType}", algorithmType);
+⋮----
+public void SetFlashAlgorithm(IPropertyPackage package, IFlashAlgorithm flashAlgorithm)
+⋮----
+_logger.LogDebug("Set flash algorithm: {AlgorithmName}", flashAlgorithm.Name);
+⋮----
+_logger.LogWarning(ex, "Failed to set flash algorithm");
+</file>
+
+<file path="Enerflow.Simulation/Flowsheet/UnitOperations/IUnitOperationFactory.cs">
+public interface IUnitOperationFactory
+⋮----
+ObjectType GetGraphicObjectType(UnitOperationType type);
+⋮----
+void Configure(UnitOperationObject domainObject, IFlowsheet flowsheet, IReadOnlyDictionary<Guid, string> compoundNames);
+⋮----
+void CreateAndConfigureUnitOperations(
+⋮----
+void ConfigurePostConnection(IFlowsheet flowsheet, Enerflow.Domain.Entities.Simulation simulation);
+</file>
+
+<file path="Enerflow.Simulation/Flowsheet/Connections/ConnectionFactory.cs">
+public class ConnectionFactory : IConnectionFactory
+⋮----
+public void ConnectFlowsheet(SimulationEntity domainSimulation, IFlowsheet flowsheet)
+⋮----
+_logger.LogDebug("Mapping Connections...");
+⋮----
+var unitId = unit.Id.ToString();
+⋮----
+if (!flowsheet.SimulationObjects.TryGetValue(unitId, out var simObj))
+⋮----
+_logger.LogWarning("Unit Operation {Name} (ID: {Id}) not found in flowsheet.", unit.Name, unit.Id);
+⋮----
+var streamEntity = domainSimulation.MaterialStreams.FirstOrDefault(s => s.Id == streamId);
+⋮----
+ConnectStreamToUnit(flowsheet, streamEntity.Id.ToString(), simObj, isInput: true, portIndex: i);
+⋮----
+ConnectStreamToUnit(flowsheet, streamEntity.Id.ToString(), simObj, isInput: false, portIndex: i);
+⋮----
+var energyStream = domainSimulation.EnergyStreams.FirstOrDefault(s => s.Id == consumer.EnergyInputId.Value);
+⋮----
+ConnectEnergyStreamToUnit(flowsheet, energyStream.Id.ToString(), simObj, isInput: true);
+⋮----
+var energyStream = domainSimulation.EnergyStreams.FirstOrDefault(s => s.Id == producer.EnergyOutputId.Value);
+⋮----
+ConnectEnergyStreamToUnit(flowsheet, energyStream.Id.ToString(), simObj, isInput: false);
+⋮----
+private void ConnectStreamToUnit(IFlowsheet flowsheet, string streamId, ISimulationObject unit, bool isInput, int portIndex)
+⋮----
+if (!flowsheet.SimulationObjects.TryGetValue(streamId, out var streamObj)) return;
+⋮----
+flowsheet.ConnectObjects(streamObj.GraphicObject, unit.GraphicObject, 0, portIndex);
+⋮----
+flowsheet.ConnectObjects(unit.GraphicObject, streamObj.GraphicObject, portIndex, 0);
+⋮----
+_logger.LogInformation("Connected stream {StreamId} to unit {Unit} (Port {Port}, IsInput={IsInput})",
+⋮----
+_logger.LogError(ex, "Failed to connect stream {StreamId} to unit {Unit} (Port {Port}, IsInput={IsInput})",
+⋮----
+_logger.LogWarning("Port index {Index} out of range for Unit {Unit} (Count: {Count})", portIndex, unit.GraphicObject.Tag, connectors.Count);
+⋮----
+private void ConnectEnergyStreamToUnit(IFlowsheet flowsheet, string energyStreamId, ISimulationObject unit, bool isInput)
+⋮----
+!flowsheet.SimulationObjects.TryGetValue(energyStreamId, out var energyStreamObj)
+⋮----
+flowsheet.ConnectObjects(energyStreamObj.GraphicObject, unit.GraphicObject, 0, energyPortIndex);
+⋮----
+flowsheet.ConnectObjects(unit.GraphicObject, energyStreamObj.GraphicObject, energyPortIndex, 0);
+⋮----
+_logger.LogInformation("Connected energy stream {StreamId} to unit {Unit} (IsInput={IsInput})",
+⋮----
+_logger.LogError(ex, "Failed to connect energy stream {StreamId} to unit {Unit} (IsInput={IsInput})",
+</file>
+
+<file path="Enerflow.Simulation/Flowsheet/PropertyPackages/IPropertyPackageManager.cs">
+public interface IPropertyPackageManager
+⋮----
+IPropertyPackage CreatePropertyPackage(PropertyPackageType packageType);
+⋮----
+void AddToFlowsheet(IFlowsheet flowsheet, IPropertyPackage package);
+</file>
+
+<file path="Enerflow.Simulation/Flowsheet/PropertyPackages/PropertyPackageManager.cs">
+public class PropertyPackageManager : IPropertyPackageManager
+⋮----
+public IPropertyPackage CreatePropertyPackage(PropertyPackageType packageType)
+⋮----
+IPropertyPackage pp = packageType switch
+⋮----
+_logger.LogDebug("Created property package: {PackageType}", packageType);
+⋮----
+public void AddToFlowsheet(IFlowsheet flowsheet, IPropertyPackage package)
+⋮----
+flowsheet.AddPropertyPackage(package);
+_logger.LogDebug("Added property package to flowsheet");
+⋮----
+_logger.LogWarning(ex, "Failed to add property package to flowsheet");
+</file>
+
+<file path="Enerflow.Simulation/Flowsheet/Streams/IEnergyStreamFactory.cs">
+public interface IEnergyStreamFactory
+⋮----
+void Configure(DwsimEnergyStream stream, DomainEnergyStream streamEntity, SystemOfUnits systemOfUnits);
+⋮----
+void CreateAndConfigureStreams(
+</file>
+
+<file path="Enerflow.Simulation/Flowsheet/Streams/EnergyStreamFactory.cs">
+public class EnergyStreamFactory : IEnergyStreamFactory
+⋮----
+public void Configure(DwsimEnergyStream stream, DomainEnergyStream streamEntity, SystemOfUnits systemOfUnits)
+⋮----
+_logger.LogDebug("Configured energy stream: {Name}", streamEntity.Name);
+⋮----
+_logger.LogError(ex, "Failed to configure energy stream: {Name}", streamEntity.Name);
+⋮----
+public void CreateAndConfigureStreams(
+⋮----
+var streamList = streams.ToList();
+⋮----
+if (flowsheet.AddObject(
+⋮----
+streamEntity.Id.ToString(),
+⋮----
+_logger.LogInformation("Created and configured {Count} energy streams", streamList.Count);
+</file>
+
+<file path="Enerflow.Simulation/Flowsheet/Streams/IMaterialStreamFactory.cs">
+public interface IMaterialStreamFactory
+⋮----
+void Configure(
+⋮----
+void CreateAndConfigureStreams(
+</file>
+
+<file path="Enerflow.Simulation/Flowsheet/Streams/MaterialStreamFactory.cs">
+public class MaterialStreamFactory : IMaterialStreamFactory
+⋮----
+public void Configure(DwsimMaterialStream stream, DomainMaterialStream streamEntity, SystemOfUnits systemOfUnits)
+⋮----
+if (stream.Phases[0].Compounds.TryGetValue(compoundName, out var _))
+⋮----
+_logger.LogWarning(
+⋮----
+_logger.LogDebug("Configured material stream: {Name} (T={T}K, P={P}Pa, F={F}kg/s)",
+⋮----
+_logger.LogError(ex, "Failed to configure material stream: {Name}", streamEntity.Name);
+⋮----
+public void CreateAndConfigureStreams(
+⋮----
+var streamList = streams.ToList();
+⋮----
+if (flowsheet.AddObject(
+⋮----
+streamEntity.Id.ToString(),
+⋮----
+_logger.LogError("Failed to create DWSIM material stream for {Name}", streamEntity.Name);
+throw new InvalidOperationException($"Failed to create DWSIM material stream for {streamEntity.Name}");
+⋮----
+_logger.LogInformation("Created and configured {Count} material streams", streamList.Count);
+</file>
+
+<file path="Enerflow.Simulation/Flowsheet/UnitOperations/UnitOperationFactory.cs">
+public class UnitOperationFactory : IUnitOperationFactory
+⋮----
+public void Configure(UnitOperationObject domainObject, IFlowsheet flowsheet, IReadOnlyDictionary<Guid, string> compoundNames)
+⋮----
+_logger.LogDebug("Configuring Unit Operation: {Name} ({Type})", domainObject.Name, domainObject.Type);
+⋮----
+_logger.LogWarning("Unit Operation type {Type} not yet supported.", domainObject.Type);
+⋮----
+private void MapHeater(HeaterObject domainHeater, IFlowsheet flowsheet)
+⋮----
+var heaterId = domainHeater.Id.ToString();
+if (!flowsheet.SimulationObjects.TryGetValue(heaterId, out var obj))
+⋮----
+_logger.LogError("Heater {Name} (ID: {Id}) not found in flowsheet. Builder should have created it.",
+⋮----
+throw new InvalidOperationException($"Heater {domainHeater.Name} not found in flowsheet");
+⋮----
+private void MapCooler(CoolerObject domainCooler, IFlowsheet flowsheet)
+⋮----
+var coolerId = domainCooler.Id.ToString();
+if (!flowsheet.SimulationObjects.TryGetValue(coolerId, out var obj))
+⋮----
+_logger.LogError("Cooler {Name} (ID: {Id}) not found in flowsheet. Builder should have created it.",
+⋮----
+throw new InvalidOperationException($"Cooler {domainCooler.Name} not found in flowsheet");
+⋮----
+private void MapValve(ValveObject domainValve, IFlowsheet flowsheet)
+⋮----
+var valveId = domainValve.Id.ToString();
+if (!flowsheet.SimulationObjects.TryGetValue(valveId, out var obj))
+⋮----
+_logger.LogError("Valve {Name} (ID: {Id}) not found in flowsheet. Builder should have created it.",
+⋮----
+throw new InvalidOperationException($"Valve {domainValve.Name} not found in flowsheet");
+⋮----
+private void MapMixer(MixerObject domainMixer, IFlowsheet flowsheet)
+⋮----
+var mixerId = domainMixer.Id.ToString();
+if (!flowsheet.SimulationObjects.ContainsKey(mixerId))
+⋮----
+_logger.LogError("Mixer {Name} (ID: {Id}) not found in flowsheet. Builder should have created it.",
+⋮----
+throw new InvalidOperationException($"Mixer {domainMixer.Name} not found in flowsheet");
+⋮----
+_logger.LogDebug("Mixer {Name} found and ready (no additional configuration needed)", domainMixer.Name);
+⋮----
+private void MapSplitter(SplitterObject domainSplitter, IFlowsheet flowsheet)
+⋮----
+var splitterId = domainSplitter.Id.ToString();
+if (!flowsheet.SimulationObjects.TryGetValue(splitterId, out var obj))
+⋮----
+_logger.LogError("Splitter {Name} (ID: {Id}) not found in flowsheet. Builder should have created it.",
+⋮----
+throw new InvalidOperationException($"Splitter {domainSplitter.Name} not found in flowsheet");
+⋮----
+_logger.LogDebug("Created Splitter {Name}. Ratios must be set after connections.", domainSplitter.Name);
+⋮----
+private void MapFlashDrum(FlashDrumObject domainFlash, IFlowsheet flowsheet)
+⋮----
+var flashId = domainFlash.Id.ToString();
+if (!flowsheet.SimulationObjects.TryGetValue(flashId, out var obj))
+⋮----
+_logger.LogError("FlashDrum {Name} (ID: {Id}) not found in flowsheet. Builder should have created it.",
+⋮----
+throw new InvalidOperationException($"FlashDrum {domainFlash.Name} not found in flowsheet");
+⋮----
+_logger.LogWarning("Flash Type {Type} not fully supported for FlashDrum {Name}. Defaulting to Adiabatic.", domainFlash.FlashType, domainFlash.Name);
+⋮----
+private void MapShortcutColumn(ShortcutColumnObject domainColumn, IFlowsheet flowsheet, IReadOnlyDictionary<Guid, string> compoundNames)
+⋮----
+var columnId = domainColumn.Id.ToString();
+if (!flowsheet.SimulationObjects.TryGetValue(columnId, out var obj))
+⋮----
+_logger.LogError("ShortcutColumn {Name} (ID: {Id}) not found in flowsheet. Builder should have created it.",
+⋮----
+throw new InvalidOperationException($"ShortcutColumn {domainColumn.Name} not found in flowsheet");
+⋮----
+if (compoundNames.TryGetValue(domainColumn.LightKey, out var lkName))
+⋮----
+_logger.LogError("Light Key compound {Id} not found in lookup.", domainColumn.LightKey);
+⋮----
+if (compoundNames.TryGetValue(domainColumn.HeavyKey, out var hkName))
+⋮----
+_logger.LogError("Heavy Key compound {Id} not found in lookup.", domainColumn.HeavyKey);
+⋮----
+private void MapRecycle(RecycleObject domainRecycle, IFlowsheet flowsheet)
+⋮----
+var recycleId = domainRecycle.Id.ToString();
+if (!flowsheet.SimulationObjects.TryGetValue(recycleId, out var obj))
+⋮----
+_logger.LogError("Recycle {Name} (ID: {Id}) not found in flowsheet. Builder should have created it.",
+⋮----
+throw new InvalidOperationException($"Recycle {domainRecycle.Name} not found in flowsheet");
+⋮----
+private static Heater.CalculationMode MapHeaterCalcMode(HeaterCalculationMode mode)
+⋮----
+private static Cooler.CalculationMode MapCoolerCalcMode(HeaterCalculationMode mode)
+⋮----
+public void CreateAndConfigureUnitOperations(
+⋮----
+var unitOperationsList = unitOperations.ToList();
+⋮----
+flowsheet.AddObject(graphicObjectType, 0, 0, unit.Id.ToString(), unit.Name);
+⋮----
+_logger.LogInformation("Created and configured {Count} unit operations", unitOperationsList.Count);
+⋮----
+public void ConfigurePostConnection(IFlowsheet flowsheet, SimulationEntity simulation)
+⋮----
+_logger.LogDebug("Configuring unit operations after connections...");
+⋮----
+private void ConfigureSplitterRatios(SplitterObject domainSplitter, IFlowsheet flowsheet)
+⋮----
+_logger.LogDebug("Configuring splitter ratios for {Name}...", domainSplitter.Name);
+⋮----
+_logger.LogWarning("Splitter {Name} (ID: {Id}) not found in flowsheet during post-connection config.",
+⋮----
+if (domainSplitter.SplitRatios.TryGetValue(streamId, out var ratio))
+⋮----
+dwsimSplitter.Ratios.Add(0.0);
+⋮----
+_logger.LogDebug("Set Splitter {Name} Port {Port} (Stream {StreamId}) Ratio to {Ratio}",
+⋮----
+_logger.LogWarning("No split ratio defined for stream {StreamId} in splitter {Name}",
+⋮----
+public ObjectType GetGraphicObjectType(UnitOperationType type)
+</file>
+
+</files>

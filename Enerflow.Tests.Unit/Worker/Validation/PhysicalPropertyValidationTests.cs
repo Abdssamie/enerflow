@@ -2,6 +2,7 @@ using Enerflow.Domain.Entities;
 using Enerflow.Domain.Entities.Streams;
 using Enerflow.Domain.Entities.UnitOperations;
 using Enerflow.Domain.Enums;
+using Enerflow.Domain.ValueObjects;
 using Enerflow.Simulation.Validation;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -328,9 +329,9 @@ public sealed class PhysicalPropertyValidationTests
             Id = Guid.NewGuid(),
             Name = "TestStream",
             SimulationId = simulation.Id,
-            Temperature = temperature,
-            Pressure = pressure,
-            MassFlow = massFlow,
+            Temperature = new Temperature(temperature),
+            Pressure = new Pressure(pressure),
+            MassFlow = new MassFlow(massFlow),
             Composition = composition ?? new Dictionary<string, double> { { "Water", 1.0 } }
         };
         
@@ -375,7 +376,7 @@ public sealed class PhysicalPropertyValidationTests
             Id = Guid.NewGuid(),
             Name = "TestEnergyStream",
             SimulationId = simulation.Id,
-            EnergyFlow = energyFlow
+            EnergyFlow = new EnergyFlow(energyFlow)
         };
         
         simulation.EnergyStreams.Add(energyStream);

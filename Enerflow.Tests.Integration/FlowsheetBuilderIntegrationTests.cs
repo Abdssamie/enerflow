@@ -3,6 +3,7 @@ using Enerflow.Domain.Entities;
 using Enerflow.Domain.Entities.Streams;
 using Enerflow.Domain.Entities.UnitOperations;
 using Enerflow.Domain.Enums;
+using Enerflow.Domain.ValueObjects;
 using Enerflow.Simulation.Flowsheet.Compounds;
 using Enerflow.Simulation.Flowsheet.Connections;
 using Enerflow.Simulation.Flowsheet.FlashAlgorithms;
@@ -76,14 +77,15 @@ public class FlowsheetBuilderIntegrationTests
         { 
             Name = "Feed", 
             SimulationId = sim.Id,
-            Temperature = 300,
-            Pressure = 101325,
-            MassFlow = 1
+            Temperature = new Temperature(300),
+            Pressure = new Pressure(101325),
+            MassFlow = new MassFlow(1)
         };
         var product = new MaterialStream 
         { 
             Name = "Product",
-            SimulationId = sim.Id
+            SimulationId = sim.Id,
+            MassFlow = new MassFlow(1)
         };
         sim.MaterialStreams.Add(feed);
         sim.MaterialStreams.Add(product);
@@ -139,8 +141,22 @@ public class FlowsheetBuilderIntegrationTests
         };
         sim.Compounds.Add(new Compound { Name = "Water", SimulationId = sim.Id });
         
-        var s1 = new MaterialStream { Name = "S1", SimulationId = sim.Id };
-        var s2 = new MaterialStream { Name = "S2", SimulationId = sim.Id };
+        var s1 = new MaterialStream 
+        { 
+            Name = "S1", 
+            SimulationId = sim.Id,
+            Temperature = new Temperature(298.15),
+            Pressure = new Pressure(101325),
+            MassFlow = new MassFlow(1.0)
+        };
+        var s2 = new MaterialStream 
+        { 
+            Name = "S2", 
+            SimulationId = sim.Id,
+            Temperature = new Temperature(298.15),
+            Pressure = new Pressure(101325),
+            MassFlow = new MassFlow(1.0)
+        };
         sim.MaterialStreams.Add(s1);
         sim.MaterialStreams.Add(s2);
 

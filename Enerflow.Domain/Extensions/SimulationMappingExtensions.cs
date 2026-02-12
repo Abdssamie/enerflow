@@ -42,9 +42,10 @@ public static class SimulationMappingExtensions
         {
             Id = stream.Id,
             Name = stream.Name,
-            Temperature = stream.Temperature,
-            Pressure = stream.Pressure,
-            MassFlow = stream.MassFlow,
+            Temperature = stream.Temperature.ValueInOriginalUnits,
+            Pressure = stream.Pressure.ValueInOriginalUnits,
+            MassFlow = stream.MassFlow.ValueInOriginalUnits,
+            SystemOfUnits = stream.Temperature.SystemOfUnits,
             MolarCompositions = stream.Composition
         };
     }
@@ -55,7 +56,8 @@ public static class SimulationMappingExtensions
         {
             Id = stream.Id,
             Name = stream.Name,
-            EnergyFlow = stream.EnergyFlow
+            EnergyFlow = stream.EnergyFlow.ValueInOriginalUnits,
+            SystemOfUnits = stream.EnergyFlow.SystemOfUnits
         };
     }
 

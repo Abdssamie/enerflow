@@ -26,7 +26,7 @@ public abstract class SimulationObject
     /// <summary>
     /// Visual coordinates on the flowsheet.
     /// </summary>
-    public Position Position { get; set; }
+    public Position Position { get; set; } = new(0, 0);
 
     /// <summary>
     /// Validates the object state. Implementation should throw ValidationException if invalid.

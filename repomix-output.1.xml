@@ -1,0 +1,1644 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+The content has been processed where comments have been removed, content has been compressed (code blocks are separated by ⋮---- delimiter).
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: Enerflow.*/**/*.cs
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Code comments have been removed from supported file types
+- Content has been compressed - code blocks are separated by ⋮---- delimiter
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+Enerflow.API/
+  Controllers/
+    CatalogsController.cs
+    SimulationJobsController.cs
+    SimulationsController.cs
+  Extensions/
+    PostgresTransportExtensions.cs
+  Middleware/
+    RateLimitingMiddleware.cs
+    SecurityHeadersMiddleware.cs
+  Services/
+    CatalogService.cs
+    JobProducer.cs
+  Program.cs
+Enerflow.Domain/
+  Common/
+    IdGenerator.cs
+  DTOs/
+    ApiRequests.cs
+    SimulationJob.cs
+    SimulationResult.cs
+    SimulationResults.cs
+  Entities/
+    Streams/
+      EnergyStream.cs
+      MaterialStream.cs
+    UnitOperations/
+      CoolerObject.cs
+      FlashDrumObject.cs
+      HeaterObject.cs
+      IEnergyConsumer.cs
+      IEnergyProducer.cs
+      MixerObject.cs
+      RecycleObject.cs
+      ShortcutColumnObject.cs
+      SplitterObject.cs
+      UnitOperationObject.cs
+      ValveObject.cs
+    Compound.cs
+    Simulation.cs
+    SimulationObject.cs
+  Enums/
+    FlashAlgorithm.cs
+    FlashCalculationType.cs
+    HeaterCalculationMode.cs
+    PhaseType.cs
+    PortType.cs
+    PropertyPackageType.cs
+    RecycleAccelerationMethod.cs
+    SimulationStatus.cs
+    SystemOfUnits.cs
+    UnitOperationType.cs
+    ValveCalculationMode.cs
+  Exceptions/
+    InvalidTopologyException.cs
+  Extensions/
+    SimulationMappingExtensions.cs
+  Interfaces/
+    IJobProducer.cs
+  ValueObjects/
+    EnergyFlow.cs
+    IParameter.cs
+    MassFlow.cs
+    Position.cs
+    Pressure.cs
+    Temperature.cs
+Enerflow.Infrastructure/
+  Migrations/
+    20260116032453_InitialCreate.cs
+    20260116032453_InitialCreate.Designer.cs
+    20260116132432_UseSequentialIds.cs
+    20260116132432_UseSequentialIds.Designer.cs
+    20260117021552_SyncModelChanges.cs
+    20260117021552_SyncModelChanges.Designer.cs
+    20260131020350_SyncDomainModelChanges.cs
+    20260131020350_SyncDomainModelChanges.Designer.cs
+    EnerflowDbContextModelSnapshot.cs
+  Persistence/
+    DesignTimeDbContextFactory.cs
+    EnerflowDbContext.cs
+    SequentialGuidValueGenerator.cs
+  DependencyInjection.cs
+Enerflow.Simulation/
+  Flowsheet/
+    Builders/
+      DWSIMFlowsheetBuilder.cs
+      IFlowsheetBuilder.cs
+    Compounds/
+      CompoundManager.cs
+      ICompoundManager.cs
+    Connections/
+      ConnectionFactory.cs
+      IConnectionFactory.cs
+    FlashAlgorithms/
+      FlashAlgorithmManager.cs
+      IFlashAlgorithmManager.cs
+    PropertyPackages/
+      IPropertyPackageManager.cs
+      PropertyPackageManager.cs
+    Streams/
+      EnergyStreamFactory.cs
+      IEnergyStreamFactory.cs
+      IMaterialStreamFactory.cs
+      MaterialStreamFactory.cs
+    UnitOperations/
+      IUnitOperationFactory.cs
+      UnitOperationFactory.cs
+  Validation/
+    FlowsheetValidationException.cs
+    FlowsheetValidator.cs
+    IFlowsheetValidator.cs
+    ValidationConstants.cs
+    ValidationError.cs
+    ValidationErrorCodes.cs
+    ValidationResult.cs
+Enerflow.Tests.DWSIM/
+  Scenarios/
+    Test01_SimpleHeating.cs
+    Test02_CompressionCooling.cs
+    Test03_PressureReduction.cs
+    Test04_EthanolWaterVLE.cs
+    Test05_FlashAlgorithmComparison.cs
+    Test06_ThreePhaseFlash.cs
+    Test07_HeatExchanger.cs
+    Test08_ShortcutDistillation.cs
+    Test09_ConversionReactor.cs
+    Test10_RecycleLoop.cs
+  TestBase.cs
+  TestHelpers.cs
+  UnitTest1.cs
+Enerflow.Tests.Functional/
+  Scenarios/
+    SimulationFlowTests.cs
+  BaseIntegrationTest.cs
+  IntegrationTestWebAppFactory.cs
+Enerflow.Tests.Integration/
+  FlowsheetBuilderIntegrationTests.cs
+Enerflow.Tests.Unit/
+  Simulation/
+    Flowsheet/
+      Connections/
+        ConnectionFactoryTests.cs
+  Worker/
+    Validation/
+      CompoundValidationTests.cs
+      FlowsheetValidatorTests.cs
+      PhysicalPropertyValidationTests.cs
+      UnitOperationValidationTests.cs
+  DtoValidationTests.cs
+  IdGenerationTests.cs
+Enerflow.Worker/
+  Consumers/
+    SimulationJobConsumer.cs
+    SimulationJobConsumerDefinition.cs
+  Extensions/
+    PostgresTransportExtensions.cs
+  Solvers/
+    DWSIMSolver.cs
+    IResultCollector.cs
+    ISimulationSolver.cs
+    ResultCollector.cs
+  Program.cs
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="Enerflow.Domain/ValueObjects/EnergyFlow.cs">
+public class EnergyFlow : IParameter
+⋮----
+private static double ConvertToSI(double value, SystemOfUnits system)
+⋮----
+_ => throw new ArgumentException($"Unsupported unit system: {system}", nameof(system))
+⋮----
+public static double ConvertFromSI(double watts, SystemOfUnits system)
+</file>
+
+<file path="Enerflow.Domain/ValueObjects/IParameter.cs">
+public interface IParameter
+</file>
+
+<file path="Enerflow.Domain/ValueObjects/MassFlow.cs">
+public class MassFlow : IParameter
+⋮----
+private static double ConvertToSI(double value, SystemOfUnits system)
+⋮----
+_ => throw new ArgumentException($"Unsupported unit system: {system}", nameof(system))
+⋮----
+public static double ConvertFromSI(double kgPerSec, SystemOfUnits system)
+</file>
+
+<file path="Enerflow.Domain/ValueObjects/Pressure.cs">
+public class Pressure : IParameter
+⋮----
+private static double ConvertToSI(double value, SystemOfUnits system)
+⋮----
+_ => throw new ArgumentException($"Unsupported unit system: {system}", nameof(system))
+⋮----
+public static double ConvertFromSI(double pascal, SystemOfUnits system)
+</file>
+
+<file path="Enerflow.Domain/ValueObjects/Temperature.cs">
+public class Temperature : IParameter
+⋮----
+private static double ConvertToSI(double value, SystemOfUnits system)
+⋮----
+_ => throw new ArgumentException($"Unsupported unit system: {system}", nameof(system))
+⋮----
+public static double ConvertFromSI(double kelvin, SystemOfUnits system)
+</file>
+
+<file path="Enerflow.API/Controllers/CatalogsController.cs">
+public class CatalogsController : ControllerBase
+⋮----
+private readonly ICatalogService _catalogService;
+⋮----
+public IActionResult GetCompounds([FromQuery] string? search = null)
+⋮----
+var compounds = _catalogService.GetCompounds(search);
+⋮----
+_logger.LogDebug("Retrieved {Count} compounds with search term: {Search}",
+compounds.Count(), search ?? "(none)");
+⋮----
+count = compounds.Count(),
+⋮----
+public IActionResult GetPropertyPackages()
+⋮----
+var packages = _catalogService.GetPropertyPackages();
+⋮----
+count = packages.Count(),
+⋮----
+public IActionResult GetFlashAlgorithms()
+⋮----
+var algorithms = _catalogService.GetFlashAlgorithms();
+⋮----
+count = algorithms.Count(),
+⋮----
+public IActionResult GetUnitOperations()
+⋮----
+var unitOps = _catalogService.GetUnitOperations();
+⋮----
+count = unitOps.Count(),
+⋮----
+public IActionResult GetUnitSystems()
+⋮----
+.Select(s => new
+⋮----
+name = s.ToString(),
+⋮----
+count = systems.Count(),
+</file>
+
+<file path="Enerflow.API/Extensions/PostgresTransportExtensions.cs">
+public static class PostgresTransportExtensions
+⋮----
+public static IServiceCollection ConfigurePostgresTransport(
+⋮----
+var builder = new NpgsqlConnectionStringBuilder(connectionString);
+⋮----
+services.AddOptions<SqlTransportOptions>().Configure(options =>
+⋮----
+services.AddPostgresMigrationHostedService(create, delete);
+</file>
+
+<file path="Enerflow.API/Middleware/SecurityHeadersMiddleware.cs">
+public class SecurityHeadersMiddleware
+⋮----
+private readonly RequestDelegate _next;
+⋮----
+public async Task InvokeAsync(HttpContext context)
+</file>
+
+<file path="Enerflow.API/Services/JobProducer.cs">
+public class JobProducer : IJobProducer
+⋮----
+private readonly IPublishEndpoint _publishEndpoint;
+⋮----
+public async Task PublishJobAsync(SimulationJob job, CancellationToken cancellationToken = default)
+⋮----
+_logger.LogInformation(
+⋮----
+await _publishEndpoint.Publish(job, cancellationToken);
+</file>
+
+<file path="Enerflow.Domain/Common/IdGenerator.cs">
+public static class IdGenerator
+⋮----
+public static Guid NextGuid() => NewId.NextGuid();
+⋮----
+public static NewId Next() => NewId.Next();
+</file>
+
+<file path="Enerflow.Domain/Entities/Streams/EnergyStream.cs">
+public class EnergyStream : SimulationObject
+⋮----
+public override void Validate()
+⋮----
+throw new ArgumentException("EnergyFlow cannot be negative.", nameof(EnergyFlow));
+</file>
+
+<file path="Enerflow.Domain/Entities/UnitOperations/IEnergyConsumer.cs">
+public interface IEnergyConsumer
+</file>
+
+<file path="Enerflow.Domain/Entities/UnitOperations/IEnergyProducer.cs">
+public interface IEnergyProducer
+</file>
+
+<file path="Enerflow.Domain/Entities/UnitOperations/MixerObject.cs">
+public class MixerObject : UnitOperationObject
+⋮----
+public override void Validate()
+⋮----
+base.Validate();
+⋮----
+throw new InvalidOperationException("Mixer must have exactly one output stream.");
+⋮----
+throw new InvalidOperationException("Mixer must have at least two input streams.");
+</file>
+
+<file path="Enerflow.Domain/Entities/UnitOperations/RecycleObject.cs">
+public class RecycleObject : UnitOperationObject
+⋮----
+public override void Validate()
+⋮----
+base.Validate();
+⋮----
+throw new ArgumentException("Tolerance must be greater than 0.", nameof(Tolerance));
+⋮----
+throw new ArgumentException("MaxIterations must be greater than 0.", nameof(MaxIterations));
+</file>
+
+<file path="Enerflow.Domain/Entities/UnitOperations/ShortcutColumnObject.cs">
+public class ShortcutColumnObject : UnitOperationObject
+⋮----
+public override void Validate()
+⋮----
+base.Validate();
+⋮----
+throw new InvalidOperationException("ShortcutColumn must have exactly one input stream.");
+⋮----
+throw new InvalidOperationException("ShortcutColumn must have exactly two output streams (Distillate/Bottoms).");
+⋮----
+throw new ArgumentException("RefluxRatio must be non-negative.", nameof(RefluxRatio));
+⋮----
+throw new ArgumentException("Stages must be greater than 0.", nameof(Stages));
+⋮----
+throw new ArgumentException("LightKey must be specified.", nameof(LightKey));
+⋮----
+throw new ArgumentException("HeavyKey must be specified.", nameof(HeavyKey));
+⋮----
+throw new ArgumentException("CondenserPressure must be non-negative.", nameof(CondenserPressure));
+⋮----
+throw new ArgumentException("ReboilerPressure must be non-negative.", nameof(ReboilerPressure));
+</file>
+
+<file path="Enerflow.Domain/Entities/UnitOperations/SplitterObject.cs">
+public class SplitterObject : UnitOperationObject
+⋮----
+public override void Validate()
+⋮----
+base.Validate();
+⋮----
+throw new InvalidOperationException("Splitter must have exactly one input stream.");
+⋮----
+throw new InvalidOperationException("Splitter must have at least two output streams.");
+⋮----
+throw new InvalidOperationException("Split ratios must be defined.");
+⋮----
+double sum = SplitRatios.Values.Sum();
+if (Math.Abs(sum - 1.0) > 1e-6)
+throw new InvalidOperationException($"Sum of split ratios must be 1.0. Current sum: {sum}");
+⋮----
+if (!SplitRatios.ContainsKey(outputId))
+throw new InvalidOperationException($"Missing split ratio for output stream {outputId}");
+</file>
+
+<file path="Enerflow.Domain/Entities/UnitOperations/ValveObject.cs">
+public class ValveObject : UnitOperationObject
+⋮----
+public override void Validate()
+⋮----
+base.Validate();
+⋮----
+throw new InvalidOperationException("Valve must have exactly one input stream.");
+⋮----
+throw new InvalidOperationException("Valve must have exactly one output stream.");
+⋮----
+throw new ArgumentException("OutletPressure must be non-negative.", nameof(OutletPressure));
+⋮----
+throw new ArgumentException("PressureDrop must be non-negative.", nameof(PressureDrop));
+</file>
+
+<file path="Enerflow.Domain/Entities/SimulationObject.cs">
+public abstract class SimulationObject
+⋮----
+public Guid Id { get; set; } = IdGenerator.NextGuid();
+⋮----
+public abstract void Validate();
+</file>
+
+<file path="Enerflow.Domain/Enums/FlashAlgorithm.cs">
+
+</file>
+
+<file path="Enerflow.Domain/Enums/FlashCalculationType.cs">
+
+</file>
+
+<file path="Enerflow.Domain/Enums/HeaterCalculationMode.cs">
+
+</file>
+
+<file path="Enerflow.Domain/Enums/PhaseType.cs">
+
+</file>
+
+<file path="Enerflow.Domain/Enums/PortType.cs">
+
+</file>
+
+<file path="Enerflow.Domain/Enums/PropertyPackageType.cs">
+
+</file>
+
+<file path="Enerflow.Domain/Enums/SystemOfUnits.cs">
+
+</file>
+
+<file path="Enerflow.Domain/Enums/ValveCalculationMode.cs">
+
+</file>
+
+<file path="Enerflow.Domain/Exceptions/InvalidTopologyException.cs">
+public class InvalidTopologyException : Exception
+</file>
+
+<file path="Enerflow.Domain/Interfaces/IJobProducer.cs">
+public interface IJobProducer
+⋮----
+Task PublishJobAsync(SimulationJob job, CancellationToken cancellationToken = default);
+</file>
+
+<file path="Enerflow.Domain/ValueObjects/Position.cs">
+
+</file>
+
+<file path="Enerflow.Infrastructure/Migrations/20260116132432_UseSequentialIds.cs">
+public partial class UseSequentialIds : Migration
+⋮----
+protected override void Up(MigrationBuilder migrationBuilder)
+⋮----
+/// <inheritdoc />
+protected override void Down(MigrationBuilder migrationBuilder)
+⋮----
+migrationBuilder.DropColumn(
+</file>
+
+<file path="Enerflow.Infrastructure/Migrations/20260116132432_UseSequentialIds.Designer.cs">
+partial class UseSequentialIds
+⋮----
+protected override void BuildTargetModel(ModelBuilder modelBuilder)
+⋮----
+.HasAnnotation("ProductVersion", "10.0.2")
+.HasAnnotation("Relational:MaxIdentifierLength", 63);
+⋮----
+NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.Compound", b =>
+⋮----
+.ValueGeneratedOnAdd()
+.HasColumnType("uuid");
+⋮----
+.HasColumnType("jsonb");
+⋮----
+.IsRequired()
+.HasColumnType("text");
+⋮----
+b.HasKey("Id");
+⋮----
+b.HasIndex("SimulationId");
+⋮----
+b.ToTable("Compounds");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.EnergyStream", b =>
+⋮----
+.HasColumnType("double precision");
+⋮----
+b.ToTable("EnergyStreams");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.MaterialStream", b =>
+⋮----
+b.ToTable("MaterialStreams");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.Simulation", b =>
+⋮----
+.HasColumnType("timestamp with time zone");
+⋮----
+b.ToTable("Simulations");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.UnitOperation", b =>
+⋮----
+.HasColumnType("uuid[]");
+⋮----
+b.ToTable("UnitOperations");
+⋮----
+b.HasOne("Enerflow.Domain.Entities.Simulation", null)
+.WithMany()
+.HasForeignKey("SimulationId")
+.OnDelete(DeleteBehavior.Cascade)
+.IsRequired();
+</file>
+
+<file path="Enerflow.Infrastructure/Migrations/20260117021552_SyncModelChanges.cs">
+public partial class SyncModelChanges : Migration
+⋮----
+protected override void Up(MigrationBuilder migrationBuilder)
+⋮----
+/// <inheritdoc />
+protected override void Down(MigrationBuilder migrationBuilder)
+⋮----
+migrationBuilder.DropColumn(
+</file>
+
+<file path="Enerflow.Infrastructure/Migrations/20260117021552_SyncModelChanges.Designer.cs">
+partial class SyncModelChanges
+⋮----
+protected override void BuildTargetModel(ModelBuilder modelBuilder)
+⋮----
+.HasAnnotation("ProductVersion", "10.0.2")
+.HasAnnotation("Relational:MaxIdentifierLength", 63);
+⋮----
+NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.Compound", b =>
+⋮----
+.ValueGeneratedOnAdd()
+.HasColumnType("uuid");
+⋮----
+.HasColumnType("jsonb");
+⋮----
+.IsRequired()
+.HasColumnType("text");
+⋮----
+b.HasKey("Id");
+⋮----
+b.HasIndex("SimulationId");
+⋮----
+b.ToTable("Compounds");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.EnergyStream", b =>
+⋮----
+.HasColumnType("double precision");
+⋮----
+b.ToTable("EnergyStreams");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.MaterialStream", b =>
+⋮----
+b.ToTable("MaterialStreams");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.Simulation", b =>
+⋮----
+.HasColumnType("timestamp with time zone");
+⋮----
+b.ToTable("Simulations");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.UnitOperation", b =>
+⋮----
+.HasColumnType("uuid[]");
+⋮----
+b.ToTable("UnitOperations");
+⋮----
+b.HasOne("Enerflow.Domain.Entities.Simulation", null)
+.WithMany("Compounds")
+.HasForeignKey("SimulationId")
+.OnDelete(DeleteBehavior.Cascade)
+.IsRequired();
+⋮----
+.WithMany("EnergyStreams")
+⋮----
+.WithMany("MaterialStreams")
+⋮----
+.WithMany("UnitOperations")
+⋮----
+b.Navigation("Compounds");
+⋮----
+b.Navigation("EnergyStreams");
+⋮----
+b.Navigation("MaterialStreams");
+⋮----
+b.Navigation("UnitOperations");
+</file>
+
+<file path="Enerflow.Infrastructure/Migrations/20260131020350_SyncDomainModelChanges.cs">
+public partial class SyncDomainModelChanges : Migration
+⋮----
+protected override void Up(MigrationBuilder migrationBuilder)
+⋮----
+migrationBuilder.DropColumn(
+⋮----
+migrationBuilder.RenameColumn(
+⋮----
+protected override void Down(MigrationBuilder migrationBuilder)
+</file>
+
+<file path="Enerflow.Infrastructure/Migrations/20260131020350_SyncDomainModelChanges.Designer.cs">
+partial class SyncDomainModelChanges
+⋮----
+protected override void BuildTargetModel(ModelBuilder modelBuilder)
+⋮----
+.HasAnnotation("ProductVersion", "10.0.2")
+.HasAnnotation("Relational:MaxIdentifierLength", 63);
+⋮----
+NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.Compound", b =>
+⋮----
+.ValueGeneratedOnAdd()
+.HasColumnType("uuid");
+⋮----
+.HasColumnType("jsonb");
+⋮----
+.IsRequired()
+.HasColumnType("text");
+⋮----
+b.HasKey("Id");
+⋮----
+b.HasIndex("SimulationId");
+⋮----
+b.ToTable("Compounds");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.Simulation", b =>
+⋮----
+.HasColumnType("timestamp with time zone");
+⋮----
+.HasColumnType("integer");
+⋮----
+b.ToTable("Simulations");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.Streams.EnergyStream", b =>
+⋮----
+.HasColumnType("double precision");
+⋮----
+b.ComplexProperty(typeof(Dictionary<string, object>), "Position", "Enerflow.Domain.Entities.Streams.EnergyStream.Position#Position", b1 =>
+⋮----
+b1.IsRequired();
+⋮----
+b.ToTable("EnergyStreams");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.Streams.MaterialStream", b =>
+⋮----
+b.ComplexProperty(typeof(Dictionary<string, object>), "Position", "Enerflow.Domain.Entities.Streams.MaterialStream.Position#Position", b1 =>
+⋮----
+b.ToTable("MaterialStreams");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.UnitOperations.UnitOperationObject", b =>
+⋮----
+.HasColumnType("uuid[]");
+⋮----
+.HasMaxLength(21)
+.HasColumnType("character varying(21)");
+⋮----
+b.ComplexProperty(typeof(Dictionary<string, object>), "Position", "Enerflow.Domain.Entities.UnitOperations.UnitOperationObject.Position#Position", b1 =>
+⋮----
+b.ToTable("UnitOperations");
+⋮----
+b.HasDiscriminator<string>("UnitType").HasValue("UnitOperationObject");
+⋮----
+b.UseTphMappingStrategy();
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.UnitOperations.CoolerObject", b =>
+⋮----
+b.HasBaseType("Enerflow.Domain.Entities.UnitOperations.UnitOperationObject");
+⋮----
+b.ToTable("UnitOperations", t =>
+⋮----
+t.Property("CalcMode")
+.HasColumnName("CoolerObject_CalcMode");
+⋮----
+t.Property("Efficiency")
+.HasColumnName("CoolerObject_Efficiency");
+⋮----
+t.Property("HeatDuty")
+.HasColumnName("CoolerObject_HeatDuty");
+⋮----
+t.Property("OutletTemperature")
+.HasColumnName("CoolerObject_OutletTemperature");
+⋮----
+t.Property("PressureDrop")
+.HasColumnName("CoolerObject_PressureDrop");
+⋮----
+t.Property("TemperatureChange")
+.HasColumnName("CoolerObject_TemperatureChange");
+⋮----
+b.HasDiscriminator().HasValue("Cooler");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.UnitOperations.FlashDrumObject", b =>
+⋮----
+.HasColumnName("FlashDrumObject_OutletTemperature");
+⋮----
+b.HasDiscriminator().HasValue("FlashDrum");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.UnitOperations.HeaterObject", b =>
+⋮----
+b.HasDiscriminator().HasValue("Heater");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.UnitOperations.MixerObject", b =>
+⋮----
+b.HasDiscriminator().HasValue("Mixer");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.UnitOperations.RecycleObject", b =>
+⋮----
+b.HasDiscriminator().HasValue("Recycle");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.UnitOperations.ShortcutColumnObject", b =>
+⋮----
+b.HasDiscriminator().HasValue("ShortcutColumn");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.UnitOperations.SplitterObject", b =>
+⋮----
+b.HasDiscriminator().HasValue("Splitter");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.UnitOperations.ValveObject", b =>
+⋮----
+.HasColumnName("ValveObject_CalcMode");
+⋮----
+t.Property("OutletPressure")
+.HasColumnName("ValveObject_OutletPressure");
+⋮----
+.HasColumnName("ValveObject_PressureDrop");
+⋮----
+b.HasDiscriminator().HasValue("Valve");
+⋮----
+b.HasOne("Enerflow.Domain.Entities.Simulation", null)
+.WithMany("Compounds")
+.HasForeignKey("SimulationId")
+.OnDelete(DeleteBehavior.Cascade)
+.IsRequired();
+⋮----
+.WithMany("EnergyStreams")
+⋮----
+.WithMany("MaterialStreams")
+⋮----
+.WithMany("UnitOperations")
+⋮----
+b.Navigation("Compounds");
+⋮----
+b.Navigation("EnergyStreams");
+⋮----
+b.Navigation("MaterialStreams");
+⋮----
+b.Navigation("UnitOperations");
+</file>
+
+<file path="Enerflow.Infrastructure/Persistence/SequentialGuidValueGenerator.cs">
+public class SequentialGuidValueGenerator : ValueGenerator<Guid>
+⋮----
+public override Guid Next(EntityEntry entry) => IdGenerator.NextGuid();
+</file>
+
+<file path="Enerflow.API/Controllers/SimulationJobsController.cs">
+public class SimulationJobsController : ControllerBase
+⋮----
+private readonly EnerflowDbContext _context;
+private readonly IJobProducer _jobProducer;
+⋮----
+public async Task<IActionResult> SubmitJob([FromBody] SubmitJobRequest request)
+⋮----
+.Include(s => s.Compounds)
+.Include(s => s.MaterialStreams)
+.Include(s => s.EnergyStreams)
+.Include(s => s.UnitOperations)
+.FirstOrDefaultAsync(s => s.Id == request.SimulationId);
+⋮----
+var job = simulation.ToSimulationJob();
+⋮----
+await _jobProducer.PublishJobAsync(job);
+⋮----
+await _context.SaveChangesAsync();
+⋮----
+_logger.LogInformation("Submitted simulation job {JobId} for simulation {SimulationId}", job.JobId, simulation.Id);
+⋮----
+status = simulation.Status.ToString()
+⋮----
+public async Task<IActionResult> GetJobStatus(Guid id)
+⋮----
+.Where(s => s.Id == id)
+.Select(s => new { s.Id, s.Status, s.ErrorMessage, s.UpdatedAt })
+.FirstOrDefaultAsync();
+⋮----
+status = statusInfo.Status.ToString(),
+⋮----
+public async Task<IActionResult> GetJobResult(Guid id)
+⋮----
+.Select(s => new { s.Id, s.Status, s.ErrorMessage, s.ResultJson })
+⋮----
+status = simulation.Status.ToString(),
+</file>
+
+<file path="Enerflow.API/Middleware/RateLimitingMiddleware.cs">
+public class RateLimitingMiddleware
+⋮----
+private readonly RequestDelegate _next;
+private readonly IConnectionMultiplexer _redis;
+⋮----
+private static readonly LuaScript RateLimitScript = LuaScript.Prepare(@"
+⋮----
+public async Task InvokeAsync(HttpContext context)
+⋮----
+var db = _redis.GetDatabase();
+⋮----
+var scriptResult = await db.ScriptEvaluateAsync(RateLimitScript, new
+⋮----
+_logger.LogWarning("Redis script returned invalid result for client {ClientId}; failing open.", clientId);
+⋮----
+var resetTime = DateTimeOffset.UtcNow.AddSeconds(ttlSeconds).ToUnixTimeSeconds();
+⋮----
+_logger.LogWarning(
+⋮----
+context.Response.Headers["Retry-After"] = ttlSeconds.ToString();
+⋮----
+await context.Response.WriteAsJsonAsync(new
+⋮----
+context.Response.OnStarting(() =>
+⋮----
+_logger.LogError(ex, "Rate limiting error for client {ClientId}; failing open.", clientId);
+⋮----
+private void AddRateLimitHeaders(HttpResponse response, long remaining, long reset)
+⋮----
+response.Headers["X-RateLimit-Limit"] = _maxRequests.ToString();
+response.Headers["X-RateLimit-Remaining"] = remaining.ToString();
+response.Headers["X-RateLimit-Reset"] = reset.ToString();
+</file>
+
+<file path="Enerflow.API/Services/CatalogService.cs">
+public interface ICatalogService
+⋮----
+IEnumerable<CompoundInfo> GetCompounds(string? searchTerm = null);
+IEnumerable<PropertyPackageInfo> GetPropertyPackages();
+IEnumerable<FlashAlgorithmInfo> GetFlashAlgorithms();
+IEnumerable<UnitOperationInfo> GetUnitOperations();
+⋮----
+public class CatalogService : ICatalogService
+⋮----
+new CompoundInfo("Methane", "CH4", "74-82-8", "Alkane", "Simplest alkane, main component of natural gas"),
+new CompoundInfo("Ethane", "C2H6", "74-84-0", "Alkane", "Second simplest alkane"),
+new CompoundInfo("Propane", "C3H8", "74-98-6", "Alkane", "Used as fuel and refrigerant"),
+new CompoundInfo("N-butane", "C4H10", "106-97-8", "Alkane", "Used in gas oline ble nding"),
+new CompoundInfo("N-pentane", "C5H12", "109-66-0", "Alkane", "Used as solvent"),
+new CompoundInfo("N-hexane", "C6H14", "110-54-3", "Alkane", "Industrial solvent"),
+new CompoundInfo("N-heptane", "C7H16", "142  -82-5", "Alkane", "Reference fuel for octane rating"),
+new CompoundInfo("N-octane", "C8H 18", "111-65-9", "Alkane", "Component of gasoline"),
+new CompoundInfo("Benzene", "C6H6", "71-43-2", "Aromatic", "Basic aromatic com pound"),
+new CompoundInfo("Toluene", "C7H8", "108-88-3", "Aromatic", "Common aromatic solvent"),
+⋮----
+public IEnumerable<CompoundInfo> GetCompounds(string? searchTerm = null)
+⋮----
+if (string.IsNullOrWhiteSpace(searchTerm))
+⋮----
+var term = searchTerm.ToLowerInvariant();
+return _compounds.Where(c =>
+c.Name.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+c.Formula.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+c.CasNumber.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+c.Category.Contains(term, StringComparison.OrdinalIgnoreCase));
+⋮----
+public IEnumerable<PropertyPackageInfo> GetPropertyPackages()
+⋮----
+.Select(pp => new PropertyPackageInfo(
+pp.ToString(),
+_propertyPackageDescriptions.GetValueOrDefault(pp, "No description available")));
+⋮----
+public IEnumerable<FlashAlgorithmInfo> GetFlashAlgorithms()
+⋮----
+.Select(fa => new FlashAlgorithmInfo(
+fa.ToString(),
+_flashAlgorithmDescriptions.GetValueOrDefault(fa, "No description available")));
+⋮----
+public IEnumerable<UnitOperationInfo> GetUnitOperations()
+⋮----
+.Select(ut =>
+⋮----
+var meta = _unitOpMetadata.GetValueOrDefault(ut, new(ut.ToString(), "No description", 1, 1, 1, 1, "Unknown"));
+return new UnitOperationInfo(
+ut.ToString(),
+</file>
+
+<file path="Enerflow.Domain/DTOs/SimulationResults.cs">
+
+</file>
+
+<file path="Enerflow.Domain/Entities/Streams/MaterialStream.cs">
+public class MaterialStream : SimulationObject
+⋮----
+public override void Validate()
+⋮----
+throw new ArgumentException("Temperature must be greater than 0 K.", nameof(Temperature));
+⋮----
+throw new ArgumentException("Pressure must be greater than 0 Pa.", nameof(Pressure));
+⋮----
+throw new ArgumentException("MassFlow cannot be negative.", nameof(MassFlow));
+⋮----
+throw new ArgumentException("MolarFlow cannot be negative.", nameof(MolarFlow));
+</file>
+
+<file path="Enerflow.Domain/Entities/UnitOperations/UnitOperationObject.cs">
+public abstract class UnitOperationObject : SimulationObject
+⋮----
+public override void Validate()
+⋮----
+throw new ArgumentNullException(nameof(InputStreamIds));
+⋮----
+throw new ArgumentNullException(nameof(OutputStreamIds));
+</file>
+
+<file path="Enerflow.Domain/Enums/RecycleAccelerationMethod.cs">
+
+</file>
+
+<file path="Enerflow.Domain/Enums/SimulationStatus.cs">
+
+</file>
+
+<file path="Enerflow.Domain/Entities/UnitOperations/FlashDrumObject.cs">
+public class FlashDrumObject : UnitOperationObject, IEnergyConsumer
+⋮----
+public override void Validate()
+⋮----
+base.Validate();
+⋮----
+throw new InvalidOperationException("FlashDrum must have at least one input stream.");
+⋮----
+throw new InvalidOperationException("FlashDrum must have at least two output streams (Vapor/Liquid).");
+⋮----
+throw new ArgumentException("OutletTemperature must be non-negative.", nameof(OutletTemperature));
+⋮----
+throw new ArgumentException("OutletPressure must be non-negative.", nameof(OutletPressure));
+</file>
+
+<file path="Enerflow.Domain/Enums/UnitOperationType.cs">
+
+</file>
+
+<file path="Enerflow.Infrastructure/Migrations/20260116032453_InitialCreate.cs">
+public partial class InitialCreate : Migration
+⋮----
+protected override void Up(MigrationBuilder migrationBuilder)
+⋮----
+migrationBuilder.CreateTable(
+⋮----
+table.PrimaryKey("PK_Simulations", x => x.Id);
+⋮----
+table.PrimaryKey("PK_Compounds", x => x.Id);
+table.ForeignKey(
+⋮----
+table.PrimaryKey("PK_EnergyStreams", x => x.Id);
+⋮----
+table.PrimaryKey("PK_MaterialStreams", x => x.Id);
+⋮----
+table.PrimaryKey("PK_UnitOperations", x => x.Id);
+⋮----
+migrationBuilder.CreateIndex(
+⋮----
+protected override void Down(MigrationBuilder migrationBuilder)
+⋮----
+migrationBuilder.DropTable(
+</file>
+
+<file path="Enerflow.Infrastructure/Migrations/20260116032453_InitialCreate.Designer.cs">
+partial class InitialCreate
+⋮----
+protected override void BuildTargetModel(ModelBuilder modelBuilder)
+⋮----
+.HasAnnotation("ProductVersion", "10.0.2")
+.HasAnnotation("Relational:MaxIdentifierLength", 63);
+⋮----
+NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.Compound", b =>
+⋮----
+.ValueGeneratedOnAdd()
+.HasColumnType("uuid");
+⋮----
+.HasColumnType("jsonb");
+⋮----
+.IsRequired()
+.HasColumnType("text");
+⋮----
+b.HasKey("Id");
+⋮----
+b.HasIndex("SimulationId");
+⋮----
+b.ToTable("Compounds");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.EnergyStream", b =>
+⋮----
+.HasColumnType("double precision");
+⋮----
+b.ToTable("EnergyStreams");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.MaterialStream", b =>
+⋮----
+b.ToTable("MaterialStreams");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.Simulation", b =>
+⋮----
+.HasColumnType("timestamp with time zone");
+⋮----
+b.ToTable("Simulations");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.UnitOperation", b =>
+⋮----
+.HasColumnType("uuid[]");
+⋮----
+b.ToTable("UnitOperations");
+⋮----
+b.HasOne("Enerflow.Domain.Entities.Simulation", null)
+.WithMany()
+.HasForeignKey("SimulationId")
+.OnDelete(DeleteBehavior.Cascade)
+.IsRequired();
+</file>
+
+<file path="Enerflow.Domain/Entities/UnitOperations/CoolerObject.cs">
+public class CoolerObject : UnitOperationObject, IEnergyConsumer
+⋮----
+public override void Validate()
+⋮----
+base.Validate();
+⋮----
+throw new ArgumentException("Efficiency must be between 0 and 1.", nameof(Efficiency));
+⋮----
+throw new ArgumentException("OutletTemperature must be greater than 0 K.", nameof(OutletTemperature));
+⋮----
+throw new ArgumentException("HeatDuty cannot be negative.", nameof(HeatDuty));
+⋮----
+throw new ArgumentException("PressureDrop cannot be negative.", nameof(PressureDrop));
+</file>
+
+<file path="Enerflow.Domain/Entities/UnitOperations/HeaterObject.cs">
+public class HeaterObject : UnitOperationObject, IEnergyConsumer
+⋮----
+public override void Validate()
+⋮----
+base.Validate();
+⋮----
+throw new ArgumentException("Efficiency must be between 0 and 1.", nameof(Efficiency));
+⋮----
+throw new ArgumentException("OutletTemperature must be greater than 0 K.", nameof(OutletTemperature));
+⋮----
+throw new ArgumentException("HeatDuty cannot be negative.", nameof(HeatDuty));
+⋮----
+throw new ArgumentException("PressureDrop cannot be negative.", nameof(PressureDrop));
+</file>
+
+<file path="Enerflow.Domain/DTOs/SimulationResult.cs">
+
+</file>
+
+<file path="Enerflow.Domain/Extensions/SimulationMappingExtensions.cs">
+public static class SimulationMappingExtensions
+⋮----
+public static SimulationJob ToSimulationJob(this Simulation simulation)
+⋮----
+return new SimulationJob
+⋮----
+JobId = IdGenerator.NextGuid(),
+⋮----
+Definition = simulation.ToSimulationDefinitionDto()
+⋮----
+public static SimulationDefinitionDto ToSimulationDefinitionDto(this Simulation simulation) => new SimulationDefinitionDto
+⋮----
+Compounds = [.. simulation.Compounds.Select(c => c.ToCompoundDto())],
+MaterialStreams = [.. simulation.MaterialStreams.Select(s => s.ToMaterialStreamDto())],
+EnergyStreams = [.. simulation.EnergyStreams.Select(s => s.ToEnergyStreamDto())],
+UnitOperations = [.. simulation.UnitOperations.Select(u => u.ToUnitOperationDto())]
+⋮----
+public static CompoundDto ToCompoundDto(this Compound compound)
+⋮----
+return new CompoundDto(compound.Id, compound.Name, compound.ConstantProperties);
+⋮----
+public static MaterialStreamDto ToMaterialStreamDto(this MaterialStream stream)
+⋮----
+return new MaterialStreamDto
+⋮----
+public static EnergyStreamDto ToEnergyStreamDto(this EnergyStream stream)
+⋮----
+return new EnergyStreamDto
+⋮----
+public static UnitOperationDto ToUnitOperationDto(this UnitOperationObject unit)
+⋮----
+return new UnitOperationDto
+⋮----
+ConfigParams = JsonSerializer.SerializeToDocument(unit, unit.GetType())
+</file>
+
+<file path="Enerflow.Infrastructure/Persistence/DesignTimeDbContextFactory.cs">
+public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<EnerflowDbContext>
+⋮----
+public EnerflowDbContext CreateDbContext(string[] args)
+⋮----
+optionsBuilder.UseNpgsql(connectionString);
+⋮----
+return new EnerflowDbContext(optionsBuilder.Options);
+</file>
+
+<file path="Enerflow.API/Controllers/SimulationsController.cs">
+public class SimulationsController : ControllerBase
+⋮----
+private readonly EnerflowDbContext _context;
+⋮----
+public async Task<IActionResult> CreateSimulation([FromBody] CreateSimulationRequest request)
+⋮----
+var simulation = new Simulation
+⋮----
+_context.Simulations.Add(simulation);
+await _context.SaveChangesAsync();
+⋮----
+_logger.LogInformation("Created simulation {SimulationId} with name '{Name}'", simulation.Id, simulation.Name);
+⋮----
+status = simulation.Status.ToString()
+⋮----
+public async Task<IActionResult> AddCompound(Guid id, [FromBody] AddCompoundRequest request)
+⋮----
+var simulation = await _context.Simulations.FindAsync(id);
+⋮----
+var compound = new Compound
+⋮----
+Id = IdGenerator.NextGuid(),
+⋮----
+_context.Compounds.Add(compound);
+⋮----
+_logger.LogInformation("Added compound {CompoundId} ({Name}) to simulation {SimulationId}", compound.Id,
+⋮----
+public async Task<IActionResult> GetSimulation(Guid id)
+⋮----
+.Include(s => s.Compounds)
+.Include(s => s.MaterialStreams)
+.Include(s => s.EnergyStreams)
+.Include(s => s.UnitOperations)
+.FirstOrDefaultAsync(s => s.Id == id);
+⋮----
+status = simulation.Status.ToString(),
+⋮----
+compounds = simulation.Compounds.Select(c => new { c.Id, c.Name }),
+materialStreams = simulation.MaterialStreams.Select(s => new
+⋮----
+energyStreams = simulation.EnergyStreams.Select(s => new { s.Id, s.Name, s.EnergyFlow }),
+unitOperations = simulation.UnitOperations.Select(u => new
+⋮----
+public async Task<IActionResult> AddUnit(Guid id, [FromBody] AddUnitRequest request)
+⋮----
+UnitOperationObject unit;
+⋮----
+unit = new MixerObject
+⋮----
+unit = new HeaterObject
+⋮----
+unit = new CoolerObject
+⋮----
+unit = new RecycleObject
+⋮----
+unit.Id = IdGenerator.NextGuid();
+⋮----
+_context.UnitOperations.Add(unit);
+⋮----
+_logger.LogInformation("Added unit {UnitId} ({UnitType}) to simulation {SimulationId}", unit.Id, unit.Type, id);
+⋮----
+public async Task<IActionResult> AddStream(Guid id, [FromBody] AddStreamRequest request)
+⋮----
+var stream = new MaterialStream
+⋮----
+Temperature = new Temperature(request.Temperature, request.SystemOfUnits),
+Pressure = new Pressure(request.Pressure, request.SystemOfUnits),
+MassFlow = new MassFlow(request.MassFlow, request.SystemOfUnits),
+⋮----
+_context.MaterialStreams.Add(stream);
+⋮----
+_logger.LogInformation("Added stream {StreamId} to simulation {SimulationId}", stream.Id, id);
+⋮----
+public async Task<IActionResult> ConnectStream(Guid id, [FromBody] ConnectStreamRequest request)
+⋮----
+.FirstOrDefaultAsync(u => u.Id == request.UnitId && u.SimulationId == id);
+⋮----
+.AnyAsync(s => s.Id == request.StreamId && s.SimulationId == id);
+⋮----
+if (!unit.InputStreamIds.Contains(request.StreamId))
+⋮----
+unit.InputStreamIds.Add(request.StreamId);
+⋮----
+if (!unit.OutputStreamIds.Contains(request.StreamId))
+⋮----
+unit.OutputStreamIds.Add(request.StreamId);
+⋮----
+_logger.LogInformation(
+⋮----
+portType = request.PortType.ToString(),
+⋮----
+public async Task<IActionResult> ExportSimulation(Guid id)
+⋮----
+var exportDto = new SimulationExportDto
+⋮----
+Compounds = simulation.Compounds.Select(c => new CompoundExportDto
+⋮----
+}).ToList(),
+MaterialStreams = simulation.MaterialStreams.Select(s => new MaterialStreamExportDto
+⋮----
+EnergyStreams = simulation.EnergyStreams.Select(s => new EnergyStreamExportDto
+⋮----
+UnitOperations = simulation.UnitOperations.Select(u => new UnitOperationExportDto
+⋮----
+ConfigParams = JsonSerializer.SerializeToDocument(u, u.GetType())
+}).ToList()
+⋮----
+var jsonOptions = new JsonSerializerOptions
+⋮----
+var jsonContent = JsonSerializer.Serialize(exportDto, jsonOptions);
+⋮----
+_logger.LogInformation("Exported simulation {SimulationId} as {FileName}", id, fileName);
+⋮----
+System.Text.Encoding.UTF8.GetBytes(jsonContent),
+⋮----
+public async Task<IActionResult> ImportSimulation([FromBody] SimulationExportDto? importDto)
+⋮----
+await using var transaction = await _context.Database.BeginTransactionAsync();
+⋮----
+if (unitIdMap == null) throw new ArgumentNullException(nameof(unitIdMap));
+⋮----
+if (compoundIdMap == null) throw new ArgumentNullException(nameof(compoundIdMap));
+⋮----
+var newId = IdGenerator.NextGuid();
+⋮----
+Temperature = new Temperature(streamDto.Temperature, streamDto.SystemOfUnits),
+Pressure = new Pressure(streamDto.Pressure, streamDto.SystemOfUnits),
+MassFlow = new MassFlow(streamDto.MassFlow, streamDto.SystemOfUnits),
+⋮----
+var stream = new EnergyStream
+⋮----
+EnergyFlow = new EnergyFlow(streamDto.EnergyFlow, streamDto.SystemOfUnits)
+⋮----
+_context.EnergyStreams.Add(stream);
+⋮----
+.Where(id => streamIdMap.ContainsKey(id))
+.Select(id => streamIdMap[id])
+.ToList();
+⋮----
+unit = unitDto.ConfigParams?.Deserialize<HeaterObject>() ?? new HeaterObject
+⋮----
+unit = unitDto.ConfigParams?.Deserialize<CoolerObject>() ?? new CoolerObject
+⋮----
+unit = unitDto.ConfigParams?.Deserialize<RecycleObject>() ?? new RecycleObject
+⋮----
+await transaction.CommitAsync();
+⋮----
+await transaction.RollbackAsync();
+_logger.LogError(ex, "Failed to import simulation");
+⋮----
+private static string SanitizeFileName(string name)
+⋮----
+var invalidChars = Path.GetInvalidFileNameChars();
+var sanitized = string.Join("_", name.Split(invalidChars, StringSplitOptions.RemoveEmptyEntries));
+return string.IsNullOrWhiteSpace(sanitized) ? "simulation" : sanitized;
+⋮----
+public Guid SimulationId { get; set; } = IdGenerator.NextGuid();
+</file>
+
+<file path="Enerflow.Domain/Entities/Compound.cs">
+public class Compound
+⋮----
+public Guid Id { get; init; } = Common.IdGenerator.NextGuid();
+</file>
+
+<file path="Enerflow.Infrastructure/Migrations/EnerflowDbContextModelSnapshot.cs">
+partial class EnerflowDbContextModelSnapshot : ModelSnapshot
+⋮----
+protected override void BuildModel(ModelBuilder modelBuilder)
+⋮----
+.HasAnnotation("ProductVersion", "10.0.2")
+.HasAnnotation("Relational:MaxIdentifierLength", 63);
+⋮----
+NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.Compound", b =>
+⋮----
+.ValueGeneratedOnAdd()
+.HasColumnType("uuid");
+⋮----
+.HasColumnType("jsonb");
+⋮----
+.IsRequired()
+.HasColumnType("text");
+⋮----
+b.HasKey("Id");
+⋮----
+b.HasIndex("SimulationId");
+⋮----
+b.ToTable("Compounds");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.Simulation", b =>
+⋮----
+.HasColumnType("timestamp with time zone");
+⋮----
+.HasColumnType("integer");
+⋮----
+b.ToTable("Simulations");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.Streams.EnergyStream", b =>
+⋮----
+.HasColumnType("double precision");
+⋮----
+b.ComplexProperty(typeof(Dictionary<string, object>), "Position", "Enerflow.Domain.Entities.Streams.EnergyStream.Position#Position", b1 =>
+⋮----
+b1.IsRequired();
+⋮----
+b.ToTable("EnergyStreams");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.Streams.MaterialStream", b =>
+⋮----
+b.ComplexProperty(typeof(Dictionary<string, object>), "Position", "Enerflow.Domain.Entities.Streams.MaterialStream.Position#Position", b1 =>
+⋮----
+b.ToTable("MaterialStreams");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.UnitOperations.UnitOperationObject", b =>
+⋮----
+.HasColumnType("uuid[]");
+⋮----
+.HasMaxLength(21)
+.HasColumnType("character varying(21)");
+⋮----
+b.ComplexProperty(typeof(Dictionary<string, object>), "Position", "Enerflow.Domain.Entities.UnitOperations.UnitOperationObject.Position#Position", b1 =>
+⋮----
+b.ToTable("UnitOperations");
+⋮----
+b.HasDiscriminator<string>("UnitType").HasValue("UnitOperationObject");
+⋮----
+b.UseTphMappingStrategy();
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.UnitOperations.CoolerObject", b =>
+⋮----
+b.HasBaseType("Enerflow.Domain.Entities.UnitOperations.UnitOperationObject");
+⋮----
+b.ToTable("UnitOperations", t =>
+⋮----
+t.Property("CalcMode")
+.HasColumnName("CoolerObject_CalcMode");
+⋮----
+t.Property("Efficiency")
+.HasColumnName("CoolerObject_Efficiency");
+⋮----
+t.Property("HeatDuty")
+.HasColumnName("CoolerObject_HeatDuty");
+⋮----
+t.Property("OutletTemperature")
+.HasColumnName("CoolerObject_OutletTemperature");
+⋮----
+t.Property("PressureDrop")
+.HasColumnName("CoolerObject_PressureDrop");
+⋮----
+t.Property("TemperatureChange")
+.HasColumnName("CoolerObject_TemperatureChange");
+⋮----
+b.HasDiscriminator().HasValue("Cooler");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.UnitOperations.FlashDrumObject", b =>
+⋮----
+.HasColumnName("FlashDrumObject_OutletTemperature");
+⋮----
+b.HasDiscriminator().HasValue("FlashDrum");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.UnitOperations.HeaterObject", b =>
+⋮----
+b.HasDiscriminator().HasValue("Heater");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.UnitOperations.MixerObject", b =>
+⋮----
+b.HasDiscriminator().HasValue("Mixer");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.UnitOperations.RecycleObject", b =>
+⋮----
+b.HasDiscriminator().HasValue("Recycle");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.UnitOperations.ShortcutColumnObject", b =>
+⋮----
+b.HasDiscriminator().HasValue("ShortcutColumn");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.UnitOperations.SplitterObject", b =>
+⋮----
+b.HasDiscriminator().HasValue("Splitter");
+⋮----
+modelBuilder.Entity("Enerflow.Domain.Entities.UnitOperations.ValveObject", b =>
+⋮----
+.HasColumnName("ValveObject_CalcMode");
+⋮----
+t.Property("OutletPressure")
+.HasColumnName("ValveObject_OutletPressure");
+⋮----
+.HasColumnName("ValveObject_PressureDrop");
+⋮----
+b.HasDiscriminator().HasValue("Valve");
+⋮----
+b.HasOne("Enerflow.Domain.Entities.Simulation", null)
+.WithMany("Compounds")
+.HasForeignKey("SimulationId")
+.OnDelete(DeleteBehavior.Cascade)
+.IsRequired();
+⋮----
+.WithMany("EnergyStreams")
+⋮----
+.WithMany("MaterialStreams")
+⋮----
+.WithMany("UnitOperations")
+⋮----
+b.Navigation("Compounds");
+⋮----
+b.Navigation("EnergyStreams");
+⋮----
+b.Navigation("MaterialStreams");
+⋮----
+b.Navigation("UnitOperations");
+</file>
+
+<file path="Enerflow.Infrastructure/DependencyInjection.cs">
+public static class DependencyInjection
+⋮----
+public static void AddInfrastructure(this IServiceCollection services, string connectionString)
+⋮----
+var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+dataSourceBuilder.EnableDynamicJson();
+var dataSource = dataSourceBuilder.Build();
+⋮----
+options.UseNpgsql(dataSource));
+</file>
+
+<file path="Enerflow.Domain/Entities/Simulation.cs">
+public class Simulation
+⋮----
+public Guid Id { get; set; } = Common.IdGenerator.NextGuid();
+⋮----
+public void Validate()
+⋮----
+throw new InvalidOperationException("Simulation must have at least one compound.");
+⋮----
+throw new InvalidOperationException("Simulation must have at least one unit operation.");
+⋮----
+public List<UnitOperationObject> GetTopologicalOrder()
+⋮----
+if (streamProducers.TryGetValue(inId, out var producer))
+⋮----
+graph[producer].Add(consumer);
+⋮----
+queue.Enqueue(unit);
+⋮----
+var u = queue.Dequeue();
+sortedList.Add(u);
+⋮----
+if (graph.TryGetValue(u, out var neighbors))
+⋮----
+queue.Enqueue(v);
+⋮----
+throw new InvalidTopologyException("Cycle detected in simulation topology. Loops must be broken by a Recycle unit.");
+</file>
+
+<file path="Enerflow.Infrastructure/Persistence/EnerflowDbContext.cs">
+public class EnerflowDbContext(DbContextOptions<EnerflowDbContext> options) : DbContext(options)
+⋮----
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+⋮----
+base.OnModelCreating(modelBuilder);
+⋮----
+entity.HasKey(e => e.Id);
+entity.Property(e => e.Id).HasValueGenerator<SequentialGuidValueGenerator>();
+entity.Property(e => e.Name).IsRequired();
+⋮----
+entity.Property(e => e.PropertyPackage)
+.IsRequired();
+⋮----
+entity.Property(e => e.FlashAlgorithm)
+⋮----
+entity.Property(e => e.SystemOfUnits)
+⋮----
+entity.Property(e => e.Status)
+⋮----
+entity.Property(e => e.ResultJson).HasColumnType("jsonb");
+⋮----
+entity.HasMany(e => e.Compounds).WithOne().HasForeignKey(c => c.SimulationId)
+.OnDelete(DeleteBehavior.Cascade);
+entity.HasMany(e => e.MaterialStreams).WithOne().HasForeignKey(s => s.SimulationId)
+⋮----
+entity.HasMany(e => e.EnergyStreams).WithOne().HasForeignKey(s => s.SimulationId)
+⋮----
+entity.HasMany(e => e.UnitOperations).WithOne().HasForeignKey(u => u.SimulationId)
+⋮----
+entity.Property(e => e.ConstantProperties).HasColumnType("jsonb");
+⋮----
+entity.Property(e => e.SimulationId).IsRequired();
+⋮----
+entity.ComplexProperty(e => e.Position);
+⋮----
+entity.Property(e => e.Composition).HasColumnType("jsonb");
+⋮----
+entity.ComplexProperty(e => e.Temperature, temp =>
+⋮----
+temp.Property(t => t.Value).HasColumnName("Temperature");
+temp.Property(t => t.SystemOfUnits).HasColumnName("Temperature_Unit");
+⋮----
+entity.ComplexProperty(e => e.Pressure, press =>
+⋮----
+press.Property(p => p.Value).HasColumnName("Pressure");
+press.Property(p => p.SystemOfUnits).HasColumnName("Pressure_Unit");
+⋮----
+entity.ComplexProperty(e => e.MassFlow, mass =>
+⋮----
+mass.Property(m => m.Value).HasColumnName("MassFlow");
+mass.Property(m => m.SystemOfUnits).HasColumnName("MassFlow_Unit");
+⋮----
+entity.ComplexProperty(e => e.EnergyFlow, energy =>
+⋮----
+energy.Property(ef => ef.Value).HasColumnName("EnergyFlow");
+energy.Property(ef => ef.SystemOfUnits).HasColumnName("EnergyFlow_Unit");
+⋮----
+entity.Property(e => e.ConfigParams).HasColumnType("jsonb");
+⋮----
+entity.Ignore(e => e.Type);
+⋮----
+modelBuilder.Entity<HeaterObject>(entity => { entity.Property(e => e.CalcMode).HasConversion<string>(); });
+⋮----
+modelBuilder.Entity<CoolerObject>(entity => { entity.Property(e => e.CalcMode).HasConversion<string>(); });
+⋮----
+modelBuilder.Entity<RecycleObject>(entity => { entity.Property(e => e.Acceleration).HasConversion<string>(); });
+⋮----
+modelBuilder.Entity<ValveObject>(entity => { entity.Property(e => e.CalcMode).HasConversion<string>(); });
+⋮----
+modelBuilder.Entity<FlashDrumObject>(entity => { entity.Property(e => e.FlashType).HasConversion<string>(); });
+⋮----
+modelBuilder.Entity<SplitterObject>(entity => { entity.Property(e => e.SplitRatios).HasColumnType("jsonb"); });
+</file>
+
+<file path="Enerflow.API/Program.cs">
+var builder = WebApplication.CreateBuilder(args);
+⋮----
+NewId.SetProcessIdProvider(new MassTransit.NewIdProviders.CurrentProcessIdProvider());
+⋮----
+builder.Services.AddControllers();
+⋮----
+builder.Services.AddOpenApi();
+⋮----
+?? throw new InvalidOperationException("RedisConfiguration is not set in configuration");
+⋮----
+var configuration = ConfigurationOptions.Parse(redisConfiguration);
+⋮----
+return ConnectionMultiplexer.Connect(configuration);
+⋮----
+var dbConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+?? throw new InvalidOperationException("DefaultConnection is not set in configuration");
+⋮----
+builder.Services.ConfigurePostgresTransport(dbConnectionString);
+⋮----
+builder.Services.AddMassTransit(x =>
+⋮----
+x.SetKebabCaseEndpointNameFormatter();
+⋮----
+x.UsingPostgres((context, cfg) =>
+⋮----
+cfg.ConfigureJsonSerializerOptions(options =>
+⋮----
+cfg.ConfigureEndpoints(context);
+⋮----
+.Configure(options =>
+⋮----
+options.StartTimeout = TimeSpan.FromSeconds(10);
+options.StopTimeout = TimeSpan.FromSeconds(30);
+⋮----
+builder.Services.AddInfrastructure(dbConnectionString);
+⋮----
+var app = builder.Build();
+⋮----
+if (app.Environment.IsDevelopment())
+⋮----
+app.MapOpenApi();
+⋮----
+app.UseHsts();
+⋮----
+app.UseHttpsRedirection();
+⋮----
+app.MapControllers();
+⋮----
+app.Run();
+</file>
+
+<file path="Enerflow.Domain/DTOs/ApiRequests.cs">
+
+</file>
+
+<file path="Enerflow.Domain/DTOs/SimulationJob.cs">
+public Guid JobId { get; init; } = Common.IdGenerator.NextGuid();
+</file>
+
+</files>

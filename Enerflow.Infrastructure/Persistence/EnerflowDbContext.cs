@@ -75,6 +75,25 @@ public class EnerflowDbContext(DbContextOptions<EnerflowDbContext> options) : Db
 
             // Map Composition to JSONB
             entity.Property(e => e.Composition).HasColumnType("jsonb");
+
+            // Configure value object conversions - store SI value + original unit system
+            entity.ComplexProperty(e => e.Temperature, temp =>
+            {
+                temp.Property(t => t.Value).HasColumnName("Temperature");
+                temp.Property(t => t.SystemOfUnits).HasColumnName("Temperature_Unit");
+            });
+
+            entity.ComplexProperty(e => e.Pressure, press =>
+            {
+                press.Property(p => p.Value).HasColumnName("Pressure");
+                press.Property(p => p.SystemOfUnits).HasColumnName("Pressure_Unit");
+            });
+
+            entity.ComplexProperty(e => e.MassFlow, mass =>
+            {
+                mass.Property(m => m.Value).HasColumnName("MassFlow");
+                mass.Property(m => m.SystemOfUnits).HasColumnName("MassFlow_Unit");
+            });
         });
 
         // EnergyStream
@@ -87,6 +106,13 @@ public class EnerflowDbContext(DbContextOptions<EnerflowDbContext> options) : Db
 
             // Map Position as Complex Property
             entity.ComplexProperty(e => e.Position);
+
+            // Configure value object conversion - store SI value + original unit system
+            entity.ComplexProperty(e => e.EnergyFlow, energy =>
+            {
+                energy.Property(ef => ef.Value).HasColumnName("EnergyFlow");
+                energy.Property(ef => ef.SystemOfUnits).HasColumnName("EnergyFlow_Unit");
+            });
         });
 
         // UnitOperation

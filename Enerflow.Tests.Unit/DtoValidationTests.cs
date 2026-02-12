@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Enerflow.Domain.DTOs;
 using Enerflow.Domain.Enums;
+using Enerflow.Domain.ValueObjects;
 using Xunit;
 
 namespace Enerflow.Tests.Unit;

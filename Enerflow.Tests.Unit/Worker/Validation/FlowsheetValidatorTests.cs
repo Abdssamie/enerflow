@@ -2,6 +2,7 @@ using Enerflow.Domain.Entities;
 using Enerflow.Domain.Entities.Streams;
 using Enerflow.Domain.Entities.UnitOperations;
 using Enerflow.Domain.Enums;
+using Enerflow.Domain.ValueObjects;
 using Enerflow.Simulation.Validation;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -176,9 +177,9 @@ public sealed class FlowsheetValidatorTests
             Id = Guid.NewGuid(),
             Name = "OrphanStream",
             SimulationId = sim.Id,
-            Temperature = 298.15,
-            Pressure = 101325,
-            MassFlow = 1.0,
+            Temperature = new Temperature(298.15),
+            Pressure = new Pressure(101325),
+            MassFlow = new MassFlow(1.0),
             Composition = new Dictionary<string, double>()
         });
         
@@ -211,7 +212,7 @@ public sealed class FlowsheetValidatorTests
             Id = Guid.NewGuid(),
             Name = "OrphanEnergy",
             SimulationId = sim.Id,
-            EnergyFlow = 1000.0
+            EnergyFlow = new EnergyFlow(1000.0)
         });
         
         return sim;
@@ -246,9 +247,9 @@ public sealed class FlowsheetValidatorTests
             Id = stream1Id,
             Name = "Inlet",
             SimulationId = sim.Id,
-            Temperature = 298.15,
-            Pressure = 101325,
-            MassFlow = 1.0,
+            Temperature = new Temperature(298.15),
+            Pressure = new Pressure(101325),
+            MassFlow = new MassFlow(1.0),
             Composition = new Dictionary<string, double>()
         });
         
@@ -257,9 +258,9 @@ public sealed class FlowsheetValidatorTests
             Id = stream2Id,
             Name = "Outlet",
             SimulationId = sim.Id,
-            Temperature = 298.15,
-            Pressure = 101325,
-            MassFlow = 1.0,
+            Temperature = new Temperature(298.15),
+            Pressure = new Pressure(101325),
+            MassFlow = new MassFlow(1.0),
             Composition = new Dictionary<string, double>()
         });
         
@@ -312,9 +313,9 @@ public sealed class FlowsheetValidatorTests
             Id = Guid.NewGuid(),
             Name = "OrphanStream",
             SimulationId = sim.Id,
-            Temperature = 298.15,
-            Pressure = 101325,
-            MassFlow = 1.0,
+            Temperature = new Temperature(298.15),
+            Pressure = new Pressure(101325),
+            MassFlow = new MassFlow(1.0),
             Composition = new Dictionary<string, double>()
         });
         

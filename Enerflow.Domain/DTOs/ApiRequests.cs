@@ -46,13 +46,15 @@ public record AddStreamRequest
     public required string Name { get; init; }
 
     [Range(0d, 10000d)]
-    public double Temperature { get; init; } = 298.15; // K
+    public double Temperature { get; init; } = 298.15; // Raw value in specified unit system
 
     [Range(0d, 100000000d)]
-    public double Pressure { get; init; } = 101325;    // Pa
+    public double Pressure { get; init; } = 101325;    // Raw value in specified unit system
 
     [Range(0d, 1000000d)]
-    public double MassFlow { get; init; } = 1.0;       // kg/s
+    public double MassFlow { get; init; } = 1.0;       // Raw value in specified unit system
+    
+    public SystemOfUnits SystemOfUnits { get; init; } = SystemOfUnits.SI;  // Default to SI
     
     public Dictionary<string, double> Composition { get; init; } = new();
 }
