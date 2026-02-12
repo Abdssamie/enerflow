@@ -5,6 +5,7 @@ using Enerflow.Domain.Interfaces;
 using MassTransit;
 using StackExchange.Redis;
 using Enerflow.Infrastructure;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,16 @@ NewId.SetProcessIdProvider(new MassTransit.NewIdProviders.CurrentProcessIdProvid
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+// Configure Forwarded Headers for containerized environment
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    // Clearing KnownNetworks and KnownProxies to trust the upstream proxy/load balancer
+    // WARNING: Ensure the app is running behind a trusted proxy in production
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 // Configure Redis connection for rate limiting
 var redisConfiguration = builder.Configuration["RedisConfiguration"]
@@ -73,6 +84,9 @@ builder.Services.AddSingleton<ICatalogService, CatalogService>();
 builder.Services.AddInfrastructure(dbConnectionString);
 
 var app = builder.Build();
+
+// Use Forwarded Headers Middleware (must be first)
+app.UseForwardedHeaders();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
