@@ -3,6 +3,7 @@ using Enerflow.API.Middleware;
 using Enerflow.API.Services;
 using Enerflow.Domain.Interfaces;
 using MassTransit;
+using Microsoft.AspNetCore.HttpOverrides;
 using StackExchange.Redis;
 using Enerflow.Infrastructure;
 
@@ -13,6 +14,17 @@ NewId.SetProcessIdProvider(new MassTransit.NewIdProviders.CurrentProcessIdProvid
 
 // Add services to the container.
 builder.Services.AddControllers();
+
+// Configure Forwarded Headers for Rate Limiting and correct IP detection behind proxies
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.All;
+    // Clearing known networks/proxies to accept headers from any upstream proxy
+    // This is safe when the app is running in a container behind a reverse proxy/load balancer
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
@@ -75,6 +87,8 @@ builder.Services.AddInfrastructure(dbConnectionString);
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+app.UseForwardedHeaders();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
