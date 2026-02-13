@@ -5,8 +5,18 @@ using Enerflow.Domain.Interfaces;
 using MassTransit;
 using StackExchange.Redis;
 using Enerflow.Infrastructure;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure ForwardedHeaders to ensure correct IP detection behind proxies (critical for RateLimiting)
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    // In containerized environments, we trust the proxy (e.g. sidecar, ingress, ALB)
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 // Configure NewId to use Process ID for uniqueness across multiple instances on same host
 NewId.SetProcessIdProvider(new MassTransit.NewIdProviders.CurrentProcessIdProvider());
@@ -73,6 +83,9 @@ builder.Services.AddSingleton<ICatalogService, CatalogService>();
 builder.Services.AddInfrastructure(dbConnectionString);
 
 var app = builder.Build();
+
+// Apply ForwardedHeaders middleware at the start of the pipeline
+app.UseForwardedHeaders();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
